@@ -2,9 +2,9 @@
 -- DATABASE
 -- =============================
 
-CREATE DATABASE SHOPEE;
+CREATE DATABASE SHOPEEVN;
 GO
-USE SHOPEE;
+USE SHOPEEVN;
 GO
 
 -- =============================

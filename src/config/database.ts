@@ -4,12 +4,14 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 const config: mssql.config = {
-    user: process.env.dbUser as string,
-    password: process.env.dbPassword as string,
-    server: process.env.dbServer as string,
-    database: process.env.dbDatabase as string,
-    port: 1433,
+    user: process.env.DB_USER as string,
+    password: process.env.DB_PASSWORD as string,
+    server: process.env.DB_SERVER as string,
+    database: process.env.DB_DATABASE as string,
+    port: Number(process.env.DB_PORT) || 1433,
+
     options: {
+        encrypt: false,
         trustServerCertificate: true
     }
 };
