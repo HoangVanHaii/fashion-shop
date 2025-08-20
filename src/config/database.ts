@@ -2,26 +2,26 @@ import mssql from 'mssql';
 import dotenv from 'dotenv';
 
 dotenv.config();
-const config = {
-    user: process.env.dbUser,
-    password: process.env.dbPassword,
-    server: process.env.dbServer,
-    database: process.env.dbDatabase,
+
+const config: mssql.config = {
+    user: process.env.dbUser as string,
+    password: process.env.dbPassword as string,
+    server: process.env.dbServer as string,
+    database: process.env.dbDatabase as string,
     port: 1433,
     options: {
-        trustServerCertificate:true
+        trustServerCertificate: true
     }
-}
+};
 
 export const connectionDB = async () => {
     try {
         let pool = await mssql.connect(config);
-        console.log('ket noi database thanh cong');
+        console.log('Kết nối database thành công');
         return pool;
-    }
-    catch (err) {
+    } catch (err: any) {
         console.error(err.message);
         console.log("Không thể kết nối database");
         throw err;
     }
-}
+};
