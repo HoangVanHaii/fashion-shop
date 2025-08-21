@@ -10,7 +10,7 @@ GO
 -- =============================
 -- BẢNG NGƯỜI DÙNG
 -- =============================
-CREATE TABLE users (    
+CREATE TABLE users (
     id INT IDENTITY(1,1) PRIMARY KEY,
     name VARCHAR(100) NOT NULL,
     email VARCHAR(150) NOT NULL UNIQUE,
@@ -27,49 +27,30 @@ GO
 CREATE TABLE shops (
     id INT IDENTITY(1,1) PRIMARY KEY,
     seller_id INT NOT NULL,
-    name NVARCHAR(150) NOT NULL,
-    description NVARCHAR,
+    name VARCHAR(150) NOT NULL,
+    description TEXT,
     status VARCHAR(20) CHECK (status IN ('active','banned')) DEFAULT 'active',
     created_at DATETIME DEFAULT GETDATE(),
     FOREIGN KEY (seller_id) REFERENCES users(id) ON DELETE CASCADE
 );
 GO
-CREATE TABLE categories (
-    category_id INT PRIMARY KEY IDENTITY(1,1), -- Mã danh mục tự tăng
-    category_name NVARCHAR(100) NOT NULL,      -- Tên danh mục
-    description NVARCHAR(255),                 -- Mô tả danh mục
-    status VARCHAR(50) DEFAULT 'active'        -- Trạng thái: active / inactive
-);
 
-GO
 -- =============================
 -- BẢNG SẢN PHẨM
 -- =============================
 CREATE TABLE products (
     id INT IDENTITY(1,1) PRIMARY KEY,
     shop_id INT NOT NULL,
-    category_id INT NOT NULL,   
-    name NVARCHAR(200) NOT NULL,
-    description NVARCHAR(250),
+    name VARCHAR(200) NOT NULL,
+    description TEXT,
     price DECIMAL(10,2) NOT NULL,
     stock INT DEFAULT 0,
     status VARCHAR(20) CHECK (status IN ('active','hidden','banned')) DEFAULT 'active',
     created_at DATETIME DEFAULT GETDATE(),
-    FOREIGN KEY (shop_id) REFERENCES shops(id) ON DELETE CASCADE,
-    FOREIGN KEY (category_id) REFERENCES categories(category_id)
-
+    FOREIGN KEY (shop_id) REFERENCES shops(id) ON DELETE CASCADE
 );
 GO
-CREATE TABLE Image (
-    image_id INT PRIMARY KEY IDENTITY(1,1),
-    product_id INT NOT NULL,
-    image_url NVARCHAR(255) NOT NULL,
-    is_main BIT DEFAULT 0,  -- 1: ảnh chính, 0: ảnh phụ
-    created_at DATETIME DEFAULT GETDATE(),
-    FOREIGN KEY (image_id) REFERENCES products(id)
-);
 
-GO
 -- =============================
 -- BẢNG GIỎ HÀNG
 -- =============================
@@ -123,7 +104,7 @@ CREATE TABLE reviews (
     product_id INT NOT NULL,
     user_id INT NOT NULL,
     rating INT CHECK (rating >= 1 AND rating <= 5),
-    comment NVARCHAR(250),
+    comment TEXT,
     created_at DATETIME DEFAULT GETDATE(),
     FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE CASCADE,
     FOREIGN KEY (user_id) REFERENCES users(id)
