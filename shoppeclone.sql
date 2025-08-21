@@ -10,7 +10,7 @@ GO
 -- =============================
 -- BẢNG NGƯỜI DÙNG
 -- =============================
-CREATE TABLE users (
+CREATE TABLE users (    
     id INT IDENTITY(1,1) PRIMARY KEY,
     name VARCHAR(100) NOT NULL,
     email VARCHAR(150) NOT NULL UNIQUE,
@@ -50,7 +50,16 @@ CREATE TABLE products (
     FOREIGN KEY (shop_id) REFERENCES shops(id) ON DELETE CASCADE
 );
 GO
+CREATE TABLE Image (
+    image_id INT PRIMARY KEY IDENTITY(1,1),
+    product_id INT NOT NULL,
+    image_url NVARCHAR(255) NOT NULL,
+    is_main BIT DEFAULT 0,  -- 1: ảnh chính, 0: ảnh phụ
+    created_at DATETIME DEFAULT GETDATE(),
+    FOREIGN KEY (image_id) REFERENCES products(id)
+);
 
+GO
 -- =============================
 -- BẢNG GIỎ HÀNG
 -- =============================
