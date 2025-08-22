@@ -17,10 +17,10 @@ CREATE TABLE users (
     password VARCHAR(255) NOT NULL,
     role VARCHAR(20) CHECK (role IN ('customer', 'seller', 'admin')) DEFAULT 'customer',
     status VARCHAR(20) CHECK (status IN ('active','banned')) DEFAULT 'active',
+    is_verified BIT DEFAULT 0,   -- 0: chưa xác thực, 1: đã xác thực email/OTP
     created_at DATETIME DEFAULT GETDATE()
 );
 GO
-
 -- =============================
 -- BẢNG SHOP (chỉ dành cho seller)
 -- =============================
@@ -103,7 +103,6 @@ CREATE TABLE orders (
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 GO
-
 CREATE TABLE order_items (
     id INT IDENTITY(1,1) PRIMARY KEY,
     order_id INT NOT NULL,
@@ -195,3 +194,13 @@ CREATE TABLE flash_sale_items (
     sold INT DEFAULT 0
 );
 GO
+CREATE TABLE otp_codes (
+    id INT IDENTITY(1,1) PRIMARY KEY,      -- Khóa chính tự tăng
+    email NVARCHAR(255) NOT NULL,          -- Email người dùng
+    otp NVARCHAR(10) NOT NULL,             -- Mã OTP (chuỗi, vì có thể chứa số 0 đầu tiên)
+    created_at DATETIME DEFAULT GETDATE(),  -- Thời gian tạo OTP
+    expires_at DATETIME NOT NULL            -- Thời gian hết hạn (ví dụ 5 phút)
+);
+
+select * FROM users
+delete from users
