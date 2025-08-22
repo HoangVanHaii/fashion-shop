@@ -1,8 +1,11 @@
 import express from 'express';
 import dotenv from 'dotenv';
+import product from './src/routers/product'
+
 dotenv.config();
 const app = express();
 app.use(express.json());
+app.use('/', product)
 app.listen(process.env.PORT, () => {
     console.log(`Server is running in  http://localhost:${process.env.PORT}`);
 })
