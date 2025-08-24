@@ -8,7 +8,7 @@ const app = express();
 
 app.use(express.json());
 app.use('/api/users', userRouter);
-app.use('/api', product)
+app.use('/api/product', product)
 
 app.listen(process.env.PORT, () => {
     console.log(`Server is running in  http://localhost:${process.env.PORT}`);

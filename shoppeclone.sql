@@ -28,7 +28,7 @@ CREATE TABLE shops (
     id INT IDENTITY(1,1) PRIMARY KEY,
     seller_id INT NOT NULL,
     name NVARCHAR(150) NOT NULL,
-    description NVARCHAR,
+    description NVARCHAR(255),
     status VARCHAR(20) CHECK (status IN ('active','banned')) DEFAULT 'active',
     created_at DATETIME DEFAULT GETDATE(),
     FOREIGN KEY (seller_id) REFERENCES users(id) ON DELETE CASCADE
