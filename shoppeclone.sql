@@ -14,12 +14,15 @@ CREATE TABLE users (
     id INT IDENTITY(1,1) PRIMARY KEY,
     name VARCHAR(100) NOT NULL,
     email VARCHAR(150) NOT NULL UNIQUE,
+    address NVARCHAR(255),
     password VARCHAR(255) NOT NULL,
     role VARCHAR(20) CHECK (role IN ('customer', 'seller', 'admin')) DEFAULT 'customer',
     status VARCHAR(20) CHECK (status IN ('active','banned')) DEFAULT 'active',
     is_verified BIT DEFAULT 0,   -- 0: chưa xác thực, 1: đã xác thực email/OTP
     created_at DATETIME DEFAULT GETDATE()
 );
+
+
 GO
 -- =============================
 -- BẢNG SHOP (chỉ dành cho seller)
@@ -203,4 +206,3 @@ CREATE TABLE otp_codes (
 );
 
 select * FROM users
-delete from users
