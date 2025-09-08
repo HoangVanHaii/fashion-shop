@@ -36,7 +36,7 @@ export const updateProduct = async (product: Product): Promise<void> => {
         let updates: string[] = [];
         let request = pool.request();        
         Object.entries(product).forEach(([key, value])=> {
-            if(key !== 'id' && key !== 'shop_id' && value !== undefined) {
+            if(key !== 'id' && key !== 'shop_id' && value !== undefined && value !== null && value !== '') {
                 updates.push(`${key} = @${key}`);
                 request.input(key, value);
             }
@@ -51,7 +51,7 @@ export const updateProduct = async (product: Product): Promise<void> => {
         throw error;
     }
 }
-export const checkCategoryExists = async (category_id: number): Promise<boolean> => {
+export const getCategoryById = async (category_id: number): Promise<boolean> => {
     try {
         const pool = await connectionDB();
         const query = 'SELECT COUNT(*) as count FROM categories WHERE category_id = @category_id';
