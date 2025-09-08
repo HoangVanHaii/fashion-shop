@@ -8,7 +8,7 @@ const config: mssql.config = {
     password: process.env.DB_PASSWORD as string,
     server: process.env.DB_SERVER as string,
     database: process.env.DB_DATABASE as string,
-    port: Number(process.env.DB_PORT) || 3000,
+    port: Number(process.env.DB_PORT),
 
     options: {
         encrypt: false,

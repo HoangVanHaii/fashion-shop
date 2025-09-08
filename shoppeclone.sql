@@ -6,7 +6,7 @@ CREATE DATABASE SHOPEEVN;
 GO
 USE SHOPEEVN;
 GO
-
+select * from users
 -- =============================
 -- BẢNG NGƯỜI DÙNG
 -- =============================
@@ -21,8 +21,7 @@ CREATE TABLE users (
     is_verified BIT DEFAULT 0,   -- 0: chưa xác thực, 1: đã xác thực email/OTP
     created_at DATETIME DEFAULT GETDATE()
 );
-
-
+SELECT * FROM users
 GO
 -- =============================
 -- BẢNG SHOP (chỉ dành cho seller)
