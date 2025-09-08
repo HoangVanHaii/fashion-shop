@@ -26,6 +26,17 @@ export const addProduct = async (req: Request, res: Response) => {
 export const updateProduct = async (req: Request, res: Response) => {
   try {
     const {id, shop_id, category_id, name, description, price, stock, status} = req.body;
+    const existingProduct = await productService.getProductById(id);
+    if (!existingProduct) {
+      return res.status(404).json({ message: "Product not found" });
+    }
+    if(category_id){
+        //addtional check category exists
+        const categoryExists = await productService.getCategoryById(category_id);
+        if(!categoryExists) {
+            return res.status(404).json({ message: "Invalid category_id. Category does not exist." });
+        }
+    }
     const product = {id, shop_id, category_id, name, description, price, stock, status} as Product;
     await productService.updateProduct(product);
     res.status(200).json({ message: "Product updated successfully" });
@@ -43,7 +54,7 @@ export const getProductById = async (req: Request, res: Response) => {
     }
     res.status(200).json(products);  
   } catch (error) {
-    console.log("Error fetching product by ID:", error);
+    // console.log("Error fetching product by ID:", error);
     res.status(500).send({ message: "Internal Server Error" });
   }
 }
@@ -56,7 +67,7 @@ export const getProductByName = async (req: Request, res: Response) => {
     }
     res.status(200).json(products);
   } catch (error) {
-    console.log("Erorr fetching product by name:", error);
+    // console.log("Erorr fetching product by name:", error);
     res.status(500).send({ message: "Internal Server Error" });
   }
 }
@@ -66,7 +77,7 @@ export const softDeleteProduct = async (req: Request, res: Response) => {
     await productService.softDeleteProduct(id);
     res.status(200).json({ message: "Product soft-deleting successfully" });
   } catch (error) {
-    console.error("Error soft-deleting product:", error);
+    // console.error("Error soft-deleting product:", error);
     res.status(500).json({ message: "Internal Server Error" });
   }
 }
@@ -75,7 +86,7 @@ export const getProductsActive = async (req: Request, res: Response) => {
     const products = await productService.getProductsActive();
     res.status(200).json(products);
   } catch (error) {
-    console.error("Error fetching active products:", error);
+    // console.error("Error fetching active products:", error);
     res.status(500).json({ message: "Internal Server Error" });
   }
 }
@@ -85,7 +96,7 @@ export const getLatestProducts = async (req: Request, res: Response) => {
     const products = await productService.getLatestProducts(limit);
     res.status(200).json(products);
   } catch (error) {
-    console.error("Error fetching latest products:", error);
+    // console.error("Error fetching latest products:", error);
     res.status(500).json({ message: "Internal Server Error" });
   }
 }
@@ -95,7 +106,7 @@ export const getProductByShop = async(req: Request, res: Response) => {
     const products = await productService.getProductByShop(shop_id);
     res.status(200).json(products);
   } catch (error) {
-    console.log("Error fetching products by shop")
+    // console.log("Error fetching products by shop")
     res.status(500).send({ message:"Internal Server Erorr" });
   }
 } 
@@ -105,7 +116,7 @@ export const getProductsByCategory = async (req: Request, res: Response) => {
     const products = await productService.getProductsByCategory(category_id);
     res.status(200).json(products);
   } catch (error) {
-    console.log("Error fetching products by category");
+    // console.log("Error fetching products by category");
     res.status(500).send({ message: "Internal Server Error"});
   }
 }
