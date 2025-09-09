@@ -49,7 +49,9 @@ export const getAllUsers = async (): Promise<User[]> => {
 export const registerUser = async (user: User): Promise<void> => {
     try {
         const pool = await connectionDB();
-
+        if (!user.email) {
+            return;
+        }
         const existingUser = await getUserByEmail(user.email);
         if (existingUser) {
             throw { status: 409, message: "Email already exists" };
@@ -154,6 +156,32 @@ export const updateProfile = async(id: number, name: string, address: string, pa
         throw { status: err.status || 500, message: err.message || "Internal server error" };
     }
 }
+
+export const updateInfo = async (user: User): Promise<void> => {
+    try {
+        let listInfo: string[] = [];
+        const pool = await connectionDB();
+        const request = pool.request();
+        Object.entries(user).forEach(([key, value]) => {
+            if (key !== "id" && value !== "" && value !== null && value !== undefined) {
+                listInfo.push(`${key} = @${value}`);
+                request.input(key, value);
+                
+           }
+        })
+        const query = `UPDATE users
+            SET ${listInfo.join(', ')}
+            WHERE id = @id`
+        await request.query(query);
+           
+
+    } catch (err : any) {
+        throw err;
+    }
+
+
+}
+
 export const changePassword = async (id: number, password: string, newPassword: string): Promise<void> => {
     try {
         const pool = await connectionDB();
