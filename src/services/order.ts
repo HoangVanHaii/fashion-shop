@@ -38,7 +38,6 @@ export const createOder = async (orderData: createOderPayLoad) : Promise<void> =
         }
 
         await transaction.commit();
-        // console.log('Order created successfully with ID:', orderId);
     } catch (error: any) {
         await transaction.rollback();
         throw error;
