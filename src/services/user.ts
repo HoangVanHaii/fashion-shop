@@ -16,7 +16,7 @@ export const getUserByEmail = async (email: string): Promise<User | null> => {
         
         return result.recordset[0] || null;
 
-    } catch (err : any) {
+    } catch (err) {
         throw err;      
     }
 }
@@ -31,7 +31,7 @@ export const getUserById = async (id: number): Promise<User | null> => {
                 WHERE u.id = @id`);
 
         return result.recordset[0] || null;
-    } catch (err : any) {
+    } catch (err) {
         throw err;
     }
 }
@@ -41,17 +41,14 @@ export const getAllUsers = async (): Promise<User[]> => {
         const result = await pool.request()
             .query(`select * from users`);
         return result.recordset as User[];
-    } catch (err : any) {
-        throw { err };
+    } catch (err) {
+        throw err;
     }
 }
 
 export const registerUser = async (user: User): Promise<void> => {
     try {
         const pool = await connectionDB();
-        if (!user.email) {
-            return;
-        }
         const existingUser = await getUserByEmail(user.email);
         if (existingUser) {
             throw { status: 409, message: "Email already exists" };
@@ -81,7 +78,7 @@ export const verifyRegisterUser = async (email: string): Promise<void> => {
             .input("email", email)
             .query(`UPDATE users SET is_verified = 1 WHERE email = @email`);
         
-    } catch (err : any) {
+    } catch (err) {
         throw err;
     }
 }
@@ -175,7 +172,7 @@ export const updateInfo = async (user: User): Promise<void> => {
         await request.query(query);
            
 
-    } catch (err : any) {
+    } catch (err) {
         throw err;
     }
 
