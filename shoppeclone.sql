@@ -6,11 +6,13 @@ CREATE DATABASE SHOPEEVN;
 GO
 USE SHOPEEVN;
 GO
-select * from users
+select *
+from users
 -- =============================
 -- BẢNG NGƯỜI DÙNG
 -- =============================
-CREATE TABLE users (    
+CREATE TABLE users
+(
     id INT IDENTITY(1,1) PRIMARY KEY,
     name VARCHAR(100) NOT NULL,
     email VARCHAR(150) NOT NULL UNIQUE,
@@ -18,15 +20,18 @@ CREATE TABLE users (
     password VARCHAR(255) NOT NULL,
     role VARCHAR(20) CHECK (role IN ('customer', 'seller', 'admin')) DEFAULT 'customer',
     status VARCHAR(20) CHECK (status IN ('active','banned')) DEFAULT 'active',
-    is_verified BIT DEFAULT 0,   -- 0: chưa xác thực, 1: đã xác thực email/OTP
+    is_verified BIT DEFAULT 0,
+    -- 0: chưa xác thực, 1: đã xác thực email/OTP
     created_at DATETIME DEFAULT GETDATE()
 );
-SELECT * FROM users
+SELECT *
+FROM users
 GO
 -- =============================
 -- BẢNG SHOP (chỉ dành cho seller)
 -- =============================
-CREATE TABLE shops (
+CREATE TABLE shops
+(
     id INT IDENTITY(1,1) PRIMARY KEY,
     seller_id INT NOT NULL,
     name NVARCHAR(150) NOT NULL,
@@ -36,21 +41,27 @@ CREATE TABLE shops (
     FOREIGN KEY (seller_id) REFERENCES users(id) ON DELETE CASCADE
 );
 GO
-CREATE TABLE categories (
-    category_id INT PRIMARY KEY IDENTITY(1,1), -- Mã danh mục tự tăng
-    category_name NVARCHAR(100) NOT NULL,      -- Tên danh mục
-    description NVARCHAR(255),                 -- Mô tả danh mục
-    status VARCHAR(50) DEFAULT 'active'        -- Trạng thái: active / inactive
+CREATE TABLE categories
+(
+    category_id INT PRIMARY KEY IDENTITY(1,1),
+    -- Mã danh mục tự tăng
+    category_name NVARCHAR(100) NOT NULL,
+    -- Tên danh mục
+    description NVARCHAR(255),
+    -- Mô tả danh mục
+    status VARCHAR(50) DEFAULT 'active'
+    -- Trạng thái: active / inactive
 );
 
 GO
 -- =============================
 -- BẢNG SẢN PHẨM
 -- =============================
-CREATE TABLE products (
+CREATE TABLE products
+(
     id INT IDENTITY(1,1) PRIMARY KEY,
     shop_id INT NOT NULL,
-    category_id INT NOT NULL,   
+    category_id INT NOT NULL,
     name NVARCHAR(200) NOT NULL,
     description NVARCHAR(250),
     price DECIMAL(10,2) NOT NULL,
@@ -62,11 +73,13 @@ CREATE TABLE products (
 
 );
 GO
-CREATE TABLE Image (
+CREATE TABLE Image
+(
     image_id INT PRIMARY KEY IDENTITY(1,1),
     product_id INT NOT NULL,
     image_url NVARCHAR(255) NOT NULL,
-    is_main BIT DEFAULT 0,  -- 1: ảnh chính, 0: ảnh phụ
+    is_main BIT DEFAULT 0,
+    -- 1: ảnh chính, 0: ảnh phụ
     created_at DATETIME DEFAULT GETDATE(),
     FOREIGN KEY (image_id) REFERENCES products(id)
 );
@@ -75,7 +88,8 @@ GO
 -- =============================
 -- BẢNG GIỎ HÀNG
 -- =============================
-CREATE TABLE carts (
+CREATE TABLE carts
+(
     id INT IDENTITY(1,1) PRIMARY KEY,
     user_id INT NOT NULL,
     created_at DATETIME DEFAULT GETDATE(),
@@ -83,20 +97,22 @@ CREATE TABLE carts (
 );
 GO
 
-CREATE TABLE cart_items (
+CREATE TABLE cart_items
+(
     id INT IDENTITY(1,1) PRIMARY KEY,
     cart_id INT NOT NULL,
     product_id INT NOT NULL,
     quantity INT NOT NULL DEFAULT 1,
     FOREIGN KEY (cart_id) REFERENCES carts(id) ON DELETE CASCADE,
-    FOREIGN KEY (product_id) REFERENCES products(id) 
+    FOREIGN KEY (product_id) REFERENCES products(id)
 );
 GO
 
 -- =============================
 -- BẢNG ĐƠN HÀNG
 -- =============================
-CREATE TABLE orders (
+CREATE TABLE orders
+(
     id INT IDENTITY(1,1) PRIMARY KEY,
     user_id INT NOT NULL,
     total DECIMAL(10,2) NOT NULL,
@@ -105,21 +121,23 @@ CREATE TABLE orders (
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 GO
-CREATE TABLE order_items (
+CREATE TABLE order_items
+(
     id INT IDENTITY(1,1) PRIMARY KEY,
     order_id INT NOT NULL,
     product_id INT NOT NULL,
     quantity INT NOT NULL,
     price DECIMAL(10,2) NOT NULL,
     FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE CASCADE,
-    FOREIGN KEY (product_id) REFERENCES products(id) 
+    FOREIGN KEY (product_id) REFERENCES products(id)
 );
 GO
 
 -- =============================
 -- BẢNG ĐÁNH GIÁ
 -- =============================
-CREATE TABLE reviews (
+CREATE TABLE reviews
+(
     id INT IDENTITY(1,1) PRIMARY KEY,
     product_id INT NOT NULL,
     user_id INT NOT NULL,
@@ -134,7 +152,8 @@ GO
 -- =============================
 -- BẢNG THANH TOÁN
 -- =============================
-CREATE TABLE payments (
+CREATE TABLE payments
+(
     id INT IDENTITY(1,1) PRIMARY KEY,
     order_id INT NOT NULL,
     method VARCHAR(20) CHECK (method IN ('cod','credit_card','paypal','momo')) DEFAULT 'cod',
@@ -148,7 +167,8 @@ GO
 -- =============================
 -- BẢNG VOUCHER
 -- =============================
-CREATE TABLE vouchers (
+CREATE TABLE vouchers
+(
     id INT PRIMARY KEY IDENTITY(1,1),
     code NVARCHAR(50) UNIQUE NOT NULL,
     description NVARCHAR(255),
@@ -160,14 +180,15 @@ CREATE TABLE vouchers (
     used INT DEFAULT 0,
     start_date DATETIME NOT NULL,
     end_date DATETIME NOT NULL,
-    created_by INT, 
+    created_by INT,
     scope NVARCHAR(20) CHECK (scope IN ('GLOBAL','SHOP')) NOT NULL,
     shop_id INT NULL FOREIGN KEY REFERENCES shops(id),
     FOREIGN KEY (created_by) REFERENCES users(id)
 );
 GO
 
-CREATE TABLE user_vouchers (
+CREATE TABLE user_vouchers
+(
     id INT PRIMARY KEY IDENTITY(1,1),
     voucher_id INT FOREIGN KEY REFERENCES vouchers(id),
     user_id INT FOREIGN KEY REFERENCES users(id),
@@ -178,7 +199,8 @@ GO
 -- =============================
 -- BẢNG FLASH SALE
 -- =============================
-CREATE TABLE flash_sales (
+CREATE TABLE flash_sales
+(
     id INT PRIMARY KEY IDENTITY(1,1),
     title NVARCHAR(100),
     start_date DATETIME NOT NULL,
@@ -187,7 +209,8 @@ CREATE TABLE flash_sales (
 );
 GO
 
-CREATE TABLE flash_sale_items (
+CREATE TABLE flash_sale_items
+(
     id INT PRIMARY KEY IDENTITY(1,1),
     flash_sale_id INT FOREIGN KEY REFERENCES flash_sales(id),
     product_id INT FOREIGN KEY REFERENCES products(id),
@@ -196,12 +219,19 @@ CREATE TABLE flash_sale_items (
     sold INT DEFAULT 0
 );
 GO
-CREATE TABLE otp_codes (
-    id INT IDENTITY(1,1) PRIMARY KEY,      -- Khóa chính tự tăng
-    email NVARCHAR(255) NOT NULL,          -- Email người dùng
-    otp NVARCHAR(10) NOT NULL,             -- Mã OTP (chuỗi, vì có thể chứa số 0 đầu tiên)
-    created_at DATETIME DEFAULT GETDATE(),  -- Thời gian tạo OTP
-    expires_at DATETIME NOT NULL            -- Thời gian hết hạn (ví dụ 5 phút)
+CREATE TABLE otp_codes
+(
+    id INT IDENTITY(1,1) PRIMARY KEY,
+    -- Khóa chính tự tăng
+    email NVARCHAR(255) NOT NULL,
+    -- Email người dùng
+    otp NVARCHAR(10) NOT NULL,
+    -- Mã OTP (chuỗi, vì có thể chứa số 0 đầu tiên)
+    created_at DATETIME DEFAULT GETDATE(),
+    -- Thời gian tạo OTP
+    expires_at DATETIME NOT NULL
+    -- Thời gian hết hạn (ví dụ 5 phút)
 );
 
-select * FROM users
+select *
+FROM users
