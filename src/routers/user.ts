@@ -24,9 +24,9 @@ router.get("/",authMiddleware, userController.getAllUsers);
 
 router.post("/update-profile", authMiddleware, userValidator.updateUserValidator, validateRequest, userController.updateUser);
 
-router.post('/:id', authMiddleware, userController.updateInfo);
 
 router.post("/change-password", authMiddleware, userValidator.changePasswordValidator, validateRequest, userController.changePassword);
+router.post('/:id', authMiddleware, userController.updateInfo);
 
 router.post("/forgot-password", userValidator.forgotPasswordValidator, validateRequest, userController.forgotPassword);
 router.post("/verify-forgot-password", userValidator.verifyForgotPasswordValidator, validateRequest, userController.verifyForgotPasswordOtp);

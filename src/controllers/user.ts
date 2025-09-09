@@ -122,7 +122,7 @@ export const refreshToken = async (req: Request, res: Response) => {
 
 export const getProfile = async (req: Request, res: Response) => {
     try {
-        const id = req.user?.id;
+        const id = req.user!.id;
 
         const user = await userService.getUserById(id);
         if (!user) {
@@ -206,7 +206,7 @@ export const getAllUsers = async (req: Request, res: Response) => {
 export const updateUser = async (req: Request, res: Response) => {
     try {
         const { name, address, password } = req.body;
-        const id = req.user?.id;
+        const id = req.user!.id;
         await userService.updateProfile(id, name, address, password);
         
         return res.status(200).json({
@@ -230,7 +230,7 @@ export const updateInfo = async (req: Request, res: Response) => {
         if (roleAmin !== "admin") {
             return res.status(403).json({
                 success: false,
-                message: "Admin only"
+                message: "Admin onlyyy"
             })
         }
         const { id, name, email, address, role, status, password } = req.body;
@@ -260,7 +260,7 @@ export const updateInfo = async (req: Request, res: Response) => {
 export const changePassword = async (req: Request, res: Response) => {
     try {
         const { password, newPassword } = req.body;
-        const id = req.user?.id;
+        const id = req.user!.id;
 
         await userService.changePassword(id, password, newPassword);
         return res.status(200).json({
@@ -282,7 +282,7 @@ export const changePassword = async (req: Request, res: Response) => {
 export const changeEmail = async (req: Request, res: Response) => {
     try {
         const { newEmail, password } = req.body;
-        const id = req.user?.id;
+        const id = req.user!.id;
         await userService.changeEmail(id, newEmail, password);
         return res.status(200).json({
             success: true,
@@ -302,7 +302,7 @@ export const changeEmail = async (req: Request, res: Response) => {
 }
 export const verifyChangeEmail = async (req: Request, res: Response) => {
     try {
-        const id = req.user?.id;
+        const id = req.user!.id;
         const { newEmail, otp } = req.body;
         await userService.verifyChangeEmail(id, newEmail, otp);
         return res.status(200).json({
