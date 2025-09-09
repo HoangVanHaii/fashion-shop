@@ -109,7 +109,7 @@ export const loginUser = async (email: string, password: string) => {
         const refreshToken = jwtUtils.refreshToken(user.id, user.email, user.role);
 
         return {
-            user,
+            // user,
             accessToken,
             refreshToken
          };
