@@ -12,44 +12,21 @@ router.post(
   validateRequest,
   userController.registerUser
 );
-router.post(
-  "/verify-register",
-  userValidator.verifyOtpValidator,
-  validateRequest,
-  userController.verifyRegisterUser
-);
+router.post("/verify-register", userValidator.verifyOtpValidator, validateRequest, userController.verifyRegisterUser);
 
-router.post(
-  "/login",
-  userValidator.loginValidator,
-  validateRequest,
-  userController.loginUser
-);
+router.post("/login", userValidator.loginValidator, validateRequest, userController.loginUser);
 
-router.post(
-  "/refresh-token",
-  userValidator.refreshTokenValidator,
-  validateRequest,
-  userController.refreshToken
-);
+router.post("/refresh-token", userValidator.refreshTokenValidator, validateRequest, userController.refreshToken);
 
 router.get("/me", authMiddleware, userController.getProfile);
 router.get("/:id",authMiddleware, userController.getUserById);
 router.get("/",authMiddleware, userController.getAllUsers);
 
-router.post(
-  "/update-profile",
-  authMiddleware,
-  userValidator.updateUserValidator, validateRequest,
-  userController.updateUser
-);
-router.post(
-  "/change-password",
-  authMiddleware,
-  userValidator.changePasswordValidator,
-  validateRequest,
-  userController.changePassword
-);
+router.post("/update-profile", authMiddleware, userValidator.updateUserValidator, validateRequest, userController.updateUser);
+
+
+router.post("/change-password", authMiddleware, userValidator.changePasswordValidator, validateRequest, userController.changePassword);
+router.post('/:id', authMiddleware, userController.updateInfo);
 
 router.post("/forgot-password", userValidator.forgotPasswordValidator, validateRequest, userController.forgotPassword);
 router.post("/verify-forgot-password", userValidator.verifyForgotPasswordValidator, validateRequest, userController.verifyForgotPasswordOtp);

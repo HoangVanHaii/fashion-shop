@@ -5,11 +5,10 @@ import * as utils from "../utils/sendOTP";
 import * as otpService from "../services/otp";
 import * as jwtUtils from "../utils/jwt"
 import jwt from "jsonwebtoken";
-import { Request } from "mssql";
 
 export const registerUser = async (req: Request, res: Response) => {
     try {
-        const { name, email, password, role } = req.body as User;
+        const { name, email, password, role } = req.body;
 
         await userService.registerUser({email, name, password, role} as User);
         const otp = Math.floor(100000 + Math.random() * 900000).toString();
@@ -123,7 +122,7 @@ export const refreshToken = async (req: Request, res: Response) => {
 
 export const getProfile = async (req: Request, res: Response) => {
     try {
-        const id = req.user?.id;
+        const id = req.user!.id;
 
         const user = await userService.getUserById(id);
         if (!user) {
@@ -134,7 +133,7 @@ export const getProfile = async (req: Request, res: Response) => {
         }
         return res.status(200).json({
             success: true,
-            mesage: "get user successfully",
+            message: "get user successfully",
             user
 
         });
@@ -163,7 +162,7 @@ export const getUserById = async (req: Request, res: Response) => {
         }
         return res.status(200).json({
             success: true,
-            mesage: "get userById successfully",
+            message: "get userById successfully",
             user
 
         });
@@ -195,10 +194,10 @@ export const getAllUsers = async (req: Request, res: Response) => {
         })
 
     } catch (err : any) {
-        console.error("getUserById controller error:", err.mesage || "Internal server error");
+        console.error("getUserById controller error:", err.message || "Internal server error");
         return res.status(500).json({
             success: false,
-            message: err.mesage || "Internal server error"
+            message: err.message || "Internal server error"
         });
     }
 
@@ -207,7 +206,7 @@ export const getAllUsers = async (req: Request, res: Response) => {
 export const updateUser = async (req: Request, res: Response) => {
     try {
         const { name, address, password } = req.body;
-        const id = req.user?.id;
+        const id = req.user!.id;
         await userService.updateProfile(id, name, address, password);
         
         return res.status(200).json({
@@ -224,12 +223,44 @@ export const updateUser = async (req: Request, res: Response) => {
             message: message
         });
     }
+}
+export const updateInfo = async (req: Request, res: Response) => {
+    try {
+        const roleAmin = req.user?.role;
+        if (roleAmin !== "admin") {
+            return res.status(403).json({
+                success: false,
+                message: "Admin onlyyy"
+            })
+        }
+        const { id, name, email, address, role, status, password } = req.body;
+        const checkUser = await userService.getUserById(id);
+        if (!checkUser) {
+            return res.status(404).json({
+                success: false,
+                message: "User not found"
+            })
+        }
+        const user = { id, name, email, address, role, status, password } as User;
+        await userService.updateInfo(user);
 
+        return res.status(200).json({
+            success: true,
+            message: "User updated successfully"
+        })
+        
+    } catch (err : any) {
+        console.error("updateInfo controller error:", err.message || "Internal server error");
+        return res.status(500).json({
+            success: false,
+            message: err.message || "Internal server error"
+        })
+    }
 }
 export const changePassword = async (req: Request, res: Response) => {
     try {
         const { password, newPassword } = req.body;
-        const id = req.user?.id;
+        const id = req.user!.id;
 
         await userService.changePassword(id, password, newPassword);
         return res.status(200).json({
@@ -251,7 +282,7 @@ export const changePassword = async (req: Request, res: Response) => {
 export const changeEmail = async (req: Request, res: Response) => {
     try {
         const { newEmail, password } = req.body;
-        const id = req.user?.id;
+        const id = req.user!.id;
         await userService.changeEmail(id, newEmail, password);
         return res.status(200).json({
             success: true,
@@ -271,7 +302,7 @@ export const changeEmail = async (req: Request, res: Response) => {
 }
 export const verifyChangeEmail = async (req: Request, res: Response) => {
     try {
-        const id = req.user?.id;
+        const id = req.user!.id;
         const { newEmail, otp } = req.body;
         await userService.verifyChangeEmail(id, newEmail, otp);
         return res.status(200).json({
@@ -335,7 +366,7 @@ export const resetPassword = async (req: Request, res: Response) => {
         await userService.resetPassword(email, newPassword);
         return res.status(200).json({
             success: true, 
-            mesage: "Password reset successfully",
+            message: "Password reset successfully",
             data: email
         })
     } catch (err : any) {
