@@ -1,5 +1,39 @@
 import { connectionDB } from "../config/database";
 
+export const getVoucherCodeById = async (voucher_id: number): Promise<string | null> => {
+  try {
+    const pool = await connectionDB();
+    const query = `SELECT code FROM vouchers WHERE id = @voucher_id`;
+    const result = await pool
+      .request()
+      .input("voucher_id", voucher_id)
+      .query(query);
+
+    if (result.recordset.length === 0) {
+      return null;
+    }
+    return result.recordset[0].code;
+  } catch (error: any) {
+    throw error; 
+  }
+}
+export const getVoucherByCode = async (code: string): Promise<any | null> => {
+  try {
+    const pool = await connectionDB();
+    const query = `SELECT * FROM vouchers WHERE code = @code`;
+    const result = await pool
+      .request()
+      .input("code", code)
+      .query(query);
+
+    if (result.recordset.length === 0) {
+      return null;
+    }
+    return result.recordset[0];
+  } catch (error: any) {
+    throw error; 
+  }
+}         
 export const validateVoucher = async (code: string, orderTotal: number, shop_id?: number): Promise<number> => {
   try {
     const pool = await connectionDB();

@@ -115,12 +115,18 @@ CREATE TABLE orders
 (
     id INT IDENTITY(1,1) PRIMARY KEY,
     user_id INT NOT NULL,
+    voucher_id INT,
     total DECIMAL(10,2) NOT NULL,
-    status VARCHAR(20) CHECK (status IN ('pending','paid','shipped','completed','cancelled')) DEFAULT 'pending',
+    status VARCHAR(20) CHECK (status IN ('pending','','shipped','completed','cancelled')) DEFAULT 'pending',
+    shipping_address NVARCHAR(255) NOT NULL,
+    shipping_phone NVARCHAR(20) NOT NULL,
+    shipping_name NVARCHAR(255) NOT NULL,
     created_at DATETIME DEFAULT GETDATE(),
-    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (voucher_id) REFERENCES vouchers(id)
 );
-GO
+-- alter table orders add payment_method VARCHAR(20) CHECK (payment_method IN ('cod','credit_card','paypal','momo')) DEFAULT 'cod',
+
 CREATE TABLE order_items
 (
     id INT IDENTITY(1,1) PRIMARY KEY,

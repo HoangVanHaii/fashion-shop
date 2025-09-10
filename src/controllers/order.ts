@@ -7,8 +7,8 @@ import { validateVoucher } from '../services/voucher';
 export const createOrder = async (req: Request, res: Response)=> {
     try {
         const user_id  = req.user?.id;
+        const {orderItems, voucherCode, shipping_name, shipping_address, shipping_phone, method_payment, statusPayment} = req.body;
 
-        const {orderItems, voucherCode} = req.body;
         let total = 0;
         const orderItemsData: OrderItem[] = [];
         for(const item of orderItems){
@@ -36,11 +36,15 @@ export const createOrder = async (req: Request, res: Response)=> {
         const orderData: Order = {
             user_id: user_id!,
             total: total,
+            payment_method: method_payment,
+            shipping_name: shipping_name,
+            shipping_address: shipping_address,
+            shipping_phone: shipping_phone,
             status: 'pending'
         }
-        await orderService.createOder({order: orderData, orderItems: orderItemsData});
+        await orderService.createOder({order: orderData, orderItems: orderItemsData}, statusPayment);
         return res.status(201).json({ message: 'Order created successfully' });
     } catch (error: any) {
-        return res.status(error.status || 500).json({ message: 'Internal server error' });
+        return res.status(error.status || 500).json({ message: 'Internal server error' , error: error.message});
     }
 }
