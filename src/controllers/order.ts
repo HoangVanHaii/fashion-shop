@@ -8,10 +8,12 @@ export const createOrder = async (req: Request, res: Response)=> {
     try {
         const user_id  = req.user?.id;
         const {orderItems, voucherCode, shipping_name, shipping_address, shipping_phone, method_payment, statusPayment} = req.body;
+
         let total = 0;
         const orderItemsData: OrderItem[] = [];
         for(const item of orderItems){
             const product = await productService.getProductById(item.product_id);
+
             if(!product || product.status !== 'active'){
                 return res.status(400).json({ message: `Product with ID ${item.product_id} is not available.` });
             }
@@ -29,6 +31,7 @@ export const createOrder = async (req: Request, res: Response)=> {
         }
         const discount = await validateVoucher(voucherCode, total);
         total -= discount;
+
         if(total < 0) total = 0; 
         const orderData: Order = {
             user_id: user_id!,
