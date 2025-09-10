@@ -88,7 +88,7 @@ export const loginUser = async (email: string, password: string) => {
     const result = await pool.request().input("email", email)
       .query(`SELECT u.id, u.name, u.email, u.role, u.password
                 FROM users u
-                WHERE email = @eail AND is_verified = 1`);
+                WHERE email = @email AND is_verified = 1`);
 
     if (result.recordset.length === 0) {
       throw { status: 404, message: "User not found" };
