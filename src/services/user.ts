@@ -16,7 +16,7 @@ export const getUserByEmail = async (email: string): Promise<User | null> => {
         
         return result.recordset[0] || null;
 
-    } catch (err : any) {
+    } catch (err) {
         throw err;      
     }
 }
@@ -31,7 +31,7 @@ export const getUserById = async (id: number): Promise<User | null> => {
                 WHERE u.id = @id`);
 
         return result.recordset[0] || null;
-    } catch (err : any) {
+    } catch (err) {
         throw err;
     }
 }
@@ -41,15 +41,14 @@ export const getAllUsers = async (): Promise<User[]> => {
         const result = await pool.request()
             .query(`select * from users`);
         return result.recordset as User[];
-    } catch (err : any) {
-        throw { err };
+    } catch (err) {
+        throw err;
     }
 }
 
 export const registerUser = async (user: User): Promise<void> => {
     try {
         const pool = await connectionDB();
-
         const existingUser = await getUserByEmail(user.email);
         if (existingUser) {
             throw { status: 409, message: "Email already exists" };
@@ -79,7 +78,7 @@ export const verifyRegisterUser = async (email: string): Promise<void> => {
             .input("email", email)
             .query(`UPDATE users SET is_verified = 1 WHERE email = @email`);
         
-    } catch (err : any) {
+    } catch (err) {
         throw err;
     }
 }
@@ -107,7 +106,7 @@ export const loginUser = async (email: string, password: string) => {
         const refreshToken = jwtUtils.refreshToken(user.id, user.email, user.role);
 
         return {
-            user,
+            // user,
             accessToken,
             refreshToken
          };
@@ -154,6 +153,32 @@ export const updateProfile = async(id: number, name: string, address: string, pa
         throw { status: err.status || 500, message: err.message || "Internal server error" };
     }
 }
+
+export const updateInfo = async (user: User): Promise<void> => {
+    try {
+        let listInfo: string[] = [];
+        const pool = await connectionDB();
+        const request = pool.request();
+        Object.entries(user).forEach(([key, value]) => {
+            if (key !== "id" && value !== "" && value !== null && value !== undefined) {
+                listInfo.push(`${key} = @${value}`);
+                request.input(key, value);
+                
+           }
+        })
+        const query = `UPDATE users
+            SET ${listInfo.join(', ')}
+            WHERE id = @id`
+        await request.query(query);
+           
+
+    } catch (err) {
+        throw err;
+    }
+
+
+}
+
 export const changePassword = async (id: number, password: string, newPassword: string): Promise<void> => {
     try {
         const pool = await connectionDB();
