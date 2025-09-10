@@ -1,11 +1,11 @@
-import "express"
+import "express";
 
 declare module "express-serve-static-core" {
-    interface Request{
-        user?: {
-            id: number,
-            email: string,
-            role: "customer" | "seller" | "admin";
-        };
-    }
+  interface Request {
+    user?: {
+      id: number;
+      email: string;
+      role: "customer" | "seller" | "admin";
+    };
+  }
 }
