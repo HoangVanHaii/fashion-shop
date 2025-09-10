@@ -1,7 +1,12 @@
 export interface Order {
     id?: number;
     user_id: number;
+    voucher_id?: number;
     total: number;
+    payment_method: 'cod' | 'credit_card' | 'paypal' | 'momo';
+    shipping_name: string;
+    shipping_address: string;
+    shipping_phone: string;
     status: 'pending' | 'paid' | 'shipped' | 'delivered' | 'cancelled';
     created_at?: Date;
 }
