@@ -69,7 +69,6 @@ export const getProductById = async (id: number): Promise<Product | null> => {
             .query(query);
         return result.recordset[0] as Product || null;   
     } catch (error) {
-        console.error('Error fetching product by ID:', error);
         throw error;   
     }
 }
