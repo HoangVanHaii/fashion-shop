@@ -21,12 +21,19 @@ CREATE TABLE users
     role VARCHAR(20) CHECK (role IN ('customer', 'seller', 'admin')) DEFAULT 'customer',
     status VARCHAR(20) CHECK (status IN ('active','banned')) DEFAULT 'active',
     is_verified BIT DEFAULT 0,
-    -- 0: chưa xác thực, 1: đã xác thực email/OTP
     created_at DATETIME DEFAULT GETDATE()
 );
-SELECT *
-FROM users
 GO
+CREATE TABLE addresses (
+    id INT IDENTITY(1,1) PRIMARY KEY,
+    user_id INT NOT NULL,
+    name NVARCHAR(255) NOT NULL,
+    address NVARCHAR(500) NOT NULL,
+    phone NVARCHAR(20) NOT NULL,
+    is_default BIT NOT NULL DEFAULT 0,
+    CONSTRAINT FK_ShippingAddresses_Users FOREIGN KEY(user_id)
+        REFERENCES Users(id) ON DELETE CASCADE
+);
 -- =============================
 -- BẢNG SHOP (chỉ dành cho seller)
 -- =============================
