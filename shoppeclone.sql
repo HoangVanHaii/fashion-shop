@@ -24,8 +24,7 @@ CREATE TABLE users
     -- 0: chưa xác thực, 1: đã xác thực email/OTP
     created_at DATETIME DEFAULT GETDATE()
 );
-SELECT *
-FROM users
+
 GO
 -- =============================
 -- BẢNG SHOP (chỉ dành cho seller)
@@ -239,5 +238,5 @@ CREATE TABLE otp_codes
     -- Thời gian hết hạn (ví dụ 5 phút)
 );
 
-select *
-FROM users
+-- select *
+-- FROM addre
