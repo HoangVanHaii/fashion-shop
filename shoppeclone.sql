@@ -18,6 +18,7 @@ CREATE TABLE users
     is_verified BIT DEFAULT 0,
     created_at DATETIME DEFAULT GETDATE()
 );
+
 GO
 CREATE TABLE addresses (
     id INT IDENTITY(1,1) PRIMARY KEY,
@@ -217,4 +218,6 @@ CREATE TABLE otp_codes
     otp NVARCHAR(10) NOT NULL,
     created_at DATETIME DEFAULT GETDATE(),
     expires_at DATETIME NOT NULL
+    -- Thời gian hết hạn (ví dụ 5 phút)
 );
+

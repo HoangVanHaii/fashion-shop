@@ -12,13 +12,7 @@ export const addtoCart = async (req: Request, res: Response) => {
             message: "Product added to cart"
         });
     } catch (err : any) {
-        const status = err.status || 500;
-        const message = err.message || "Internal server error";
-        console.log("addToCart error: ", message);
-        return res.status(status).json({
-            success: false,
-            message: message    
-        })
+        throw err;
     }
 }
 

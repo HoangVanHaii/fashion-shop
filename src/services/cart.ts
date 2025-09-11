@@ -1,10 +1,12 @@
 import { connectionDB } from "../config/database";
 import { Cart, CartItem, CartItemDetail } from "../interfaces/cart";
+import { AppError } from "../utils/appError";
 
 export const addToCart = async(user_id: number, product_id: number, quantity: number):Promise<void> => {
     const pool = await connectionDB();
     const transaction = await pool.transaction();
     try {
+        await transaction.begin();
         const cartResult = await transaction
             .request()
             .input("user_id", user_id)
@@ -27,12 +29,13 @@ export const addToCart = async(user_id: number, product_id: number, quantity: nu
             .request()
             .input("id", product_id)
             .query(`SELECT stock FROM product WHERE id = @id`);
+        
         if (productResult.recordset.length === 0) {
-            throw { status: 404, message: "Product not found" };
+            throw new AppError("Product not found", 404);
         }
         const stock = productResult.recordset[0].stock;
         if (stock < quantity) {
-            throw { status: 400, message: "Not enough stock" };
+            throw new AppError(`Not enough stock. Available: ${stock}`, 400);
         }
         const itemResult = await transaction
             .request()
@@ -52,8 +55,8 @@ export const addToCart = async(user_id: number, product_id: number, quantity: nu
         else {
             const newQuantity = itemResult.recordset[0].quantity + quantity;
             if (newQuantity > stock) {
-                throw { status: 400, message: "Not enough stock" };
-            }
+                throw new AppError(`Not enough stock. Available: ${stock}`, 400);
+                }
             await transaction
                 .request()
                 .input("id", itemResult.recordset[0].id)
@@ -66,8 +69,8 @@ export const addToCart = async(user_id: number, product_id: number, quantity: nu
 
     } catch (err: any) {
         await transaction.rollback();
-        throw err;
-        
+        if (err instanceof AppError) throw err;
+        throw new AppError("Failed to addToCart", 500, false);
     }
 }
 // export const deleteCartId = async

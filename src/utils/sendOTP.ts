@@ -1,4 +1,5 @@
 import nodemailer from "nodemailer";
+import { AppError } from "./appError";
 
 export const sendOtp = async (email: string, otp: string): Promise<boolean> => {
   try {
@@ -20,8 +21,6 @@ export const sendOtp = async (email: string, otp: string): Promise<boolean> => {
     await transporter.sendMail(mailOptions);
     return true;
   } catch (err: any) {
-      console.error("Lỗi gửi OTP:", err.message);
-      
-    throw new Error("Không thể gửi OTP");
+    throw new AppError("Failed to sendOtp", 500, false);
   }
 };
