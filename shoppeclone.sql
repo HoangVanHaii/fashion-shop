@@ -218,4 +218,3 @@ CREATE TABLE otp_codes
     created_at DATETIME DEFAULT GETDATE(),
     expires_at DATETIME NOT NULL
 );
-
