@@ -204,4 +204,15 @@ CREATE TABLE otp_codes (
     expires_at DATETIME NOT NULL            -- Thời gian hết hạn (ví dụ 5 phút)
 );
 
-select * FROM users
+select * FROM addresses
+
+CREATE TABLE addresses (
+    id INT IDENTITY(1,1) PRIMARY KEY,
+    user_id INT NOT NULL,
+    name NVARCHAR(255) NOT NULL,
+    address NVARCHAR(500) NOT NULL,
+    phone NVARCHAR(20) NOT NULL,
+    is_default BIT NOT NULL DEFAULT 0,
+    CONSTRAINT FK_ShippingAddresses_Users FOREIGN KEY(user_id)
+        REFERENCES Users(id) ON DELETE CASCADE
+);
