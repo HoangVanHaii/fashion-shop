@@ -1,11 +1,12 @@
 import { Request, Response, NextFunction } from "express"
 import jwt from "jsonwebtoken"
 import { User } from "../interfaces/user";
+import { AppError } from "../utils/appError";
 
 export const authMiddleware = (req: Request, res: Response, next: NextFunction) => {
     const authHeader = req.headers["authorization"];
     if (!authHeader || !authHeader.startsWith("Bearer ")) {
-        return res.status(401).json({ message: "" });
+        throw new AppError("Token is required", 401);
     }
     const token = authHeader.split(" ")[1];
     try {
@@ -15,10 +16,10 @@ export const authMiddleware = (req: Request, res: Response, next: NextFunction) 
         next();
     } catch (err : any) {
         if (err instanceof jwt.TokenExpiredError) {
-            return res.status(401).json({ message: "Token expired" });
+            throw new AppError("Token expired", 401);
         }
         else {
-            return res.status(401).json({ message: "Invalid token" });
+            throw new AppError("Invalid token", 401);
         }
     }
 }

@@ -1,14 +1,19 @@
 import { connectionDB } from "../config/database";
+import { AppError } from "../utils/appError";
 
 export const saveOtp = async (email: string, otp: string): Promise<void> => {
-  const pool = await connectionDB();
-  await pool.request().input("email", email).query(`DELETE FROM otp_codes
-            WHERE email = @email`);
-
-  await pool.request().input("email", email).input("otp", otp)
-    .query(`INSERT INTO otp_codes (email, otp, expires_at)
-            VALUES(@email, @otp, DATEADD(MINUTE, 5, GETDATE()))`);
-  console.log(email, otp);
+  try {
+    const pool = await connectionDB();
+    await pool.request().input("email", email).query(`DELETE FROM otp_codes
+              WHERE email = @email`);
+  
+    await pool.request().input("email", email).input("otp", otp)
+      .query(`INSERT INTO otp_codes (email, otp, expires_at)
+              VALUES(@email, @otp, DATEADD(MINUTE, 5, GETDATE()))`);
+    
+  } catch (err : any) {
+    throw new AppError("Failed to saveOtp", 500, false);
+  }
 };
 
 export const verifyOtp = async (email: string, otp: string) => {
@@ -29,7 +34,6 @@ export const verifyOtp = async (email: string, otp: string) => {
     }
     return false;
   } catch (err: any) {
-    console.error("Lỗi xác thực OTP:", err.message);
-    throw new Error("Lỗi xác thực OTP");
+    throw new AppError("Failed to verifyOtp", 500, false);
   }
 };

@@ -22,8 +22,7 @@ router.get("/me", authMiddleware, userController.getProfile);
 router.get("/:id",authMiddleware, userController.getUserById);
 router.get("/",authMiddleware, userController.getAllUsers);
 
-router.post("/update-profile", authMiddleware, userValidator.updateUserValidator, validateRequest, userController.updateUser);
-
+router.post("/update-profile", authMiddleware, userValidator.updateUserValidator, validateRequest, userController.updateInfo);
 
 router.post("/change-password", authMiddleware, userValidator.changePasswordValidator, validateRequest, userController.changePassword);
 router.post('/:id', authMiddleware, userController.updateInfo);

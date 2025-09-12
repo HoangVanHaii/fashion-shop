@@ -1,5 +1,6 @@
 import  { Product } from '../interfaces/product';
 import { connectionDB } from '../config/database';
+import { AppError } from '../utils/appError';
 
 export const getAllProducts = async (): Promise<Product[]> => {
     try {
@@ -8,8 +9,7 @@ export const getAllProducts = async (): Promise<Product[]> => {
         const result = await pool.request().query(query);
         return result.recordset as Product[];
     } catch (error) {
-        console.error('Error fetching products:', error);
-        return [];
+        throw new AppError('Failed to fetch products', 500, false);
     }
 }
 export const addProduct = async (product: Product): Promise<void> => {
@@ -26,8 +26,7 @@ export const addProduct = async (product: Product): Promise<void> => {
             .input('stock', product.stock)
             .query(query);
     } catch (error) {
-        console.error('Error adding product:', error);
-        throw error;
+        throw new AppError('Failed to add product', 500, false);
     }
 }
 export const updateProduct = async (product: Product): Promise<void> => {
@@ -47,8 +46,7 @@ export const updateProduct = async (product: Product): Promise<void> => {
         request.input('id', product.id);
         await request.query(query);
     } catch (error) {
-        // console.error('Error updating product:', error);
-        throw error;
+        throw new AppError('Failed to update product', 500, false);
     }
 }
 export const getCategoryById = async (category_id: number): Promise<boolean> => {
@@ -60,8 +58,7 @@ export const getCategoryById = async (category_id: number): Promise<boolean> => 
             .query(query);
         return result.recordset[0].count > 0;   
     } catch (error) {
-        console.error('Error checking category existence:', error);
-        return false;   
+        throw new AppError('Failed to fetch category', 500, false);   
     }
 }
 export const getProductById = async (id: number): Promise<Product | null> => {
@@ -73,8 +70,7 @@ export const getProductById = async (id: number): Promise<Product | null> => {
             .query(query);
         return result.recordset[0] as Product || null;   
     } catch (error) {
-        console.error('Error fetching product by ID:', error);
-        return null;   
+        throw new AppError('Failed to fetch product', 500, false);   
     }
 }
 export const getProductByName = async (name: string): Promise<Product[]> => {
@@ -84,11 +80,9 @@ export const getProductByName = async (name: string): Promise<Product[]> => {
         const result = await pool.request()
             .input('name', `%${name}%`)
             .query(query);
-        // console.log("a ",result.recordset);   
         return result.recordset as Product[];   
     } catch (error) {
-        console.error('Error fetching product by name:', error);
-        return [];   
+        throw new AppError('Failed to fetch product ', 500, false);   
     }
 }
 export const softDeleteProduct = async (id: number): Promise<void> => {
@@ -99,7 +93,6 @@ export const softDeleteProduct = async (id: number): Promise<void> => {
             .input('id', id)
             .query(query);
     } catch (error) {
-        console.error('Error soft deleting product:', error);
         throw error;
     }
 }
@@ -110,8 +103,7 @@ export const getProductsActive = async (): Promise<Product[]> => {
         const result = await pool.request().query(query);
         return result.recordset as Product[];
     } catch (error) {
-        console.error('Error fetching active products:', error);
-        return [];
+        throw new AppError('Failed to fetch active products', 500, false);
     }
 }
 export const getLatestProducts = async (limit: number): Promise<Product[]> => {
@@ -123,8 +115,7 @@ export const getLatestProducts = async (limit: number): Promise<Product[]> => {
             .query(query);
         return result.recordset as Product[];
     } catch (error) {
-        console.error('Error fetching latest products:', error);
-        return [];
+        throw new AppError('Failed to fetch latest products', 500, false);
     }
 }
 export const getProductsByCategory = async (category_id: number): Promise<Product[]> => {
@@ -136,8 +127,7 @@ export const getProductsByCategory = async (category_id: number): Promise<Produc
             .query(query);
         return result.recordset as Product[];
     } catch (error) {
-        console.error('Error fetching products by category:', error);
-        return [];
+        throw new AppError('Failed to fetch products by category', 500, false);
     }
 }
 export const getProductByShop = async (shop_id:number) : Promise<Product[]> => {
@@ -149,16 +139,15 @@ export const getProductByShop = async (shop_id:number) : Promise<Product[]> => {
             .query(query);
         return product.recordset as Product[];
     } catch (error) {
-        console.log("Error fetching product by shop: ", error);
-        return [];
+        throw new AppError('Failed to fetch products by shop', 500, false);
     }
 }
 export const getBestSellerProduct = async(limit: number) : Promise<Product[]> => {
     try {
-        return []
+        return [];
     } catch (error) {
         console.log("Erorr fetching best seller products")
-        return [];
+        throw new AppError('Failed to fetch best seller products', 500, false);
     }
 }
 export const getMostDiscountedProduct = async(limit: number) : Promise<Product[]>=> {
@@ -166,6 +155,6 @@ export const getMostDiscountedProduct = async(limit: number) : Promise<Product[]
         return [];
     } catch (error) {
         console.log("Erorr fetching most discounted products");
-        return [];
+        throw new AppError('Failed to fetch most discounted products', 500, false);
     }
 }
