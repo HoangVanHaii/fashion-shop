@@ -65,27 +65,39 @@ CREATE TABLE products
     FOREIGN KEY (category_id) REFERENCES categories(category_id)
 
 );
+CREATE TABLE products
+(
+    id INT IDENTITY(1,1) PRIMARY KEY,
+    shop_id INT NOT NULL,
+    category_id INT NOT NULL,
+    name NVARCHAR(200) NOT NULL,
+    description NVARCHAR(250),
+    status VARCHAR(20) CHECK (status IN ('active','hidden','banned')) DEFAULT 'active',
+    created_at DATETIME DEFAULT GETDATE(),
+    FOREIGN KEY (shop_id) REFERENCES shops(id) ON DELETE CASCADE,
+    FOREIGN KEY (category_id) REFERENCES categories(category_id)
+
+);
+GO
+CREATE TABLE product_colors
+(
+    id INT PRIMARY KEY IDENTITY(1,1),
+    product_id INT NOT NULL,
+    color NVARCHAR(50) NOT NULL,
+    image_url NVARCHAR(255) NOT NULL,
+    is_main BIT DEFAULT 0,
+    FOREIGN KEY (product_id) REFERENCES products(id)
+);
 GO
 CREATE TABLE product_sizes
 (
     id INT IDENTITY(1,1) PRIMARY KEY,
-    product_id INT NOT NULL,
+    color_id INT NOT NULL,
     size NVARCHAR(50) NOT NULL,
     stock INT NOT NULL DEFAULT 0,
     price DECIMAL(10,2) NOT NULL,
-    FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE CASCADE
+    FOREIGN KEY (color_id) REFERENCES product_colors(id) ON DELETE CASCADE
 );
-GO
-CREATE TABLE product_images
-(
-    image_id INT PRIMARY KEY IDENTITY(1,1),
-    product_id INT NOT NULL,
-    image_url NVARCHAR(255) NOT NULL,
-    is_main BIT DEFAULT 0,
-    created_at DATETIME DEFAULT GETDATE(),
-    FOREIGN KEY (image_id) REFERENCES products(id)
-);
-
 GO
 CREATE TABLE carts
 (
@@ -99,10 +111,14 @@ CREATE TABLE cart_items
 (
     id INT IDENTITY(1,1) PRIMARY KEY,
     cart_id INT NOT NULL,
+	color_id INT NOT NULL,
+	size_id INT NOT NULL,
     product_id INT NOT NULL,
     quantity INT NOT NULL DEFAULT 1,
     FOREIGN KEY (cart_id) REFERENCES carts(id) ON DELETE CASCADE,
-    FOREIGN KEY (product_id) REFERENCES products(id)
+    FOREIGN KEY (product_id) REFERENCES products(id),
+	FOREIGN KEY (color_id) REFERENCES product_colors(id),
+	FOREIGN KEY (size_id) REFERENCES product_sizes(id)
 );
 GO
 CREATE TABLE vouchers

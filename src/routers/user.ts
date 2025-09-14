@@ -30,7 +30,7 @@ router.put("/reset-password",userValidator.resetPasswordValidator, validateReque
 router.put("/change-email", authMiddleware, userValidator.changeEmailValidator, validateRequest, userController.changeEmail);
 router.put("/verify-change-email", authMiddleware, userValidator.verifyChangeEmailValidator, validateRequest, userController.verifyChangeEmail);
 
-router.put('/:id', authMiddleware, userValidator.updateUserValidator, validateRequest, userController.updateInfo);
+router.put('/', authMiddleware, userValidator.updateUserValidator, validateRequest, userController.updateInfo);
 router.delete('/:id', authMiddleware, userController.deleteUser);
 router.put('/unlock/:id', authMiddleware, userController.unlockUser);
 
