@@ -216,3 +216,4 @@ CREATE TABLE addresses (
     CONSTRAINT FK_ShippingAddresses_Users FOREIGN KEY(user_id)
         REFERENCES Users(id) ON DELETE CASCADE
 );
+

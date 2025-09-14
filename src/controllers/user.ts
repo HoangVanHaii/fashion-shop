@@ -26,8 +26,10 @@ export const registerUser = async (req: Request, res: Response, next: NextFuncti
         });
 
     } catch (err: any) {
-        next(err);
-    }
+  console.error("registerUser controller error:", err);
+  next(err);
+}
+
 }
 export const verifyRegisterUser = async (req: Request, res: Response, next: NextFunction) => {
     try {
