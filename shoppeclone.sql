@@ -217,3 +217,6 @@ CREATE TABLE addresses (
         REFERENCES Users(id) ON DELETE CASCADE
 );
 
+SELECT is_default 
+FROM addresses
+WHERE id = 6 AND user_id = 10
