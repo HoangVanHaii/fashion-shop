@@ -7,11 +7,11 @@ GO
 CREATE TABLE users
 (
     id INT IDENTITY(1,1) PRIMARY KEY,
-    name VARCHAR(100) NOT NULL,
+    name NVARCHAR(100) NOT NULL,
     email VARCHAR(150) NOT NULL UNIQUE,
-    address NVARCHAR(255),
     password VARCHAR(255) NOT NULL,
     phone VARCHAR(20) NOT NULL,
+    date_of_birth DATE ,
     avatar NVARCHAR(255),
     role VARCHAR(20) CHECK (role IN ('customer', 'seller', 'admin')) DEFAULT 'customer',
     status VARCHAR(20) CHECK (status IN ('active','banned')) DEFAULT 'active',
@@ -28,7 +28,7 @@ CREATE TABLE addresses (
     phone NVARCHAR(20) NOT NULL,
     is_default BIT NOT NULL DEFAULT 0,
     CONSTRAINT FK_ShippingAddresses_Users FOREIGN KEY(user_id)
-        REFERENCES Users(id) ON DELETE CASCADE
+    REFERENCES Users(id) ON DELETE CASCADE
 );
 GO
 CREATE TABLE shops
@@ -66,27 +66,27 @@ CREATE TABLE products
 
 );
 GO
+CREATE TABLE product_colors
+(
+    id INT PRIMARY KEY IDENTITY(1,1),
+    product_id INT NOT NULL,
+    color NVARCHAR(50) NOT NULL,
+    image_url NVARCHAR(255) NOT NULL,
+    is_main BIT DEFAULT 0,
+    FOREIGN KEY (product_id) REFERENCES products(id)
+);
+GO
 CREATE TABLE product_sizes
 (
     id INT IDENTITY(1,1) PRIMARY KEY,
-    product_id INT NOT NULL,
+    color_id INT NOT NULL,
     size NVARCHAR(50) NOT NULL,
     stock INT NOT NULL DEFAULT 0,
     price DECIMAL(10,2) NOT NULL,
-    FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE CASCADE
+    FOREIGN KEY (color_id) REFERENCES product_colors(id) ON DELETE CASCADE
 );
 GO
-CREATE TABLE product_images
-(
-    image_id INT PRIMARY KEY IDENTITY(1,1),
-    product_id INT NOT NULL,
-    image_url NVARCHAR(255) NOT NULL,
-    is_main BIT DEFAULT 0,
-    created_at DATETIME DEFAULT GETDATE(),
-    FOREIGN KEY (image_id) REFERENCES products(id)
-);
 
-GO
 CREATE TABLE carts
 (
     id INT IDENTITY(1,1) PRIMARY KEY,
@@ -99,10 +99,14 @@ CREATE TABLE cart_items
 (
     id INT IDENTITY(1,1) PRIMARY KEY,
     cart_id INT NOT NULL,
+	color_id INT NOT NULL,
+	size_id INT NOT NULL,
     product_id INT NOT NULL,
     quantity INT NOT NULL DEFAULT 1,
     FOREIGN KEY (cart_id) REFERENCES carts(id) ON DELETE CASCADE,
-    FOREIGN KEY (product_id) REFERENCES products(id)
+    FOREIGN KEY (product_id) REFERENCES products(id),
+	FOREIGN KEY (color_id) REFERENCES product_colors(id),
+	FOREIGN KEY (size_id) REFERENCES product_sizes(id)
 );
 GO
 CREATE TABLE vouchers
@@ -144,10 +148,14 @@ CREATE TABLE order_items
     id INT IDENTITY(1,1) PRIMARY KEY,
     order_id INT NOT NULL,
     product_id INT NOT NULL,
+    color_id INT NOT NULL,
+	size_id INT NOT NULL,
     quantity INT NOT NULL,
     price DECIMAL(10,2) NOT NULL,
     FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE CASCADE,
-    FOREIGN KEY (product_id) REFERENCES products(id)
+    FOREIGN KEY (product_id) REFERENCES products(id),
+    FOREIGN KEY (color_id) REFERENCES product_colors(id),
+	FOREIGN KEY (size_id) REFERENCES product_sizes(id)
 );
 GO
 CREATE TABLE reviews
@@ -220,4 +228,17 @@ CREATE TABLE otp_codes
     expires_at DATETIME NOT NULL
     -- Thời gian hết hạn (ví dụ 5 phút)
 );
+-- Tạo 1 shop mẫu
+INSERT INTO users (name, email, password, role, status, phone)
+VALUES (N'Hải Hoàng', 'seller1@example.com', '123456', 'seller', 'active', 11111111);
 
+INSERT INTO shops (seller_id, name, description, status)
+VALUES (1, N'Shop Hải Hoàng', N'Shop chuyên bán quần áo và giày dép', 'active');
+
+-- Tạo 1 category mẫu
+INSERT INTO categories (category_name, description)
+VALUES (N'Quần áo', N'Danh mục các sản phẩm quần áo');
+
+
+select *from orders
+select *from payments
