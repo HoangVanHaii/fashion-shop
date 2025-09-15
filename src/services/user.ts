@@ -2,7 +2,7 @@ import { connectionDB } from "../config/database";
 import { User } from "../interfaces/user";
 import bcrypt from "bcryptjs";
 import * as utils from "../utils/sendOTP";
-import * as jwtUtils from "../utils/jwt";
+import * as jwtUtils from "../utils/token";
 import * as otpService from "../services/otp";
 import { AppError } from "../utils/appError";
 

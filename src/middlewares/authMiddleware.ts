@@ -12,7 +12,7 @@ export const authMiddleware = (req: Request, res: Response, next: NextFunction) 
     try {
         const decoded = jwt.verify(token, process.env.JWT_SECRET as string) as User;
         (req as any).user = decoded;
-        console.log(decoded);
+        // console.log(decoded);
         next();
     } catch (err : any) {
         if (err instanceof jwt.TokenExpiredError) {
@@ -22,4 +22,18 @@ export const authMiddleware = (req: Request, res: Response, next: NextFunction) 
             throw new AppError("Invalid token", 401);
         }
     }
+}
+export const isAdmin = (req: Request, res: Response, next: NextFunction) =>{
+    const role = req.user?.role;
+    if(role !== "admin"){
+        throw new AppError('Forbidden: Admins only ', 403)
+    }
+    next();
+}
+export const isSeller = (req: Request, res: Response, next: NextFunction) =>{
+const role = req.user?.role;
+    if(role !== "seller"){
+        throw new AppError('Forbidden: Sellers only ', 403)
+    }
+    next();
 }

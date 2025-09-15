@@ -4,9 +4,9 @@ import { AppError } from "../utils/appError"
 import mssql from 'mssql';
 
 const insertOrder = async (transaction: mssql.Transaction, order: Order): Promise<number> => {
-    const query = `INSERT INTO orders (user_id, total, shipping_name, shipping_address, shipping_phone, status)
+    const query = `INSERT INTO orders (user_id, total, shipping_name, shipping_address, shipping_phone)
                    OUTPUT INSERTED.id AS orderId
-                   VALUES (@user_id, @total, @shipping_name, @shipping_address, @shipping_phone, @status)`;
+                   VALUES (@user_id, @total, @shipping_name, @shipping_address, @shipping_phone)`;
     const result = await new mssql.Request(transaction)
         .input('user_id', order.user_id)
         .input('total', order.total)
@@ -18,24 +18,26 @@ const insertOrder = async (transaction: mssql.Transaction, order: Order): Promis
     return result.recordset[0].orderId;
 }
 const insertOrderItems = async (transaction: mssql.Transaction, orderId: number, orderItems: OrderItem[]): Promise<void> => {
-    const query = `INSERT INTO order_items (order_id, product_id, quantity, price)
-                   VALUES (@order_id, @product_id, @quantity, @price)`;
+    const query = `INSERT INTO order_items (order_id, product_id, color_id, size_id, quantity, price)
+                   VALUES (@order_id, @product_id, @color_id, @size_id, @quantity, @price)`;
     for (const item of orderItems) {
         await new mssql.Request(transaction)
             .input('order_id', orderId)
             .input('product_id', item.product_id)
+            .input('color_id', item.color_id)
+            .input('size_id', item.size_id)
             .input('quantity', item.quantity)
             .input('price', item.price)
             .query(query);
-        await updateProductStock(transaction, item.product_id, item.quantity);
+        await updateProductStock(transaction, item.size_id, item.quantity);
     }
 }
-const updateProductStock = async (transaction: mssql.Transaction, productId: number, quantity: number): Promise<void> => {
-    const query = `UPDATE products
+const updateProductStock = async (transaction: mssql.Transaction, size_id: number, quantity: number): Promise<void> => {
+    const query = `UPDATE product_sizes
                    SET stock = stock - @quantity
-                   WHERE id = @product_id AND stock >= @quantity`;
+                   WHERE id = @size_id AND stock >= @quantity`;
     await new mssql.Request(transaction)
-        .input('product_id', productId)
+        .input('size_id', size_id)
         .input('quantity', quantity)
         .query(query);
 }
@@ -59,7 +61,8 @@ export const createOder = async (orderData: createOderPayLoad, statusPayment: st
         await insertOrderItems(transaction, orderId, orderItems);
         await insertPayment(transaction, orderId, order.total, order.payment_method, statusPayment);
         await transaction.commit();
-    } catch (error: any) {
+    } catch (error) {
+        console.log(error);
         await transaction.rollback();
         throw new AppError('Failed to create order', 500, false);
     }

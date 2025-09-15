@@ -7,13 +7,15 @@ export interface Order {
     shipping_name: string;
     shipping_address: string;
     shipping_phone: string;
-    status: 'pending' | 'paid' | 'shipped' | 'delivered' | 'cancelled';
+    status?: 'pending' | 'paid' | 'shipped' | 'delivered' | 'cancelled';
     created_at?: Date;
 }
 export interface OrderItem {
     id?: number;
     order_id?: number;
     product_id: number;
+    color_id: number;
+    size_id:number;
     quantity: number;
     price: number;
 }
