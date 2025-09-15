@@ -66,9 +66,11 @@ export const registerUser = async (user: User): Promise<void> => {
       .query(`INSERT INTO users(name, email, password, role)
                     VALUES (@name, @email, @password, @role)`);
   } catch (err: any) {
-    if (err instanceof AppError) throw err;
-    throw new AppError("Failed to registerUser", 500, false);
-  }
+  console.error("registerUser error:", err);
+  if (err instanceof AppError) throw err;
+  throw new AppError("Failed to registerUser", 500, false);
+}
+
 };
 export const verifyRegisterUser = async (email: string): Promise<void> => {
   try {

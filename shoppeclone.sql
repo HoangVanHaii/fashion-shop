@@ -1,11 +1,13 @@
+-- =============================
+-- DATABASE
+-- =============================
+
 CREATE DATABASE SHOPEEVN;
 GO
-
 USE SHOPEEVN;
 GO
 
-CREATE TABLE users
-(
+CREATE TABLE users (    
     id INT IDENTITY(1,1) PRIMARY KEY,
     name NVARCHAR(100) NOT NULL,
     email VARCHAR(150) NOT NULL UNIQUE,
@@ -15,11 +17,12 @@ CREATE TABLE users
     avatar NVARCHAR(255),
     role VARCHAR(20) CHECK (role IN ('customer', 'seller', 'admin')) DEFAULT 'customer',
     status VARCHAR(20) CHECK (status IN ('active','banned')) DEFAULT 'active',
-    is_verified BIT DEFAULT 0,
+    is_verified BIT DEFAULT 0,   -- 0: chưa xác thực, 1: đã xác thực email/OTP
     created_at DATETIME DEFAULT GETDATE()
 );
-
+SELECT * FROM users
 GO
+
 CREATE TABLE addresses (
     id INT IDENTITY(1,1) PRIMARY KEY,
     user_id INT NOT NULL,
@@ -42,23 +45,23 @@ CREATE TABLE shops
     FOREIGN KEY (seller_id) REFERENCES users(id) ON DELETE CASCADE
 );
 GO
-CREATE TABLE categories
-(
-    category_id INT PRIMARY KEY IDENTITY(1,1),
-    category_name NVARCHAR(100) NOT NULL,
-    description NVARCHAR(255),
-    status VARCHAR(50) DEFAULT 'active'
+CREATE TABLE categories (
+    category_id INT PRIMARY KEY IDENTITY(1,1), -- Mã danh mục tự tăng
+    category_name NVARCHAR(100) NOT NULL,      -- Tên danh mục
+    description NVARCHAR(255),                 -- Mô tả danh mục
+    status VARCHAR(50) DEFAULT 'active'        -- Trạng thái: active / inactive
 );
 
 GO
 
-CREATE TABLE products
-(
+CREATE TABLE products (
     id INT IDENTITY(1,1) PRIMARY KEY,
     shop_id INT NOT NULL,
-    category_id INT NOT NULL,
+    category_id INT NOT NULL,   
     name NVARCHAR(200) NOT NULL,
     description NVARCHAR(250),
+    price DECIMAL(10,2) NOT NULL,
+    stock INT DEFAULT 0,
     status VARCHAR(20) CHECK (status IN ('active','hidden','banned')) DEFAULT 'active',
     created_at DATETIME DEFAULT GETDATE(),
     FOREIGN KEY (shop_id) REFERENCES shops(id) ON DELETE CASCADE,
@@ -66,6 +69,17 @@ CREATE TABLE products
 
 );
 GO
+CREATE TABLE Image (
+    image_id INT PRIMARY KEY IDENTITY(1,1),
+    product_id INT NOT NULL,
+    image_url NVARCHAR(255) NOT NULL,
+    is_main BIT DEFAULT 0,  -- 1: ảnh chính, 0: ảnh phụ
+    created_at DATETIME DEFAULT GETDATE(),
+    FOREIGN KEY (image_id) REFERENCES products(id)
+);
+
+GO
+
 CREATE TABLE product_colors
 (
     id INT PRIMARY KEY IDENTITY(1,1),
@@ -95,8 +109,8 @@ CREATE TABLE carts
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 GO
-CREATE TABLE cart_items
-(
+
+CREATE TABLE cart_items (
     id INT IDENTITY(1,1) PRIMARY KEY,
     cart_id INT NOT NULL,
 	color_id INT NOT NULL,
@@ -104,6 +118,7 @@ CREATE TABLE cart_items
     product_id INT NOT NULL,
     quantity INT NOT NULL DEFAULT 1,
     FOREIGN KEY (cart_id) REFERENCES carts(id) ON DELETE CASCADE,
+
     FOREIGN KEY (product_id) REFERENCES products(id),
 	FOREIGN KEY (color_id) REFERENCES product_colors(id),
 	FOREIGN KEY (size_id) REFERENCES product_sizes(id)
@@ -128,23 +143,17 @@ CREATE TABLE vouchers
     FOREIGN KEY (created_by) REFERENCES users(id)
 );
 GO
-CREATE TABLE orders
-(
+
+CREATE TABLE orders (
     id INT IDENTITY(1,1) PRIMARY KEY,
     user_id INT NOT NULL,
-    voucher_id INT,
     total DECIMAL(10,2) NOT NULL,
-    status VARCHAR(20) CHECK (status IN ('pending','comfirm','shipped','completed','cancelled')) DEFAULT 'pending',
-    shipping_address NVARCHAR(255) NOT NULL,
-    shipping_phone NVARCHAR(20) NOT NULL,
-    shipping_name NVARCHAR(255) NOT NULL,
+    status VARCHAR(20) CHECK (status IN ('pending','paid','shipped','completed','cancelled')) DEFAULT 'pending',
     created_at DATETIME DEFAULT GETDATE(),
-    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
-    FOREIGN KEY (voucher_id) REFERENCES vouchers(id)
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 GO
-CREATE TABLE order_items
-(
+CREATE TABLE order_items (
     id INT IDENTITY(1,1) PRIMARY KEY,
     order_id INT NOT NULL,
     product_id INT NOT NULL,
@@ -153,13 +162,15 @@ CREATE TABLE order_items
     quantity INT NOT NULL,
     price DECIMAL(10,2) NOT NULL,
     FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE CASCADE,
+ư
     FOREIGN KEY (product_id) REFERENCES products(id),
     FOREIGN KEY (color_id) REFERENCES product_colors(id),
 	FOREIGN KEY (size_id) REFERENCES product_sizes(id)
-);
+ );
 GO
-CREATE TABLE reviews
-(
+
+
+CREATE TABLE reviews (
     id INT IDENTITY(1,1) PRIMARY KEY,
     product_id INT NOT NULL,
     user_id INT NOT NULL,
@@ -170,16 +181,8 @@ CREATE TABLE reviews
     FOREIGN KEY (user_id) REFERENCES users(id)
 );
 GO
-CREATE TABLE review_images
-(
-    id INT IDENTITY(1,1) PRIMARY KEY,
-    review_id INT NOT NULL,
-    image_url NVARCHAR(255) NOT NULL,
-    FOREIGN KEY (review_id) REFERENCES reviews(id) ON DELETE CASCADE
-)
-GO
-CREATE TABLE payments
-(
+
+CREATE TABLE payments (
     id INT IDENTITY(1,1) PRIMARY KEY,
     order_id INT NOT NULL,
     method VARCHAR(20) CHECK (method IN ('cod','credit_card','paypal','momo')) DEFAULT 'cod',
@@ -190,8 +193,26 @@ CREATE TABLE payments
 );
 GO
 
-CREATE TABLE user_vouchers
-(
+CREATE TABLE vouchers (
+    id INT PRIMARY KEY IDENTITY(1,1),
+    code NVARCHAR(50) UNIQUE NOT NULL,
+    description NVARCHAR(255),
+    discount_type NVARCHAR(20) CHECK (discount_type IN ('PERCENT', 'FIXED')),
+    discount_value DECIMAL(10,2) NOT NULL,
+    min_order_value DECIMAL(10,2) DEFAULT 0,
+    max_discount DECIMAL(10,2),
+    quantity INT NOT NULL,
+    used INT DEFAULT 0,
+    start_date DATETIME NOT NULL,
+    end_date DATETIME NOT NULL,
+    created_by INT, 
+    scope NVARCHAR(20) CHECK (scope IN ('GLOBAL','SHOP')) NOT NULL,
+    shop_id INT NULL FOREIGN KEY REFERENCES shops(id),
+    FOREIGN KEY (created_by) REFERENCES users(id)
+);
+GO
+
+CREATE TABLE user_vouchers (
     id INT PRIMARY KEY IDENTITY(1,1),
     voucher_id INT FOREIGN KEY REFERENCES vouchers(id),
     user_id INT FOREIGN KEY REFERENCES users(id),
@@ -199,8 +220,8 @@ CREATE TABLE user_vouchers
 );
 GO
 
-CREATE TABLE flash_sales
-(
+
+CREATE TABLE flash_sales (
     id INT PRIMARY KEY IDENTITY(1,1),
     title NVARCHAR(100),
     start_date DATETIME NOT NULL,
@@ -209,8 +230,7 @@ CREATE TABLE flash_sales
 );
 GO
 
-CREATE TABLE flash_sale_items
-(
+CREATE TABLE flash_sale_items (
     id INT PRIMARY KEY IDENTITY(1,1),
     flash_sale_id INT FOREIGN KEY REFERENCES flash_sales(id),
     product_id INT FOREIGN KEY REFERENCES products(id),
@@ -219,14 +239,24 @@ CREATE TABLE flash_sale_items
     sold INT DEFAULT 0
 );
 GO
-CREATE TABLE otp_codes
-(
+CREATE TABLE otp_codes (
+    id INT IDENTITY(1,1) PRIMARY KEY,      -- Khóa chính tự tăng
+    email NVARCHAR(255) NOT NULL,          -- Email người dùng
+    otp NVARCHAR(10) NOT NULL,             -- Mã OTP (chuỗi, vì có thể chứa số 0 đầu tiên)
+    created_at DATETIME DEFAULT GETDATE(),  -- Thời gian tạo OTP
+    expires_at DATETIME NOT NULL            -- Thời gian hết hạn (ví dụ 5 phút)
+);
+
+
+CREATE TABLE addresses (
     id INT IDENTITY(1,1) PRIMARY KEY,
-    email NVARCHAR(255) NOT NULL,
-    otp NVARCHAR(10) NOT NULL,
-    created_at DATETIME DEFAULT GETDATE(),
-    expires_at DATETIME NOT NULL
-    -- Thời gian hết hạn (ví dụ 5 phút)
+    user_id INT NOT NULL,
+    name NVARCHAR(255) NOT NULL,
+    address NVARCHAR(500) NOT NULL,
+    phone NVARCHAR(20) NOT NULL,
+    is_default BIT NOT NULL DEFAULT 0,
+    CONSTRAINT FK_ShippingAddresses_Users FOREIGN KEY(user_id)
+        REFERENCES Users(id) ON DELETE CASCADE
 );
 -- Tạo 1 shop mẫu
 INSERT INTO users (name, email, password, role, status, phone)
@@ -239,6 +269,3 @@ VALUES (1, N'Shop Hải Hoàng', N'Shop chuyên bán quần áo và giày dép',
 INSERT INTO categories (category_name, description)
 VALUES (N'Quần áo', N'Danh mục các sản phẩm quần áo');
 
-
-select *from orders
-select *from payments
