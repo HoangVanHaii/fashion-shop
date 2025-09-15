@@ -108,6 +108,7 @@ export const getProductsActive = async (req: Request, res: Response, next: NextF
 		next(error);
 	}
 }
+
 export const getProductsHidden = async (req: Request, res: Response, next: NextFunction) => {
 	try {
 		const products = await productService.getProductsHidden();
