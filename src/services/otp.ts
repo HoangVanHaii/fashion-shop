@@ -11,7 +11,8 @@ export const saveOtp = async (email: string, otp: string): Promise<void> => {
       .query(`INSERT INTO otp_codes (email, otp, expires_at)
               VALUES(@email, @otp, DATEADD(MINUTE, 5, GETDATE()))`);
     
-  } catch (err : any) {
+  } catch (err: any) {
+    console.error(err);
     throw new AppError("Failed to saveOtp", 500, false);
   }
 };
@@ -34,6 +35,7 @@ export const verifyOtp = async (email: string, otp: string) => {
     }
     return false;
   } catch (err: any) {
+    console.error(err);
     throw new AppError("Failed to verifyOtp", 500, false);
   }
 };
