@@ -54,7 +54,6 @@ export const updateCartItem = async (req: Request, res: Response, next: NextFunc
             throw new AppError("Invalid cart item id", 400);
         }
         await cartService.updateCartItem(cart_item_id, color_id, size_id);
-        console.log(color_id, size_id);
         return res.status(200).json({
             success: true,
             message: "Cart item updated successfully"

@@ -1,4 +1,4 @@
-import { body } from "express-validator";
+import { body, param } from "express-validator";
 
 const positiveIntValidator = (fieldName: string) => {
     return body(fieldName)
@@ -13,9 +13,14 @@ export const addToCartValidator = [
     positiveIntValidator('quantity')
 ]
 export const updateCartItemQuantityValidator = [
+    param('id').isInt({ gt: 0 }).withMessage('Cart item id must be a positive integer'),
     positiveIntValidator('quantity')
 ]
 export const updateCartItemValidator = [
+    param('id').isInt({ gt: 0 }).withMessage('Cart item id must be a positive integer'),
     positiveIntValidator('color_id'),
     positiveIntValidator('size_id')
+]
+export const removeCartItemValidator = [
+    param('id').isInt({ gt: 0 }).withMessage('Cart item id must be a positive integer')
 ]

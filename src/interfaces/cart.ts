@@ -1,5 +1,5 @@
 export interface CartItem{
-    id?: number;
+    cart_item_id?: number;
     cart_id?: number;
     product_id: number;
     color_id: number;
@@ -7,7 +7,7 @@ export interface CartItem{
     quantity: number;
 }
 export interface CartItemDetail{
-    id: number;
+    cart_item_id: number;
     product_id: number;
     color_id: number;
     size_id: number;
@@ -21,7 +21,6 @@ export interface CartItemDetail{
     total_price: number;
 }
 export interface Cart{
-    user_id: number;
     items: CartItemDetail[];
     total_quantity: number;
     total_amount: number;

@@ -25,7 +25,6 @@ export const addToCart = async(user_id: number, cart_item: CartItem):Promise<voi
         else {
             cartId = cartResult.recordset[0].id;
         }
-        console.log(1);
         const productResult = await transaction
             .request()
             .input("product_id", cart_item.product_id)
@@ -36,7 +35,6 @@ export const addToCart = async(user_id: number, cart_item: CartItem):Promise<voi
                 JOIN product_colors pc ON p.id = pc.product_id
                 JOIN product_sizes ps ON ps.color_id = pc.id
                 WHERE p.id = @product_id AND pc.id = @color_id AND ps.id = @size_id`);
-        console.log(2);
         if (productResult.recordset.length === 0) {
             throw new AppError("Product not found", 404);
         }
@@ -105,7 +103,6 @@ export const getCartItems = async (user_id: number): Promise<Cart> => {
         const total_quantity = items.reduce((sum, item) => sum + item.quantity, 0);
         const total_amount = items.reduce((sum, item) => sum + item.total_price, 0);
         return {
-            user_id,
             items,
             total_quantity,
             total_amount
@@ -127,7 +124,6 @@ export const updateCartItemQuantity = async (cart_item_id: number, newQuantity: 
                     FROM cart_items ci
                     JOIN product_sizes ps ON ci.size_id = ps.id
                     WHERE ci.id = @cart_item_id`);  
-        console.log(productResult.recordset);
         if (productResult.recordset.length === 0) {
             throw new AppError("Cart item not found", 404);
         }
