@@ -28,10 +28,9 @@ export const addAddressValidator = [
   validateIsDefault,
 ];
 
-export const AddressByIdValidator = [
+export const AddressByIdValidator = 
   param("id")
-    .isInt({ gt: 0 }).withMessage("Address id must be a positive integer"),
-];
+    .isInt({ gt: 0 }).withMessage("Address id must be a positive integer");
 
 const updateName = body("name").optional().isLength({ min: 3, max: 50 }).withMessage("Name must be between 3 and 50 characters").bail();
 const updateAddress = body("address").optional().isLength({ min: 5 }).withMessage("Address must be at least 5 characters").bail();

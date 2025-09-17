@@ -45,6 +45,8 @@ CREATE TABLE shops
     FOREIGN KEY (seller_id) REFERENCES users(id) ON DELETE CASCADE
 );
 GO
+
+select * from categories
 CREATE TABLE categories (
     category_id INT PRIMARY KEY IDENTITY(1,1), -- Mã danh mục tự tăng
     category_name NVARCHAR(100) NOT NULL,      -- Tên danh mục
@@ -162,7 +164,6 @@ CREATE TABLE order_items (
     quantity INT NOT NULL,
     price DECIMAL(10,2) NOT NULL,
     FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE CASCADE,
-ư
     FOREIGN KEY (product_id) REFERENCES products(id),
     FOREIGN KEY (color_id) REFERENCES product_colors(id),
 	FOREIGN KEY (size_id) REFERENCES product_sizes(id)

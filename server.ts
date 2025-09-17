@@ -4,6 +4,7 @@ import userRouter from './src/routers/user';
 import productRouter from './src/routers/product'
 import orderRouter from './src/routers/order'
 import addressRouter from './src/routers/address'
+import categoriesRouter from './src/routers/categories'
 import { Request, Response } from 'express';
 
 import { errorHandler } from './src/middlewares/errorHandler';
@@ -15,6 +16,7 @@ app.use('/api/users', userRouter);
 app.use('/api/product', productRouter);
 app.use('/api/order', orderRouter);
 app.use('/api/address', addressRouter);
+app.use('/api/categories', categoriesRouter);
 
 app.use(errorHandler);
 app.use((req: Request, res: Response) => {
