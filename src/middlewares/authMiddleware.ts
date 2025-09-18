@@ -13,13 +13,13 @@ export const authMiddleware = (req: Request, res: Response, next: NextFunction) 
         const decoded = jwt.verify(token, process.env.JWT_SECRET as string) as User;
         (req as any).user = decoded;
         next();
-    } catch (err : any) {
+    } catch (err: any) {
         if (err instanceof jwt.TokenExpiredError) {
             throw new AppError("Token expired", 401);
         }
         else {
             throw new AppError("Invalid token", 401);
-        }
+        }   
     }
 }
 export const isAdmin = (req: Request, res: Response, next: NextFunction) =>{

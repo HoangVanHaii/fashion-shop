@@ -5,7 +5,7 @@ export interface User{
     phone: string;
     date_of_birth?: Date;
     avatar?: string;
-    password: string;
+    password?: string;
     role?: "customer" | "seller" | "admin";
     status?: "active" | "banned";
     is_verified?: boolean;

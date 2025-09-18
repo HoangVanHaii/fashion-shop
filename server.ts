@@ -7,11 +7,13 @@ import productRouter from './src/routers/product'
 import orderRouter from './src/routers/order'
 import addressRouter from './src/routers/address'
 import cartRouter from "./src/routers/cart";
+import adminRouter from "./src/routers/admin/user";
 import productSellerRouter from './src/routers/seller/product'
 import orderSellerRouter from './src/routers/seller/order'
 import { Request, Response } from 'express';
 
 import { errorHandler } from './src/middlewares/errorHandler';
+
 
 dotenv.config();
 const app = express();
@@ -20,6 +22,7 @@ app.use(express.json());
 app.use("/uploads", express.static("uploads"));
 
 app.use("/api/carts", cartRouter );
+app.use("/api/admin", adminRouter);
 app.use('/api/users', userRouter);
 app.use('/api/product', productRouter);
 app.use('/api/seller/product', productSellerRouter);
