@@ -4,6 +4,8 @@ import userRouter from './src/routers/user';
 import productRouter from './src/routers/product'
 import orderRouter from './src/routers/order'
 import addressRouter from './src/routers/address'
+import productSellerRouter from './src/routers/seller/product'
+import orderSellerRouter from './src/routers/seller/order'
 import { Request, Response } from 'express';
 
 import { errorHandler } from './src/middlewares/errorHandler';
@@ -13,7 +15,9 @@ const app = express();
 app.use(express.json());
 app.use('/api/users', userRouter);
 app.use('/api/product', productRouter);
+app.use('/api/seller/product', productSellerRouter);
 app.use('/api/order', orderRouter);
+app.use('/api/seller/order', orderSellerRouter);
 app.use('/api/address', addressRouter);
 
 app.use(errorHandler);

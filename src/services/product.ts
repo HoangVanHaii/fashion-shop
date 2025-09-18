@@ -299,7 +299,14 @@ export const getProductByShop = async (shop_id:number) : Promise<ProductSummary[
 }
 export const getBestSellerProduct = async(limit: number) : Promise<ProductSummary[]> => {
     try {
-        return [];
+        const query = `${baseQuery}
+                    ORDER BY sold_quantity DESC
+                    OFFSET 0 ROWS FETCH NEXT @limit ROWS ONLY`
+        const pool = await connectionDB();
+        const result = await pool.request()
+            .input('limit', limit)
+            .query(query);
+        return result.recordset as ProductSummary[];
     } catch (error) {
         console.log("Erorr fetching best seller products")
         throw new AppError('Failed to fetch best seller products', 500, false);

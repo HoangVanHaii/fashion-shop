@@ -20,9 +20,18 @@ CREATE TABLE users (
     is_verified BIT DEFAULT 0,   -- 0: chưa xác thực, 1: đã xác thực email/OTP
     created_at DATETIME DEFAULT GETDATE()
 );
-SELECT * FROM users
 GO
-
+CREATE TABLE addresses (
+    id INT IDENTITY(1,1) PRIMARY KEY,
+    user_id INT NOT NULL,
+    name NVARCHAR(255) NOT NULL,
+    address NVARCHAR(500) NOT NULL,
+    phone NVARCHAR(20) NOT NULL,
+    is_default BIT NOT NULL DEFAULT 0,
+    CONSTRAINT FK_ShippingAddresses_Users FOREIGN KEY(user_id)
+    REFERENCES Users(id) ON DELETE CASCADE
+);
+GO
 CREATE TABLE addresses (
     id INT IDENTITY(1,1) PRIMARY KEY,
     user_id INT NOT NULL,
@@ -68,16 +77,6 @@ CREATE TABLE products (
     FOREIGN KEY (category_id) REFERENCES categories(category_id)
 
 );
-GO
-CREATE TABLE Image (
-    image_id INT PRIMARY KEY IDENTITY(1,1),
-    product_id INT NOT NULL,
-    image_url NVARCHAR(255) NOT NULL,
-    is_main BIT DEFAULT 0,  -- 1: ảnh chính, 0: ảnh phụ
-    created_at DATETIME DEFAULT GETDATE(),
-    FOREIGN KEY (image_id) REFERENCES products(id)
-);
-
 GO
 
 CREATE TABLE product_colors
@@ -144,11 +143,12 @@ CREATE TABLE vouchers
 );
 GO
 
+select *from orders
 CREATE TABLE orders (
     id INT IDENTITY(1,1) PRIMARY KEY,
     user_id INT NOT NULL,
     total DECIMAL(10,2) NOT NULL,
-    status VARCHAR(20) CHECK (status IN ('pending','paid','shipped','completed','cancelled')) DEFAULT 'pending',
+    status VARCHAR(20) CHECK (status IN ('pending','confirm','shipped','completed','cancelled')) DEFAULT 'pending',
     created_at DATETIME DEFAULT GETDATE(),
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
@@ -162,14 +162,13 @@ CREATE TABLE order_items (
     quantity INT NOT NULL,
     price DECIMAL(10,2) NOT NULL,
     FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE CASCADE,
-ư
     FOREIGN KEY (product_id) REFERENCES products(id),
     FOREIGN KEY (color_id) REFERENCES product_colors(id),
 	FOREIGN KEY (size_id) REFERENCES product_sizes(id)
  );
 GO
 
-
+select *from orders
 CREATE TABLE reviews (
     id INT IDENTITY(1,1) PRIMARY KEY,
     product_id INT NOT NULL,
@@ -248,16 +247,6 @@ CREATE TABLE otp_codes (
 );
 
 
-CREATE TABLE addresses (
-    id INT IDENTITY(1,1) PRIMARY KEY,
-    user_id INT NOT NULL,
-    name NVARCHAR(255) NOT NULL,
-    address NVARCHAR(500) NOT NULL,
-    phone NVARCHAR(20) NOT NULL,
-    is_default BIT NOT NULL DEFAULT 0,
-    CONSTRAINT FK_ShippingAddresses_Users FOREIGN KEY(user_id)
-        REFERENCES Users(id) ON DELETE CASCADE
-);
 -- Tạo 1 shop mẫu
 INSERT INTO users (name, email, password, role, status, phone)
 VALUES (N'Hải Hoàng', 'seller1@example.com', '123456', 'seller', 'active', 11111111);
