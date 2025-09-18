@@ -4,17 +4,47 @@ import *as productMiddleware from "../middlewares/validateProduct";
 import { validateRequest } from "../middlewares/validateRequest";
 const router = express.Router();
 
-router.get("/", productController.getProducts);
-router.get("/searchByName", productController.getProductByName);
-router.get("/searchByShop", productController.getProductByShop);
-router.get("/searchByCategory", productController.getProductsByCategory);
-router.get("/actives", productController.getProductsActive);
-router.get("/latest", productController.getLatestProducts);
-router.get("/best-sellers", productController.getBestSellerProduct);
-router.get("/most-discounted", productController.getMostDiscountedProduct);
-router.get("/:id", productController.getProductById);
-router.post("/addProduct",productMiddleware.AddProduct ,validateRequest,productController.addProduct);
-router.put("/updateProduct",productMiddleware.updateProduct ,productController.updateProduct);
-router.delete("/deleteProduct",productMiddleware.softDeleteProduct ,productController.softDeleteProduct);
+router.get(
+    "/searchByName",
+    productMiddleware.validateSearchByName,
+    validateRequest,
+    productController.getProductByName
+);
+router.get(
+    "/searchByShop", 
+    productMiddleware.validateSearchByShopId,
+    validateRequest,
+    productController.getProductByShop
+);
+router.get(
+    "/searchByCategory",
+    productMiddleware.validateSearchByCategoryId,
+    validateRequest,
+    productController.getProductsByCategory
+);
+router.get("/actives",
+     productController.getProductsActive
+);
+router.get(
+    "/latest",
+    productController.getLatestProducts);
+router.get(
+    "/best-sellers",
+    productMiddleware.validateLimit,
+    validateRequest,
+    productController.getBestSellerProduct
+);
+router.get(
+    "/most-discounted", 
+    productMiddleware.validateLimit,
+    validateRequest,
+    productController.getMostDiscountedProduct
+);
+router.get(
+    "/:id",
+    productMiddleware.validateSearchById,
+    validateRequest,
+    productController.getProductById
+);
 
 export default router;

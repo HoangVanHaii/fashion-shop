@@ -1,7 +1,6 @@
 import nodemailer from "nodemailer";
 import { AppError } from "./appError";
-
-export const sendOtp = async (email: string, otp: string): Promise<boolean> => {
+export const sendMail = async (to: string, subject: string, html: string) => {
   try {
     const transporter = nodemailer.createTransport({
       service: "Gmail",
@@ -10,17 +9,16 @@ export const sendOtp = async (email: string, otp: string): Promise<boolean> => {
         pass: process.env.EMAIL_PASS,
       },
     });
-
     const mailOptions = {
       from: process.env.EMAIL_USER,
-      to: email,
-      subject: "Mã OTP xác thực",
-      text: `Mã OTP của bạn là: ${otp}. Mã này sẽ hết hạn sau 5 phút.`,
+      to: to,
+      subject: subject,
+      text: html,
     };
-
     await transporter.sendMail(mailOptions);
     return true;
-  } catch (err: any) {
+  } catch (err) {
+    console.error(err);
     throw new AppError("Failed to sendOtp", 500, false);
   }
 };
