@@ -7,7 +7,9 @@ import productRouter from './src/routers/product'
 import orderRouter from './src/routers/order'
 import addressRouter from './src/routers/address'
 import cartRouter from "./src/routers/cart";
+
 import adminRouter from "./src/routers/admin/user";
+import reviewRouter from "./src/routers/review";
 import productSellerRouter from './src/routers/seller/product'
 import orderSellerRouter from './src/routers/seller/order'
 import { Request, Response } from 'express';
@@ -29,8 +31,10 @@ app.use('/api/seller/product', productSellerRouter);
 app.use('/api/order', orderRouter);
 app.use('/api/seller/order', orderSellerRouter);
 app.use('/api/address', addressRouter);
+app.use("/api/reviews", reviewRouter);
 
 app.use(errorHandler);
+
 app.use((req: Request, res: Response) => {
     return res.status(404).send({ message: "Route not found" });
 })
