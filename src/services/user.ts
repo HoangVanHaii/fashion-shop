@@ -9,11 +9,15 @@ import { AppError } from "../utils/appError";
 export const getUserByEmail = async (email: string): Promise<User | null> => {
   try {
     const pool = await connectionDB();
-    const result = await pool.request().input("email", email)
+    const result = await pool.request()
+      .input("email", email)
       .query(`SELECT *
                  FROM users
                  WHERE email = @email AND is_verified = 1`);
 
+    if (result.recordset.length === 0) {
+      return null;
+    }
     delete result.recordset[0].password
     return result.recordset[0] || null;
   } catch (err) {
@@ -29,6 +33,9 @@ export const getUserById = async (id: number): Promise<User | null> => {
       .query(`SELECT *
                 FROM users u
                 WHERE u.id = @id`);
+    if (result.recordset.length === 0) {
+      return null;
+    }
     delete result.recordset[0].password
     return result.recordset[0] || null;
   } catch (err) {
@@ -39,7 +46,9 @@ export const getUserById = async (id: number): Promise<User | null> => {
 export const getAllUsers = async (): Promise<User[]> => {
   try {
     const pool = await connectionDB();
-    const result = await pool.request().query(`select * from users`);
+    const result = await pool.request()
+      .query(`SELECT id, name, email, role, status, phone, date_of_birth, avatar, is_verified, created_at
+         FROM users`);
     return result.recordset as User[];
   } catch (err) {
     console.error(err);
@@ -152,12 +161,13 @@ export const createUser = async (user: User): Promise<void> => {
       .input("email", user.email)    
       .input("phone", user.phone)
       .input("date_of_birth", user.date_of_birth)
+      .input("avatar", user.avatar)
       .input("password", passwordHash)
       .input("role", user.role)
       .input("is_verified", user.is_verified ? 1 : 0)
       .query(`
-        INSERT INTO users(name, email, phone, date_of_birth, password, role, is_verified)
-        VALUES(@name, @email, @phone, @date_of_birth, @password, @role, @is_verified)               
+        INSERT INTO users(name, email, phone, date_of_birth, avatar, password, role, is_verified)
+        VALUES(@name, @email, @phone, @date_of_birth, @avatar, @password, @role, @is_verified)               
       `);
     } catch (err : any) {
     console.error(err);
