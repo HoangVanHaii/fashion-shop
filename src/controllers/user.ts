@@ -3,7 +3,7 @@ import { User } from "../interfaces/user";
 import * as userService from "../services/user";
 import * as utils from "../utils/sendOTP";
 import * as otpService from "../services/otp";
-import * as jwtUtils from "../utils/jwt"
+import * as jwtUtils from "../utils/token"
 import jwt from "jsonwebtoken";
 import { AppError } from "../utils/appError";
 
@@ -26,8 +26,10 @@ export const registerUser = async (req: Request, res: Response, next: NextFuncti
         });
 
     } catch (err: any) {
-        next(err);
-    }
+  console.error("registerUser controller error:", err);
+  next(err);
+}
+
 }
 export const verifyRegisterUser = async (req: Request, res: Response, next: NextFunction) => {
     try {

@@ -2,7 +2,7 @@ import { connectionDB } from "../config/database";
 import { User } from "../interfaces/user";
 import bcrypt from "bcryptjs";
 import * as utils from "../utils/sendOTP";
-import * as jwtUtils from "../utils/jwt";
+import * as jwtUtils from "../utils/token";
 import * as otpService from "../services/otp";
 import { AppError } from "../utils/appError";
 
@@ -67,11 +67,13 @@ export const registerUser = async (user: User): Promise<void> => {
       .input("role", user.role || "customer")
       .query(`INSERT INTO users(name, email, password, role, phone, avatar)
                     VALUES (@name, @email, @password, @role, @phone, @avatar)`);
-  } catch (err: any) {
-    console.log(err);
-    if (err instanceof AppError) throw err;
-    throw new AppError("Failed to registerUser", 500, false);
+  } catch (err) {
+      console.error(err);
+      if (err instanceof AppError) throw err;
+      throw new AppError("Failed to registerUser", 500, false);
   }
+
+
 };
 export const verifyRegisterUser = async (email: string): Promise<void> => {
   try {

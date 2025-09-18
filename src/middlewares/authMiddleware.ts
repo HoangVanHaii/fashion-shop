@@ -22,3 +22,17 @@ export const authMiddleware = (req: Request, res: Response, next: NextFunction) 
         }
     }
 }
+export const isAdmin = (req: Request, res: Response, next: NextFunction) =>{
+    const role = req.user?.role;
+    if(role !== "admin"){
+        throw new AppError('Forbidden: Admins only ', 403)
+    }
+    next();
+}
+export const isSeller = (req: Request, res: Response, next: NextFunction) =>{
+const role = req.user?.role;
+    if(role !== "seller"){
+        throw new AppError('Forbidden: Sellers only ', 403)
+    }
+    next();
+}
