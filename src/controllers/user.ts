@@ -9,11 +9,11 @@ import { AppError } from "../utils/appError";
 
 export const registerUser = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const { name, email, password, role } = req.body;
-
-        await userService.registerUser({email, name, password, role} as User);
+        const { name, email, phone, password, role } = req.body;
+        const avatar = "/uploads/default-avatar.png";
+        await userService.registerUser({ email, phone, name, password, role, avatar } as User);
         const otp = Math.floor(100000 + Math.random() * 900000).toString();
-
+        
         const issent = await utils.sendOtp(email, otp);
         
         if (!issent) {
@@ -100,7 +100,7 @@ export const getProfile = async (req: Request, res: Response, next: NextFunction
         return res.status(200).json({
             success: true,
             message: "get user successfully",
-            user
+            data: user
 
         });
 
@@ -120,7 +120,7 @@ export const getUserById = async (req: Request, res: Response, next: NextFunctio
         return res.status(200).json({
             success: true,
             message: "get userById successfully",
-            user
+            data: user
         });
 
     } catch (err : any) {
@@ -145,38 +145,60 @@ export const getAllUsers = async (req: Request, res: Response, next: NextFunctio
     }
 
 }
-
-// export const updateUser = async (req: Request, res: Response, next: NextFunction) => {
-//     try {
-//         const { name, address, password, email } = req.body;
-//         const id = req.user!.id;
-
-//         const user = { name, address, password, email } as User;
-//         await userService.updateInfo(user);
-        
-//         return res.status(200).json({
-//             success: true,
-//             message: "User profile updated successfully"
-//         });
-
-//     } catch (err : any) {
-//         next(err);
-//     }
-// }
 export const updateInfo = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const { id, name, email, address, role, status, password } = req.body;
+        const { id, name, email, role, status, password, dateOfBirth } = req.body;
         const checkUser = await userService.getUserById(id);
+        const date_of_birth = dateOfBirth;
         if (!checkUser) {
             throw new AppError("User not found", 404);
         }
-        const user = { id, name, email, address, role, status, password } as User;
+        if (role && req.user!.role !== "admin" && req.user!.id !== id) {
+            throw new AppError("You are not allowed to update this user", 403);
+        }
+
+        const user = { id, name, email, role, status, password, date_of_birth } as User;
         await userService.updateInfo(user);
 
         return res.status(200).json({
             success: true,
             message: "User updated successfully"
         })
+        
+    } catch (err : any) {
+        next(err);
+    }
+}
+export const updateAvatar = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const id = req.user!.id;
+        const file = req.file;
+        if (!file) {
+            throw new AppError("No file uploaded", 400);
+        }
+        const avatarPath = "/uploads/users/" + file.filename;
+        
+        await userService.updateAvatar(id, avatarPath);
+        return res.status(200).json({
+            success: true,
+            message: "Avatar updated successfully",
+            data: { avatar: avatarPath }
+        })
+    } catch (err : any) {
+        next(err);
+    }
+}
+
+export const changePhone = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const { newPhone, password } = req.body;
+        const id = req.user!.id;
+        await userService.changePhone(id, newPhone, password);
+        return res.status(200).json({
+            success: true,
+            message: "Phone number changed successfully",
+            data: { newPhone: newPhone }
+        });
         
     } catch (err : any) {
         next(err);
@@ -205,7 +227,7 @@ export const changeEmail = async (req: Request, res: Response, next: NextFunctio
         return res.status(200).json({
             success: true,
             message: "OTP has been sent to your Email. Please verify it.",
-            newEmail: newEmail
+            data: {newEmail: newEmail}
         });
     } catch (err : any) {
         next(err);
@@ -233,7 +255,7 @@ export const forgotPassword = async (req: Request, res: Response, next: NextFunc
         return res.status(200).json({
             success: true,
             message: "OTP has been sent to your email. Please verify it.",
-            data: email
+            data: {email: email}
         })
 
     } catch (err : any) {
@@ -246,7 +268,7 @@ export const verifyForgotPasswordOtp = async (req: Request, res: Response, next:
         await userService.verifyForgotPasswordOtp(email, otp);
         return res.status(200).json({
             success: true,
-            message: email
+            message: "OTP verified successfully. You can now reset your password."
         })
         
     } catch (err : any) {
@@ -260,8 +282,49 @@ export const resetPassword = async (req: Request, res: Response, next: NextFunct
         return res.status(200).json({
             success: true, 
             message: "Password reset successfully",
-            data: email
         })
+    } catch (err : any) {
+        next(err);
+    }
+}
+export const deleteUser = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const id = parseInt(req.params.id);
+        const role = req.user?.role;
+        if (role !== "admin") {
+            throw new AppError("Admin only", 403);
+        }
+        const checkUser = await userService.getUserById(id);
+        if (!checkUser) {
+            throw new AppError("User not found", 404);
+        }
+        await userService.deleteUser(id);
+        return res.status(200).json({
+            success: true,
+            message: "User deleted successfully"
+        })
+        
+    } catch (err : any) {
+        next(err);
+    }
+}
+export const unlockUser = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const id = parseInt(req.params.id);
+        const role = req.user?.role;
+        if (role !== "admin") {
+            throw new AppError("Admin only", 403);
+        }
+        const checkUser = await userService.getUserById(id);
+        if (!checkUser) {
+            throw new AppError("User not found", 404);
+        }
+        await userService.unlockUser(id);
+        return res.status(200).json({
+            success: true,
+            message: "User unlocked successfully"
+        })
+        
     } catch (err : any) {
         next(err);
     }

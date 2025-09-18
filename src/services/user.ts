@@ -10,7 +10,7 @@ export const getUserByEmail = async (email: string): Promise<User | null> => {
   try {
     const pool = await connectionDB();
     const result = await pool.request().input("email", email)
-      .query(`SELECT name, email, address, id
+      .query(`SELECT name, email, address, id, phone, avatar, role
                  FROM users
                  WHERE email = @email AND is_verified = 1`);
 
@@ -24,7 +24,7 @@ export const getUserById = async (id: number): Promise<User | null> => {
   try {
     const pool = await connectionDB();
     const result = await pool.request().input("id", id)
-      .query(`SELECT u.id, u.name, u.email, u.address
+      .query(`SELECT u.id, u.name, u.email, u.address, u.phone, u.avatar, u.role
                 FROM users u
                 WHERE u.id = @id`);
 
@@ -61,15 +61,18 @@ export const registerUser = async (user: User): Promise<void> => {
       .request()
       .input("name", user.name)
       .input("email", user.email)
+      .input("phone", user.phone || null)
+      .input("avatar", user.avatar || null)
       .input("password", hashedPassword)
       .input("role", user.role || "customer")
-      .query(`INSERT INTO users(name, email, password, role)
-                    VALUES (@name, @email, @password, @role)`);
-  } catch (err: any) {
-  console.error("registerUser error:", err);
-  if (err instanceof AppError) throw err;
-  throw new AppError("Failed to registerUser", 500, false);
-}
+      .query(`INSERT INTO users(name, email, password, role, phone, avatar)
+                    VALUES (@name, @email, @password, @role, @phone, @avatar)`);
+  } catch (err) {
+      console.error(err);
+      if (err instanceof AppError) throw err;
+      throw new AppError("Failed to registerUser", 500, false);
+  }
+
 
 };
 export const verifyRegisterUser = async (email: string): Promise<void> => {
@@ -87,12 +90,15 @@ export const loginUser = async (email: string, password: string) => {
   try {
     const pool = await connectionDB();
     const result = await pool.request().input("email", email)
-      .query(`SELECT u.id, u.name, u.email, u.role, u.password
+      .query(`SELECT u.id, u.name, u.email, u.role, u.password, u.avatar, u.phone, u.status, u.date_of_birth
                 FROM users u
                 WHERE email = @email AND is_verified = 1`);
 
     if (result.recordset.length === 0) {
       throw new AppError("User not found", 404);
+    }
+    if (result.recordset[0].status === "banned") {
+      throw new AppError("User is banned", 403);
     }
     const user = result.recordset[0];
     const isMatch = await bcrypt.compare(
@@ -103,6 +109,7 @@ export const loginUser = async (email: string, password: string) => {
       throw new AppError("Invalid password", 401);
     }
     delete user.password;
+    delete user.status;
 
     const accessToken = jwtUtils.accessToken(user.id, user.email, user.role);
     const refreshToken = jwtUtils.refreshToken(user.id, user.email, user.role);
@@ -124,7 +131,8 @@ export const updateInfo = async (user: User): Promise<void> => {
     const pool = await connectionDB();
     const request = pool.request();
     Object.entries(user).forEach(([key, value]) => {
-      if (key !== "id" && key != "email" && key != "password" && value !== "" && value !== null && value !== undefined) {
+      if (key !== "id" && key !== "email" && key !== "password" && key != "phone" && key !== "avatar"
+        && value !== "" && value !== null && value !== undefined) {
         listInfo.push(`${key} = @${key}`);
         request.input(key, value);
       }
@@ -133,11 +141,59 @@ export const updateInfo = async (user: User): Promise<void> => {
     const query = `UPDATE users
             SET ${listInfo.join(", ")}
             WHERE id = @id`;
-    await request.query(query);
+    await request.query(query); 
   } catch (err) {
+    console.log(err);
     throw new AppError("Failed to updateInfo", 500, false);
   }
 };
+export const updateAvatar = async (id: number, avatar: string): Promise<void> => {
+  try {
+    const pool = await connectionDB();
+    await pool
+      .request()
+      .input("id", id)
+      .input("avatar", avatar)
+      .query(`UPDATE users
+        SET avatar = @avatar
+        WHERE id = @id`);
+  } catch (err) {
+    throw new AppError("Failed to updateAvatar", 500, false);
+  }
+}
+export const changePhone = async (id: number, newPhone: string, password: string): Promise<void> => {
+  try {
+    const pool = await connectionDB();
+    const user = await pool
+      .request()
+      .input("id", id)
+      .query(`SELECT password FROM users WHERE id = @id`);
+    if (user.recordset.length === 0) {
+      throw new AppError("User not found", 404);
+    }
+    const isMatch = await bcrypt.compare(password, user.recordset[0].password);
+    if (!isMatch) {
+      throw new AppError("Invalid password", 401);
+    }
+    const checkNewPhone = await pool.request().input("phone", newPhone)
+      .query(`SELECT phone 
+                FROM users
+                WHERE phone = @phone
+                AND is_verified = 1`);
+    if (checkNewPhone.recordset.length >= 1) {
+      throw new AppError("Phone number already exists", 409);
+    }
+    await pool.request()
+      .input("id", id)
+      .input("phone", newPhone)
+      .query(`UPDATE users
+                SET phone = @phone
+                WHERE id = @id`);
+  } catch (err: any) {
+    if (err instanceof AppError) throw err;
+    throw new AppError("Failed to changePhone", 500, false);
+  }
+}
 
 export const changePassword = async (id: number, password: string, newPassword: string): Promise<void> => {
   try {
@@ -156,7 +212,7 @@ export const changePassword = async (id: number, password: string, newPassword: 
       result.recordset[0].password
     );
     if (!isMatch) {
-      throw new AppError("Invalid current password", 401);
+      throw new AppError("Invalid current password", 401); 
     }
     const newPasswordHash = await bcrypt.hash(newPassword, 10);
     await pool.request().input("id", id).input("password", newPasswordHash)
@@ -275,3 +331,39 @@ export const resetPassword = async (email: string,newPassword: string): Promise<
     throw new AppError("Failed to resetPassword", 500, false);
   }
 };
+
+export const deleteUser = async (id: number): Promise<void> => {
+  try {
+    const pool = await connectionDB();
+    await pool
+      .request()
+      .input("id", id)
+      .input("status", "banned")
+      .query(`UPDATE users
+        SET status = @status
+        WHERE id = @id`);
+  } catch (err) {
+    throw new AppError("Failed to deleteUser", 500, false);
+  }
+}
+
+export const unlockUser = async (id: number): Promise<void> => {
+  try {
+    const checkUser = await getUserById(id);
+    if (!checkUser) {
+      throw new AppError("User not found", 404);
+    }
+    const pool = await connectionDB();
+    await pool
+      .request()
+      .input("id", id)
+      .input("status", "active")
+      .query(`UPDATE users
+        SET status = @status
+        WHERE id = @id`);
+    
+  } catch (err) {
+    if (err instanceof AppError) throw err;
+    throw new AppError("Failed to unlockUser", 500, false);
+  }
+} 
