@@ -10,7 +10,7 @@ export const sendMail = async (to: string, subject: string, html: string) => {
       },
     });
     const mailOptions = {
-      from: process.env.EMAIL_USER,
+      from: `"Fashion-shop" <${process.env.EMAIL_USER}>`,
       to: to,
       subject: subject,
       text: html,
