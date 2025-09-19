@@ -12,10 +12,6 @@ export const addCategory = async (req: Request, res: Response, next: NextFunctio
 
     const { category_name, description, status } = req.body;
 
-    if (!category_name) {
-      throw new AppError("Category name is required", 400);
-    }
-
     const newCategory = {
       category_name,
       description,
