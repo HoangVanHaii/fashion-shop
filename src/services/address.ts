@@ -25,6 +25,7 @@ export const addAddress = async (address: Address): Promise<void> => {
                 VALUES (@user_id, @name, @address, @phone, @is_default)
             `);
     } catch (error) {
+      console.log(error);
         throw new AppError("Failed to add address", 500, false);
     }
 };

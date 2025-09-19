@@ -1,8 +1,102 @@
-import { createOderPayLoad, Order, OrderItem } from "../interfaces/order"
+import { OderPayLoad, Order, OrderItem, GetOrder } from "../interfaces/order"
 import { connectionDB } from "../config/database"
+import { addAddress } from "./address";
 import { AppError } from "../utils/appError"
 import mssql from 'mssql';
+import { Address } from "../interfaces/address";
 
+const baseQuery = `SELECT 
+                    o.id AS order_id,
+                    p.name AS product_name,
+                    p.id AS product_id,
+                    pc.color,
+                    pc.id AS color_id,
+                    pc.image_url,
+                    ps.size,
+                    ps.id AS size_id,
+                    oi.quantity,
+                    oi.price,
+                    oi.id AS item_id,
+                    o.status,
+                    o.created_at,
+                    o.total,
+                    pay.method,
+                    o.shipping_address,
+                    o.shipping_name,
+                    o.shipping_phone
+                FROM orders o
+                    INNER JOIN order_items oi ON oi.order_id = o.id
+                    INNER JOIN products p ON oi.product_id = p.id
+                    INNER JOIN product_colors pc ON pc.id = oi.color_id
+                    INNER JOIN product_sizes ps ON ps.id = oi.size_id
+                    INNER JOIN payments pay ON o.id = pay.order_id`; 
+
+const transformationOrder = (result: any[], orderMaps: Record<number, GetOrder>) => {
+    result.forEach((row:any) => {
+            if(!orderMaps[row.order_id]){
+                orderMaps[row.order_id] = {
+                    order_id: row.order_id,
+                    status: row.status,
+                    created_at: row.created_at,
+                    items: [],
+                    total: row.total,
+                    payment_method: row.payment_method,
+                    shipping_address: row.shipping_address,
+                    shipping_name: row.shipping_name,
+                    shipping_phone: row.shipping_phone
+                }
+            }
+            orderMaps[row.order_id].items.push({
+                id: row.item_id,
+                product_id: row.product_id,
+                product_name: row.product_name,
+                color_id: row.color_id,
+                color: row.color,
+                size_id: row.size_id,
+                size: row.size,
+                quantity: row.quantity,
+                price: row.price,
+                image_url: row.image_url
+            })
+        })
+} 
+export const getOrderOfme = async(user_id: number) : Promise<GetOrder[]> => {
+    const query = `${baseQuery}
+                WHERE o.user_id = @user_id`;
+    try {
+        const pool = await connectionDB();
+        const result = await pool.request().input('user_id', user_id).query(query);
+
+        const orderMaps :Record<number, GetOrder> = {};
+        transformationOrder(result.recordset, orderMaps);
+        
+        return Object.values(orderMaps);
+    } catch (error) {
+        console.log(error);
+        throw new AppError('Failed to fetching order', 500, false);
+    }
+}
+export const getOrderById = async (order_id: number) : Promise<GetOrder |null> => {
+    const query = `${baseQuery}
+                    WHERE o.id = @order_id`;
+    try {
+        const pool = await connectionDB();
+        const result = await pool.request()
+            .input('order_id', order_id)
+            .query(query);
+        const orderMaps : Record<number, GetOrder> = {};
+        transformationOrder(result.recordset, orderMaps);
+        const orders = Object.values(orderMaps);
+        if(!orders){
+            return null;
+        }
+        return orders[0];
+
+    } catch (error) {
+        console.log(error);
+        throw new AppError(`Failed to fetching order by id ${order_id}`, 500, false);
+    }
+}
 const insertOrder = async (transaction: mssql.Transaction, order: Order): Promise<number> => {
     const query = `INSERT INTO orders (user_id, total, shipping_name, shipping_address, shipping_phone)
                    OUTPUT INSERTED.id AS orderId
@@ -51,7 +145,7 @@ const insertPayment = async (transaction: mssql.Transaction, orderId: number, am
         .input('status', status)
         .query(query);
 }
-export const createOder = async (orderData: createOderPayLoad, statusPayment: string): Promise<void> => {
+export const createOder = async (orderData: OderPayLoad, statusPayment: string): Promise<void> => {
     const pool = await connectionDB();
     const transaction = new mssql.Transaction(pool);
     const { order, orderItems } = orderData;
@@ -60,10 +154,50 @@ export const createOder = async (orderData: createOderPayLoad, statusPayment: st
         const orderId = await insertOrder(transaction, order);
         await insertOrderItems(transaction, orderId, orderItems);
         await insertPayment(transaction, orderId, order.total, order.payment_method, statusPayment);
+        await addAddress({
+            user_id: order.user_id,
+            name: order.shipping_name,
+            phone: order.shipping_phone,
+            address: order.shipping_address,
+            is_default: false
+        })
         await transaction.commit();
     } catch (error) {
         console.log(error);
         await transaction.rollback();
         throw new AppError('Failed to create order', 500, false);
+    }
+}
+export const updateAdressOrder = async (order_id: number, address: Address) : Promise<void> => {
+    const query = `UPDATE orders 
+            SET shipping_address = @address,
+                shipping_phone = @phone,
+                shipping_name = @name
+            WHERE id = @id`
+    try {
+        const pool = await connectionDB();
+        await pool.request()
+            .input('id', order_id)
+            .input('address', address.address)
+            .input('phone', address.phone)
+            .input('name', address.name)
+            .query(query);
+    } catch (error) {
+        console.log(error);
+        throw new AppError('Failed to update address', 500, false);
+    }
+}
+
+export const updateStatusOrder = async (order_id: number, status: string) : Promise<void> => {
+    const query = `UPDATE orders SET status = @status WHERE id = @id`;
+    try {
+        const pool = await connectionDB();
+        await pool.request()
+            .input('id', order_id)
+            .input('status', status)
+            .query(query);
+    } catch (error) {
+        console.log(error);
+        throw new AppError('Failed to confirm order', 500, false);
     }
 }
