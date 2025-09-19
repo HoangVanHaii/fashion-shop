@@ -20,7 +20,6 @@ const validateIsDefault = body("is_default")
   .isBoolean().withMessage("is_default must be true or false")
   .bail();
 
-// --- Validators for API ---
 export const addAddressValidator = [
   validateName,
   validateAddress,

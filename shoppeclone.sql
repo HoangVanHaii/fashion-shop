@@ -44,6 +44,8 @@ CREATE TABLE shops
     FOREIGN KEY (seller_id) REFERENCES users(id) ON DELETE CASCADE
 );
 GO
+
+select * from categories
 CREATE TABLE categories (
     category_id INT PRIMARY KEY IDENTITY(1,1),
     category_name NVARCHAR(100) NOT NULL,

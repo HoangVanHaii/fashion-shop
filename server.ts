@@ -6,8 +6,8 @@ import userRouter from './src/routers/user';
 import productRouter from './src/routers/product'
 import orderRouter from './src/routers/order'
 import addressRouter from './src/routers/address'
+import categoriesRouter from './src/routers/categories'
 import cartRouter from "./src/routers/cart";
-
 import adminRouter from "./src/routers/admin/user";
 import reviewRouter from "./src/routers/review";
 import productSellerRouter from './src/routers/seller/product'
@@ -31,6 +31,7 @@ app.use('/api/seller/product', productSellerRouter);
 app.use('/api/order', orderRouter);
 app.use('/api/seller/order', orderSellerRouter);
 app.use('/api/address', addressRouter);
+app.use('/api/categories', categoriesRouter);
 app.use("/api/reviews", reviewRouter);
 
 app.use(errorHandler);
