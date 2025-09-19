@@ -67,8 +67,8 @@ export const getUserById = async (req: Request, res: Response, next: NextFunctio
 
 export const getAllUsers = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const role = req.user?.role;
-        const result = await userService.getAllUsers();
+        const { status, role, isVerified } = req.query;
+        const result = await userService.getAllUsers( role as string, status as string, isVerified as string);
         return res.status(200).json({
             success: true,
             message: "Get all users successfully",
