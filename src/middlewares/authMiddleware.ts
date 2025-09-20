@@ -37,3 +37,10 @@ const role = req.user?.role;
     }
     next();
 }
+export const adminOrSeller = (req: Request, res: Response, next: NextFunction) =>{
+    const role = req.user?.role;
+    if(role !== "admin" && role !== "seller"){
+        throw new AppError('Forbidden: Admins or Sellers only ', 403)
+    }
+    next();
+}
