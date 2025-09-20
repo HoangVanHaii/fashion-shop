@@ -1,7 +1,6 @@
 -- =============================
 -- DATABASE
 -- =============================
-
 CREATE DATABASE SHOPEEVN;
 GO
 USE SHOPEEVN;
@@ -167,8 +166,6 @@ CREATE TABLE order_items (
 	FOREIGN KEY (size_id) REFERENCES product_sizes(id)
  );
 GO
-
-select *from orders
 CREATE TABLE reviews (
     id INT IDENTITY(1,1) PRIMARY KEY,
     product_id INT NOT NULL,
@@ -184,7 +181,7 @@ GO
 CREATE TABLE payments (
     id INT IDENTITY(1,1) PRIMARY KEY,
     order_id INT NOT NULL,
-    method VARCHAR(20) CHECK (method IN ('cod','credit_card','paypal','momo')) DEFAULT 'cod',
+    method VARCHAR(20) CHECK (method IN ('cod','credit_card','paypal','momo', 'vnpay')) DEFAULT 'cod',
     amount DECIMAL(10,2) NOT NULL,
     status VARCHAR(20) CHECK (status IN ('pending','success','failed')) DEFAULT 'pending',
     created_at DATETIME DEFAULT GETDATE(),
@@ -218,8 +215,8 @@ CREATE TABLE user_vouchers (
     used_date DATETIME
 );
 GO
-
-
+select *from orders
+select *from payments
 CREATE TABLE flash_sales (
     id INT PRIMARY KEY IDENTITY(1,1),
     title NVARCHAR(100),

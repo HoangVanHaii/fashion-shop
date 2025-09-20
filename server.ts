@@ -6,6 +6,7 @@ import orderRouter from './src/routers/order'
 import addressRouter from './src/routers/address'
 import productSellerRouter from './src/routers/seller/product'
 import orderSellerRouter from './src/routers/seller/order'
+import paymentRouter from './src/routers/vnpay'
 import { Request, Response } from 'express';
 
 import { errorHandler } from './src/middlewares/errorHandler';
@@ -19,6 +20,7 @@ app.use('/api/seller/product', productSellerRouter);
 app.use('/api/order', orderRouter);
 app.use('/api/seller/order', orderSellerRouter);
 app.use('/api/address', addressRouter);
+app.use('/api/payments', paymentRouter);
 
 app.use(errorHandler);
 app.use((req: Request, res: Response) => {
