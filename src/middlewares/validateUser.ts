@@ -1,19 +1,21 @@
-import { body } from "express-validator";
+import { body, param } from "express-validator";
+
+const dateOfBirthValidator = body("dateOfBirth")
+  .optional()
+  .isISO8601()
+  .withMessage("Date of Birth must be a valid date")
 
 const emailValidator = body("email")
   .notEmpty()
   .withMessage("Email is required")
   .isEmail()
   .withMessage("Invalid email format");
+
 const phoneValidator = body("phone")
   .notEmpty()
   .withMessage("Phone number is required")
   .isMobilePhone("any")
   .withMessage("Invalid phone number");
-
-export const avatarValidator = body("avatar")
-  .isURL()
-  .withMessage("Avatar must be a valid URL");
 
 const newEmailValidator = body("newEmail")
   .notEmpty()
@@ -35,6 +37,13 @@ const otpValidator = body("otp")
   .isLength({ min: 6, max: 6 })
   .withMessage("Otp must be exactly 6 digits");
 
+export const idValidator = param("id")
+  .isInt({ gt: 0 }).withMessage("ID must be a positive integer");
+
+export const avatarValidator = body("avatar")
+  .isURL()
+  .withMessage("Avatar must be a valid URL");
+
 export const registerValidator = [
   body("name")
     .notEmpty()
@@ -44,11 +53,28 @@ export const registerValidator = [
   phoneValidator,
   emailValidator,
   passwordValidator,
+  dateOfBirthValidator,
   body("role")
     .optional()
     .isIn(["customer", "seller", "admin"])
     .withMessage("Role must be either 'customer', 'seller' or 'admin"),
 ];
+
+export const createUserByAdminValidator = [
+  body("name")
+    .notEmpty()
+    .withMessage("Name is required")
+    .isLength({ min: 3, max: 50 })
+    .withMessage("Name must be between 2 and 50 characters"),
+  phoneValidator,
+  emailValidator,
+  dateOfBirthValidator,
+  body("role")
+    .notEmpty()
+    .withMessage("Role is required")
+    .isIn(["customer", "seller", "admin"])
+    .withMessage("Role must be either 'customer', 'seller' or 'admin"),
+]
 
 export const loginValidator = [emailValidator, passwordValidator];
 
@@ -63,14 +89,31 @@ export const updateUserValidator = [
     .optional({ checkFalsy: true })
     .isLength({ min: 3, max: 50 })
     .withMessage("Name must be between 3 and 50 characters"),
-  body("address")
+  dateOfBirthValidator
+];
+
+export const updateUserByAdminValidator = [
+  param("id")
+    .isInt({ gt: 0 })
+    .withMessage("ID must be a positive integer"),
+  body("name")
     .optional({ checkFalsy: true })
-    .isLength({ min: 3 })
-    .withMessage("Address must be at least 3 characters,"),
+    .isLength({ min: 3, max: 50 })
+    .withMessage("Name must be between 3 and 50 characters"),
+  dateOfBirthValidator,
   body("role")
     .optional({ checkFalsy: true })
-    .isIn(["customer", "seller", "admin"])  
-];
+    .isIn(["customer", "seller", "admin"])
+    .withMessage("Role must be either 'customer', 'seller' or 'admin"),
+  body("status")
+    .optional({ checkFalsy: true })
+    .isIn(["active", "banned"])
+    .withMessage("Status must be either 'active' or 'banned"),
+  body("is_verified")
+    .optional({ checkFalsy: true })
+    .isBoolean()
+    .withMessage("is_verified must be a boolean"),
+]
 
 export const changePasswordValidator = [
   passwordValidator,
@@ -80,6 +123,7 @@ export const changePasswordValidator = [
     .isLength({ min: 3 })
     .withMessage("NewPassword must be at least 3 characters"),
 ];
+
 export const changePhoneValidator = [
   body("newPhone")
     .notEmpty()
@@ -88,9 +132,11 @@ export const changePhoneValidator = [
     .withMessage("Invalid phone number"),
   passwordValidator,
 ];
+
 export const changeEmailValidator = [newEmailValidator, passwordValidator];
 
 export const verifyChangeEmailValidator = [newEmailValidator, otpValidator];
+
 export const forgotPasswordValidator = [
   body("email")
     .notEmpty()
@@ -99,6 +145,7 @@ export const forgotPasswordValidator = [
     .withMessage("Invalid email format"),
 ];
 export const verifyForgotPasswordValidator = [emailValidator, otpValidator];
+
 export const resetPasswordValidator = [
   emailValidator,
   body("newPassword")
@@ -107,3 +154,4 @@ export const resetPasswordValidator = [
     .isLength({ min: 3 })
     .withMessage("Password must be at least 3 characters"),
 ];
+
