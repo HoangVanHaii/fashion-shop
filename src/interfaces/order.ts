@@ -3,7 +3,7 @@ export interface Order {
     user_id: number;
     voucher_id?: number;
     total: number;
-    payment_method: 'cod' | 'credit_card' | 'paypal' | 'momo';
+    payment_method: 'cod' | 'credit_card' | 'paypal' | 'vnpay' | 'momo';
     shipping_name: string;
     shipping_address: string;
     shipping_phone: string;
@@ -43,7 +43,7 @@ export interface GetOrder {
     updatedAt?: Date;
     items: OrderItemDetail[];
     total: number; 
-    payment_method?: 'cod' | 'credit_card' | 'paypal' | 'momo';
+    payment_method?: 'cod' | 'credit_card' | 'paypal' | 'momo' | 'vnpay';
     shipping_name?: string;
     shipping_address?: string;
     shipping_phone?: string;

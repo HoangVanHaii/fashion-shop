@@ -12,6 +12,8 @@ import reviewRouter from "./src/routers/review";
 import favouriteRouter from './src/routers/favourite'
 import productSellerRouter from "./src/routers/seller/product";
 import orderSellerRouter from "./src/routers/seller/order";
+import paymentRouter from './src/routers/vnpay'
+import voucherRouter from './src/routers/voucher'
 import { Request, Response } from "express";
 
 import { errorHandler } from "./src/middlewares/errorHandler";
@@ -21,7 +23,6 @@ const app = express();
 
 app.use(express.json());
 app.use("/uploads", express.static("uploads"));
-
 
 app.use("/api/cart", cartRouter);
 app.use("/api/admin", adminRouter);
@@ -34,6 +35,8 @@ app.use("/api/address", addressRouter);
 app.use("/api/categorie", categoriesRouter);
 app.use('/api/favourite', favouriteRouter);
 app.use("/api/review", reviewRouter);
+app.use('/api/payments', paymentRouter);
+app.use('/api/voucher', voucherRouter);
 
 app.use(errorHandler);
 

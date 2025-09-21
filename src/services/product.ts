@@ -183,18 +183,7 @@ export const updateProduct = async (productPayload: ProductPayload): Promise<voi
         throw new AppError('Failed to update product', 500, false);
     }
 }
-// export const getProductById = async (id: number): Promise<ProductPayload | null> => {
-//     try {
-//         const pool = await connectionDB();
-//         const query = 'SELECT * FROM products WHERE id = @id';
-//         const result = await pool.request()
-//             .input('id', id)
-//             .query(query);
-//         return result.recordset[0] as ProductPayload || null;   
-//     } catch (error) {
-//         throw new AppError('Failed to fetch product', 500, false);   
-//     }
-// }
+
 export const getCategoryById = async (category_id: number): Promise<boolean> => {
     try {
         const pool = await connectionDB();
