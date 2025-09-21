@@ -31,17 +31,7 @@ CREATE TABLE addresses (
     REFERENCES Users(id) ON DELETE CASCADE
 );
 GO
-CREATE TABLE addresses (
-    id INT IDENTITY(1,1) PRIMARY KEY,
-    user_id INT NOT NULL,
-    name NVARCHAR(255) NOT NULL,
-    address NVARCHAR(500) NOT NULL,
-    phone NVARCHAR(20) NOT NULL,
-    is_default BIT NOT NULL DEFAULT 0,
-    CONSTRAINT FK_ShippingAddresses_Users FOREIGN KEY(user_id)
-    REFERENCES Users(id) ON DELETE CASCADE
-);
-GO
+
 CREATE TABLE shops
 (
     id INT IDENTITY(1,1) PRIMARY KEY,
@@ -53,23 +43,24 @@ CREATE TABLE shops
     FOREIGN KEY (seller_id) REFERENCES users(id) ON DELETE CASCADE
 );
 GO
+
+select * from categories
 CREATE TABLE categories (
-    category_id INT PRIMARY KEY IDENTITY(1,1), -- Mã danh mục tự tăng
-    category_name NVARCHAR(100) NOT NULL,      -- Tên danh mục
-    description NVARCHAR(255),                 -- Mô tả danh mục
-    status VARCHAR(50) DEFAULT 'active'        -- Trạng thái: active / inactive
+    category_id INT PRIMARY KEY IDENTITY(1,1),
+    category_name NVARCHAR(100) NOT NULL,
+    description NVARCHAR(255),
+    status VARCHAR(50) DEFAULT 'active'
 );
 
 GO
 
-CREATE TABLE products (
+CREATE TABLE products
+(
     id INT IDENTITY(1,1) PRIMARY KEY,
     shop_id INT NOT NULL,
-    category_id INT NOT NULL,   
+    category_id INT NOT NULL,
     name NVARCHAR(200) NOT NULL,
     description NVARCHAR(250),
-    price DECIMAL(10,2) NOT NULL,
-    stock INT DEFAULT 0,
     status VARCHAR(20) CHECK (status IN ('active','hidden','banned')) DEFAULT 'active',
     created_at DATETIME DEFAULT GETDATE(),
     FOREIGN KEY (shop_id) REFERENCES shops(id) ON DELETE CASCADE,
@@ -77,7 +68,6 @@ CREATE TABLE products (
 
 );
 GO
-
 CREATE TABLE product_colors
 (
     id INT PRIMARY KEY IDENTITY(1,1),
@@ -98,7 +88,6 @@ CREATE TABLE product_sizes
     FOREIGN KEY (color_id) REFERENCES product_colors(id) ON DELETE CASCADE
 );
 GO
-
 CREATE TABLE carts
 (
     id INT IDENTITY(1,1) PRIMARY KEY,
@@ -111,15 +100,15 @@ GO
 CREATE TABLE cart_items (
     id INT IDENTITY(1,1) PRIMARY KEY,
     cart_id INT NOT NULL,
-	color_id INT NOT NULL,
-	size_id INT NOT NULL,
+	  color_id INT NOT NULL,
+	  size_id INT NOT NULL,
     product_id INT NOT NULL,
     quantity INT NOT NULL DEFAULT 1,
     FOREIGN KEY (cart_id) REFERENCES carts(id) ON DELETE CASCADE,
 
     FOREIGN KEY (product_id) REFERENCES products(id),
-	FOREIGN KEY (color_id) REFERENCES product_colors(id),
-	FOREIGN KEY (size_id) REFERENCES product_sizes(id)
+	  FOREIGN KEY (color_id) REFERENCES product_colors(id),
+	  FOREIGN KEY (size_id) REFERENCES product_sizes(id)
 );
 GO
 CREATE TABLE vouchers
@@ -142,14 +131,19 @@ CREATE TABLE vouchers
 );
 GO
 
-select *from orders
-CREATE TABLE orders (
+CREATE TABLE orders
+(
     id INT IDENTITY(1,1) PRIMARY KEY,
     user_id INT NOT NULL,
+    voucher_id INT,
     total DECIMAL(10,2) NOT NULL,
-    status VARCHAR(20) CHECK (status IN ('pending','confirm','shipped','completed','cancelled')) DEFAULT 'pending',
+    status VARCHAR(20) CHECK (status IN ('pending','comfirm','shipped','completed','cancelled')) DEFAULT 'pending',
+    shipping_address NVARCHAR(255) NOT NULL,
+    shipping_phone NVARCHAR(20) NOT NULL,
+    shipping_name NVARCHAR(255) NOT NULL,
     created_at DATETIME DEFAULT GETDATE(),
-    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (voucher_id) REFERENCES vouchers(id)
 );
 GO
 CREATE TABLE order_items (
@@ -157,7 +151,7 @@ CREATE TABLE order_items (
     order_id INT NOT NULL,
     product_id INT NOT NULL,
     color_id INT NOT NULL,
-	size_id INT NOT NULL,
+	  size_id INT NOT NULL,
     quantity INT NOT NULL,
     price DECIMAL(10,2) NOT NULL,
     FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE CASCADE,
@@ -238,11 +232,11 @@ CREATE TABLE flash_sale_items (
 );
 GO
 CREATE TABLE otp_codes (
-    id INT IDENTITY(1,1) PRIMARY KEY,      -- Khóa chính tự tăng
-    email NVARCHAR(255) NOT NULL,          -- Email người dùng
-    otp NVARCHAR(10) NOT NULL,             -- Mã OTP (chuỗi, vì có thể chứa số 0 đầu tiên)
-    created_at DATETIME DEFAULT GETDATE(),  -- Thời gian tạo OTP
-    expires_at DATETIME NOT NULL            -- Thời gian hết hạn (ví dụ 5 phút)
+    id INT IDENTITY(1,1) PRIMARY KEY,   
+    email NVARCHAR(255) NOT NULL,         
+    otp NVARCHAR(10) NOT NULL,             
+    created_at DATETIME DEFAULT GETDATE(),  
+    expires_at DATETIME NOT NULL            
 );
 
 

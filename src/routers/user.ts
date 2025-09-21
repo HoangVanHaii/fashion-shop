@@ -1,37 +1,113 @@
 import { Router } from "express";
 import * as userController from "../controllers/user";
 import * as userValidator from "../middlewares/validateUser";
+import { uploadUser } from "../utils/uploadUser";
 import { validateRequest } from "../middlewares/validateRequest";
-import { authMiddleware } from "../middlewares/authMiddleware";
+import { authMiddleware, isAdmin } from "../middlewares/authMiddleware";
 
 const router = Router();
 
 router.post(
-  "/register",
-  userValidator.registerValidator,
-  validateRequest,
-  userController.registerUser
+    "/register",
+    userValidator.registerValidator,
+    validateRequest,
+    userController.registerUser
 );
-router.post("/verify-register", userValidator.verifyOtpValidator, validateRequest, userController.verifyRegisterUser);
+router.post(
+    "/login",
+    userValidator.loginValidator,
+    validateRequest,
+    userController.loginUser
+);
 
-router.post("/login", userValidator.loginValidator, validateRequest, userController.loginUser);
+router.post(
+    "/forgotPassword",
+    userValidator.forgotPasswordValidator,
+    validateRequest,
+    userController.forgotPassword
+);
+router.post(
+    "/verifyForgotPassword",
+    userValidator.verifyForgotPasswordValidator,
+    validateRequest,
+    userController.verifyForgotPasswordOtp
+);
+router.put(
+    "/resetPassword",
+    userValidator.resetPasswordValidator,
+    validateRequest,
+    userController.resetPassword
+);
 
-router.post("/refresh-token", userValidator.refreshTokenValidator, validateRequest, userController.refreshToken);
+router.post(
+    "/verifyRegister",
+    userValidator.verifyOtpValidator,
+    validateRequest,
+    userController.verifyRegisterUser
+);
+router.post(
+    "/refreshToken",
+    userValidator.refreshTokenValidator,
+    validateRequest,
+    userController.refreshToken
+);
 
-router.get("/me", authMiddleware, userController.getProfile);
-router.get("/:id",authMiddleware, userController.getUserById);
-router.get("/",authMiddleware, userController.getAllUsers);
+router.get(
+    "/me",
+    authMiddleware,
+    userController.getProfile
+);
+router.get(
+    "/getShopId",
+    authMiddleware,
+    userController.getShopIdByUserId
+);
 
-router.post("/update-profile", authMiddleware, userValidator.updateUserValidator, validateRequest, userController.updateInfo);
+router.put(
+    "/updateProfile",
+    authMiddleware,
+    userValidator.updateUserValidator,
+    validateRequest,
+    userController.updateProfile
+);
+router.put(
+    "/changePhone",
+    authMiddleware,
+    userValidator.changePhoneValidator,
+    validateRequest,
+    userController.changePhone
+);
 
-router.post("/change-password", authMiddleware, userValidator.changePasswordValidator, validateRequest, userController.changePassword);
-router.post('/:id', authMiddleware, userController.updateInfo);
+router.put(
+    "/updateAvatar",
+    authMiddleware,
+    userValidator.avatarValidator,
+    uploadUser,
+    validateRequest,
+    userController.updateAvatar
+);
 
-router.post("/forgot-password", userValidator.forgotPasswordValidator, validateRequest, userController.forgotPassword);
-router.post("/verify-forgot-password", userValidator.verifyForgotPasswordValidator, validateRequest, userController.verifyForgotPasswordOtp);
-router.post("/reset-password",userValidator.resetPasswordValidator, validateRequest, userController.resetPassword);
+router.put(
+    "/changePassword",
+    authMiddleware,
+    userValidator.changePasswordValidator,
+    validateRequest,
+    userController.changePassword
+);
 
-router.post("/change-email", authMiddleware, userValidator.changeEmailValidator, validateRequest, userController.changeEmail);
-router.post("/verify-change-email", authMiddleware, userValidator.verifyChangeEmailValidator, validateRequest, userController.verifyChangeEmail);
+router.put(
+    "/changeEmail",
+    authMiddleware,
+    userValidator.changeEmailValidator,
+    validateRequest,
+    userController.changeEmail
+);
+router.put(
+    "/verifyChangeEmail",
+    authMiddleware,
+    userValidator.verifyChangeEmailValidator,
+    validateRequest,
+    userController.verifyChangeEmail
+);
 
 export default router;
