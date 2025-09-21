@@ -10,12 +10,13 @@ router.get(
     "/",
     authMiddleware,
     isSeller,
-    productController.getProducts
+    productController.getAllProductsByShop
 );
-router.get("/hiddens", 
+router.get(
+    "/hidden", 
     authMiddleware, 
     isSeller, 
-    productController.getProductsHidden
+    productController.getAllProductsHiddenByShop
 );
 router.post(
     "/addProduct", 

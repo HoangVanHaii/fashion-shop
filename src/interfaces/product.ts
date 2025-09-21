@@ -28,6 +28,7 @@ export interface ProductSize {
 export interface ProductSummary {
   id: number;
   name: string;
+  shop_id?: number;
   description?: string;
   category_name: string;
   thumbnail?: string;

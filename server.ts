@@ -9,6 +9,7 @@ import cartRouter from "./src/routers/cart";
 import adminRouter from "./src/routers/admin/user";
 import reviewRouter from "./src/routers/review";
 import productSellerRouter from "./src/routers/seller/product";
+import productAdminRouter from "./src/routers/admin/product";
 import orderSellerRouter from "./src/routers/seller/order";
 import { Request, Response } from "express";
 
@@ -21,10 +22,11 @@ app.use(express.json());
 app.use("/uploads", express.static("uploads"));
 
 app.use("/api/cart", cartRouter);
+app.use("/api/admin/product", productAdminRouter);
+app.use("/api/seller/product", productSellerRouter);
 app.use("/api/admin", adminRouter);
 app.use("/api/user", userRouter);
 app.use("/api/product", productRouter);
-app.use("/api/seller/product", productSellerRouter);
 app.use("/api/orders", orderRouter);
 app.use("/api/seller/order", orderSellerRouter);
 app.use("/api/address", addressRouter);
