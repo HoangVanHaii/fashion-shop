@@ -1,3 +1,4 @@
+
 import express from "express";
 import dotenv from "dotenv";
 import userRouter from "./src/routers/user";
@@ -8,6 +9,7 @@ import categoriesRouter from "./src/routers/categories";
 import cartRouter from "./src/routers/cart";
 import adminRouter from "./src/routers/admin/user";
 import reviewRouter from "./src/routers/review";
+import favouriteRouter from './src/routers/favourite'
 import productSellerRouter from "./src/routers/seller/product";
 import orderSellerRouter from "./src/routers/seller/order";
 import { Request, Response } from "express";
@@ -20,6 +22,7 @@ const app = express();
 app.use(express.json());
 app.use("/uploads", express.static("uploads"));
 
+
 app.use("/api/cart", cartRouter);
 app.use("/api/admin", adminRouter);
 app.use("/api/user", userRouter);
@@ -29,6 +32,7 @@ app.use("/api/orders", orderRouter);
 app.use("/api/seller/order", orderSellerRouter);
 app.use("/api/address", addressRouter);
 app.use("/api/categorie", categoriesRouter);
+app.use('/api/favourite', favouriteRouter);
 app.use("/api/review", reviewRouter);
 
 app.use(errorHandler);
