@@ -2,6 +2,7 @@ import express from 'express';
 import *as voucherController from '../controllers/voucher'
 import { authMiddleware, adminOrSeller } from '../middlewares/authMiddleware';
 import { validateRequest } from '../middlewares/validateRequest';
+import { uploadVoucherImage } from '../utils/uploadVoucher';
 import *as voucherValidate from '../middlewares/voucher';
 
 const router = express.Router();
@@ -16,6 +17,7 @@ router.post(
     '/createVoucher',
     authMiddleware,
     adminOrSeller,
+    uploadVoucherImage,
     voucherValidate.createVoucherData,
     validateRequest,
     voucherController.createVoucher

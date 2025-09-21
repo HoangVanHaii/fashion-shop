@@ -1,4 +1,5 @@
 import *as voucherService from '../services/voucher'
+import *as userService from '../services/user'
 import { Request, Response, NextFunction } from 'express';
 import { Voucher } from '../interfaces/voucher';
 
@@ -59,6 +60,14 @@ export const createVoucher = async (req: Request, res: Response, next: NextFunct
     try {
         const user_id = req.user!.id;
         const { code, description, discount_type, discount_value, min_order_value, max_discount, start_date, end_date, usage_limit, scope } = req.body;
+        let shop_id = null;
+        if (scope === 'SHOP') {
+            // shop_id = await userService.getShopIdByUserId(user_id);
+            shop_id = 3;
+        }
+        const file = req.file;
+        const image_url = file ? `/uploads/vouchers/${file.filename}` : '';
+
         const voucher = {
             code,
             description,
@@ -66,11 +75,13 @@ export const createVoucher = async (req: Request, res: Response, next: NextFunct
             discount_value,
             max_discount,
             min_order_value,
+            quantity: usage_limit,
             start_date,
             end_date,
-            quantity: usage_limit,
             created_by: user_id,
             scope: scope,
+            shop_id: shop_id,
+            image_url
         } as Voucher;
         await voucherService.createVoucher(voucher);
         return res.status(201).json({ message: 'Voucher created successfully' });

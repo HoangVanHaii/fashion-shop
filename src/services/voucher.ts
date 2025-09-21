@@ -5,9 +5,9 @@ import { Voucher } from "../interfaces/voucher";
 export const createVoucher = async (voucher: Voucher): Promise<number> => {
 	try {
 		const pool = await connectionDB();
-		const query = `INSERT INTO vouchers (code, description, discount_type, discount_value, max_discount, min_order_value, quantity, start_date, end_date,created_by, scope, shop_id)
+		const query = `INSERT INTO vouchers (code, description, discount_type, discount_value, max_discount, min_order_value, quantity, start_date, end_date,created_by, scope, shop_id, image_url)
 					   OUTPUT INSERTED.id AS voucherId
-					   VALUES (@code, @description, @discount_type, @discount_value, @max_discount, @min_order_value, @quantity, @start_date, @end_date, @created_by, @scope, @shop_id)`;
+					   VALUES (@code, @description, @discount_type, @discount_value, @max_discount, @min_order_value, @quantity, @start_date, @end_date, @created_by, @scope, @shop_id, @image_url)`;
 		const result = await pool
 			.request()
 			.input("code", voucher.code)
@@ -21,11 +21,13 @@ export const createVoucher = async (voucher: Voucher): Promise<number> => {
 			.input("end_date", voucher.end_date)
 			.input("created_by", voucher.created_by)
 			.input("scope", voucher.scope)
-			.input("shop_id", voucher.shop_id || null)
+			.input("shop_id", voucher.shop_id)
+			.input("image_url", voucher.image_url)
 			.query(query);
 
 		return result.recordset[0].voucherId;
 	} catch (error) {
+		console.error(error);
 		throw new AppError('Failed to create voucher', 500, false);
 	}
 }
@@ -69,7 +71,7 @@ export const getVoucherCodeById = async (voucher_id: number): Promise<string | n
 		throw new AppError('Failed to fetch voucher code', 500, false);
 	}
 }
-export const getVoucherByCode = async (code: string): Promise<any | null> => {
+export const getVoucherByCode = async (code: string): Promise<Voucher| null> => {
 	try {
 		const pool = await connectionDB();
 		const query = `SELECT * FROM vouchers WHERE code = @code`;
@@ -81,7 +83,7 @@ export const getVoucherByCode = async (code: string): Promise<any | null> => {
 		if (result.recordset.length === 0) {
 			return null;
 		}
-		return result.recordset[0];
+		return result.recordset[0] as Voucher;
 	} catch (error: any) {
 		throw new AppError('Failed to fetch voucher by code', 500, false);
 	}
@@ -142,7 +144,7 @@ export const getAllVouchers = async (): Promise<Voucher[]> => {
 		const pool = await connectionDB();
 		const query = `SELECT * FROM vouchers`;
 		const result = await pool.request().query(query);
-		return result.recordset;
+		return result.recordset as Voucher[];
 	} catch (error) {
 		throw new AppError('Failed to fetch vouchers', 500, false);
 	}
@@ -155,7 +157,7 @@ export const getVoucherById = async (id: number): Promise<Voucher | null> => {
 		if (result.recordset.length === 0) {
 			return null;
 		}
-		return result.recordset[0];
+		return result.recordset[0] as Voucher;
 	} catch (error) {
 		throw new AppError('Failed to fetch voucher by id', 500, false);
 	}
@@ -165,7 +167,7 @@ export const getVoucherByShopId = async (shop_id: number): Promise<Voucher[]> =>
 		const pool = await connectionDB();
 		const query = `SELECT * FROM vouchers WHERE shop_id = @shop_id`;
 		const result = await pool.request().input("shop_id", shop_id).query(query);
-		return result.recordset;
+		return result.recordset as Voucher[];
 	} catch (error) {
 		throw new AppError('Failed to fetch vouchers by shop id', 500, false);
 	}

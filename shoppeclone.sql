@@ -199,6 +199,7 @@ CREATE TABLE vouchers (
     max_discount DECIMAL(10,2),
     quantity INT NOT NULL,
     used INT DEFAULT 0,
+    image_url NVARCHAR(255),
     start_date DATETIME NOT NULL,
     end_date DATETIME NOT NULL,
     created_by INT, 
@@ -207,6 +208,7 @@ CREATE TABLE vouchers (
     FOREIGN KEY (created_by) REFERENCES users(id)
 );
 GO
+ALTER TABLE voucherS add image_url NVARCHAR(255);
 
 CREATE TABLE user_vouchers (
     id INT PRIMARY KEY IDENTITY(1,1),

@@ -13,6 +13,7 @@ export interface Voucher {
     created_by: number;
     scope: 'GLOBAL' | 'SHOP';
     shop_id?: number;
+    image_url: string;
     created_at?: Date;
     updated_at?: Date;
 }
