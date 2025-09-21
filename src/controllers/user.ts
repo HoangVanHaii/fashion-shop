@@ -248,3 +248,19 @@ export const resetPassword = async (req: Request, res: Response, next: NextFunct
         next(err);
     }
 }
+export const getShopIdByUserId = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const user_id = req.user!.id;
+        const shop_id = await userService.getShopIdByUserId(user_id);
+        if (!shop_id) {
+            throw new AppError("Shop not found", 404);
+        }
+        return res.status(200).json({
+            success: true,
+            message: "Get shop id successfully",
+            data: { shop_id }
+        });
+    } catch (err) {
+        next(err);
+    }
+}

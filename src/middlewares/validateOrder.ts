@@ -67,8 +67,8 @@ export const validateCreateOrder = [
     .withMessage("Invalid shipping phone number"),
 
   body("method_payment")
-    .isIn(["cod", "banking", "momo"])
-    .withMessage("Payment method must be one of: cod, banking, momo"),
+    .isIn(["cod", "banking", "momo", "vnpay"])
+    .withMessage("Payment method must be one of: cod, banking, momo, vnpay"),
 
   body("statusPayment")
     .isIn(["pending", "success", "failed"])

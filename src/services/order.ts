@@ -2,8 +2,10 @@ import { OderPayLoad, Order, OrderItem, GetOrder } from "../interfaces/order"
 import { connectionDB } from "../config/database"
 import { addAddress } from "./address";
 import { AppError } from "../utils/appError"
-import mssql from 'mssql';
 import { Address } from "../interfaces/address";
+import { PaymentData } from "../interfaces/vnpay";
+import mssql from 'mssql';
+
 
 const baseQuery = `SELECT 
                     o.id AS order_id,
@@ -145,7 +147,7 @@ const insertPayment = async (transaction: mssql.Transaction, orderId: number, am
         .input('status', status)
         .query(query);
 }
-export const createOder = async (orderData: OderPayLoad, statusPayment: string): Promise<void> => {
+export const createOder = async (orderData: OderPayLoad): Promise<PaymentData> => {
     const pool = await connectionDB();
     const transaction = new mssql.Transaction(pool);
     const { order, orderItems } = orderData;
@@ -153,7 +155,8 @@ export const createOder = async (orderData: OderPayLoad, statusPayment: string):
         await transaction.begin();
         const orderId = await insertOrder(transaction, order);
         await insertOrderItems(transaction, orderId, orderItems);
-        await insertPayment(transaction, orderId, order.total, order.payment_method, statusPayment);
+         
+        await insertPayment(transaction, orderId, order.total, order.payment_method, "pending");
         await addAddress({
             user_id: order.user_id,
             name: order.shipping_name,
@@ -162,6 +165,7 @@ export const createOder = async (orderData: OderPayLoad, statusPayment: string):
             is_default: false
         })
         await transaction.commit();
+        return { order_id: orderId, amount: order.total };
     } catch (error) {
         console.log(error);
         await transaction.rollback();
