@@ -31,7 +31,7 @@ app.use("/api/seller/product", productSellerRouter);
 app.use("/api/admin", adminRouter);
 app.use("/api/user", userRouter);
 app.use("/api/product", productRouter);
-app.use("/api/orders", orderRouter);
+app.use("/api/order", orderRouter);
 app.use("/api/seller/order", orderSellerRouter);
 app.use("/api/address", addressRouter);
 app.use("/api/categorie", categoriesRouter);

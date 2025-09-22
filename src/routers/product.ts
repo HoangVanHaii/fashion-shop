@@ -40,11 +40,11 @@ router.get(
     validateRequest,
     productController.getMostDiscountedProduct
 );
-// router.get(
-//     "/:id",
-//     productMiddleware.validateSearchById,
-//     validateRequest,
-//     productController.getProductById
-// );
+router.get(
+    "/:id",
+    productMiddleware.validateSearchById,
+    validateRequest,
+    productController.getProductById
+);
 
 export default router;

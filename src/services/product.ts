@@ -10,6 +10,7 @@ const baseQuery = `SELECT
                         sp.id AS shop_id,
                         p.status,
                         i.image_url AS thumbnail,
+                        fsi.flash_sale_price,
                         MIN(s.price) AS min_price,   
                         MAX(s.price) AS max_price,
                         ISNULL(SUM(oi.quantity), 0) AS sold_quantity,
@@ -19,9 +20,11 @@ const baseQuery = `SELECT
                     INNER JOIN product_colors i ON i.product_id = p.id AND i.is_main = 1
                     INNER JOIN product_sizes s ON s.color_id = i.id
                     INNER JOIN shops sp ON p.shop_id = sp.id
+                    LEFT JOIN flash_sale_items fsi ON fsi.product_id = p.id AND fsi.status = 'active'
+                    LEFT JOIN flash_sales fs ON fs.id = fsi.flash_sale_id AND fs.status = 'active' 
                     LEFT JOIN order_items oi ON oi.product_id = p.id
                     LEFT JOIN reviews r ON r.product_id = p.id
-                    GROUP BY p.id, p.name, p.description, c.category_name, sp.id, p.status, i.image_url`
+                    GROUP BY p.id, p.name, p.description, c.category_name, sp.id, p.status, i.image_url, fsi.flash_sale_price`;
 
 export const getAllProducts = async (): Promise<ProductSummary[]> => {
     try {
@@ -101,12 +104,15 @@ export const getProductById = async (id: number): Promise<ProductPayload > => {
                         s.price,
                         cl.id AS color_id,
                         cl.image_url,
-                        cl.color
+                        cl.color,
+                        fsi.flash_sale_price
                     FROM products p
                         INNER JOIN product_colors cl ON p.id = cl.product_id
                         INNER JOIN product_sizes s ON cl.id = s.color_id
                         INNER JOIN categories ct ON p.category_id = ct.category_id
                         INNER JOIN shops sp ON p.shop_id = sp.id
+                        LEFT JOIN flash_sale_items fsi ON fsi.product_id = p.id AND fsi.status = 'active'
+                        LEFT JOIN flash_sales fs ON fs.id = fsi.flash_sale_id AND fs.status = 'active'
                     WHERE p.id = @id`
         const result = await pool.request().input('id', id).query(query);
         const productsMap: Record<number, ProductPayload> = {};
@@ -122,7 +128,8 @@ export const getProductById = async (id: number): Promise<ProductPayload > => {
                     name: row.product_name,
                     description: row.description,
                     status: row.status,
-                    colors: []
+                    colors: [],
+                    flash_sale_price: row.flash_sale_price
                 }
             }
             const product = productsMap[row.product_id];
