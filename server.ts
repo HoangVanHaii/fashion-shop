@@ -12,6 +12,7 @@ import adminRouter from "./src/routers/admin/user";
 import reviewRouter from "./src/routers/review";
 import favouriteRouter from './src/routers/favourite'
 import productSellerRouter from "./src/routers/seller/product";
+import productAdminRouter from "./src/routers/admin/product";
 import orderSellerRouter from "./src/routers/seller/order";
 import paymentRouter from './src/routers/vnpay'
 import voucherRouter from './src/routers/voucher'
@@ -26,11 +27,12 @@ app.use(express.json());
 app.use("/uploads", express.static("uploads"));
 
 app.use("/api/cart", cartRouter);
+app.use("/api/admin/product", productAdminRouter);
+app.use("/api/seller/product", productSellerRouter);
 app.use("/api/admin", adminRouter);
 app.use("/api/user", userRouter);
 app.use("/api/product", productRouter);
-app.use("/api/seller/product", productSellerRouter);
-app.use("/api/orders", orderRouter);
+app.use("/api/order", orderRouter);
 app.use("/api/seller/order", orderSellerRouter);
 app.use("/api/address", addressRouter);
 app.use('/api/category', categoryRouter);
