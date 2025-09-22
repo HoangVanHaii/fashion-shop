@@ -43,13 +43,24 @@ export const getUserById = async (id: number): Promise<User | null> => {
     throw new AppError("Failed to getUserById", 500, false);
   }
 };
-export const getAllUsers = async (): Promise<User[]> => {
+export const getAllUsers = async (role?: string, status?: string, is_verified?: string): Promise<User[]> => {
   try {
+    console.log(role, status, is_verified);
+    let query = "SELECT * FROM users WHERE 1=1";
+    if (role) {
+      query += ` AND role = '${role}'`;
+    }
+    if (status) {
+      query += ` AND status = '${status}'`;
+    }
+    if (is_verified) {
+      query += ` AND is_verified = '${is_verified === "true" ? 1 : 0}'`;
+    }
+    console.log(query);
     const pool = await connectionDB();
-    const result = await pool.request()
-      .query(`SELECT id, name, email, role, status, phone, date_of_birth, avatar, is_verified, created_at
-         FROM users`);
+    const result = await pool.request().query(query);
     return result.recordset as User[];
+
   } catch (err) {
     console.error(err);
     throw new AppError("Failed to getAllUsers", 500, false);
@@ -450,5 +461,21 @@ export const unlockUser = async (id: number): Promise<void> => {
     console.error(err);
     if (err instanceof AppError) throw err;
     throw new AppError("Failed to unlockUser", 500, false);
+  }
+};
+export const getShopIdByUserId = async (user_id: number): Promise<number> => {
+  try {
+    const pool = await connectionDB();
+    const result = await pool
+      .request()
+      .input("user_id", user_id)
+      .query(`SELECT id FROM shops WHERE user_id = @user_id`);
+    if (result.recordset.length === 0) {
+      throw new AppError("Shop not found for this user", 404);
+    }
+    return result.recordset[0].id;
+  } catch (err: any) {
+    console.error(err);
+    throw new AppError("Failed to getShopIdByUserId", 500, false);
   }
 };
