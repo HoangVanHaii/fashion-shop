@@ -1,11 +1,12 @@
-
 import express from "express";
 import dotenv from "dotenv";
 import userRouter from "./src/routers/user";
 import productRouter from "./src/routers/product";
 import orderRouter from "./src/routers/order";
 import addressRouter from "./src/routers/address";
-import categoriesRouter from "./src/routers/categories";
+import categoryRouter from './src/routers/category'
+import categoryAdminRouter from './src/routers/admin/category'
+import categorySellerRouter from './src/routers/seller/category'
 import cartRouter from "./src/routers/cart";
 import adminRouter from "./src/routers/admin/user";
 import reviewRouter from "./src/routers/review";
@@ -32,7 +33,9 @@ app.use("/api/seller/product", productSellerRouter);
 app.use("/api/orders", orderRouter);
 app.use("/api/seller/order", orderSellerRouter);
 app.use("/api/address", addressRouter);
-app.use("/api/categorie", categoriesRouter);
+app.use('/api/category', categoryRouter);
+app.use('/api/admin/category', categoryAdminRouter);
+app.use('/api/seller/category', categorySellerRouter);
 app.use('/api/favourite', favouriteRouter);
 app.use("/api/review", reviewRouter);
 app.use('/api/payments', paymentRouter);

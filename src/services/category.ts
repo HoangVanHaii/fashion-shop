@@ -1,5 +1,5 @@
 import { connectionDB } from "../config/database";
-import { Category } from "../interfaces/categories";
+import { Category } from "../interfaces/category";
 import { AppError } from "../utils/appError";
 
 export const addCategory = async (category: Category): Promise<void> => {
