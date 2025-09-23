@@ -10,6 +10,8 @@ import adminRouter from "./src/routers/admin/user";
 import reviewRouter from "./src/routers/review";
 import productSellerRouter from "./src/routers/seller/product";
 import orderSellerRouter from "./src/routers/seller/order";
+import flashSaleRouter from "./src/routers/flashSale";
+import "./src/cron/flashSaleCron";
 import { Request, Response } from "express";
 
 import { errorHandler } from "./src/middlewares/errorHandler";
@@ -30,6 +32,7 @@ app.use("/api/seller/order", orderSellerRouter);
 app.use("/api/address", addressRouter);
 app.use("/api/categorie", categoriesRouter);
 app.use("/api/review", reviewRouter);
+app.use("/api/flashSale", flashSaleRouter);
 
 app.use(errorHandler);
 
