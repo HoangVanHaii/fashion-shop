@@ -16,6 +16,8 @@ import productAdminRouter from "./src/routers/admin/product";
 import orderSellerRouter from "./src/routers/seller/order";
 import paymentRouter from './src/routers/vnpay'
 import voucherRouter from './src/routers/voucher'
+import userVoucherRouter from './src/routers/userVoucher'
+
 import { Request, Response } from "express";
 
 import { errorHandler } from "./src/middlewares/errorHandler";
@@ -42,6 +44,7 @@ app.use('/api/favourite', favouriteRouter);
 app.use("/api/review", reviewRouter);
 app.use('/api/payments', paymentRouter);
 app.use('/api/voucher', voucherRouter);
+app.use('/api/userVoucher', userVoucherRouter);
 
 app.use(errorHandler);
 

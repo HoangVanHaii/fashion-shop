@@ -182,6 +182,18 @@ CREATE TABLE payments (
     FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE CASCADE
 );
 GO
+SELECT * from vouchers
+
+-- Voucher giảm 50% toàn sàn, tối đa 100k, số lượng 10
+INSERT INTO vouchers
+(code, description, discount_type, discount_value, min_order_value, max_discount, quantity, start_date, end_date, created_by, scope, shop_id)
+VALUES
+('SALE50', N'Giảm 50% tối đa 100k cho toàn bộ sản phẩm', 'PERCENT', 50.00, 100000, 100000, 10, GETDATE(), DATEADD(DAY, 7, GETDATE()), 1, 'GLOBAL', NULL);
+
+INSERT INTO vouchers
+(code, description, discount_type, discount_value, min_order_value, max_discount, quantity, start_date, end_date, created_by, scope, shop_id)
+VALUES
+('SALE60', N'Giảm 50% tối đa 100k cho toàn bộ sản phẩm', 'PERCENT', 50.00, 100000, 100000, 10, GETDATE(), DATEADD(DAY, 7, GETDATE()), 1, 'GLOBAL', NULL);
 
 CREATE TABLE vouchers (
     id INT PRIMARY KEY IDENTITY(1,1),
@@ -203,6 +215,9 @@ CREATE TABLE vouchers (
 );
 GO
 ALTER TABLE voucherS add image_url NVARCHAR(255);
+
+select * from vouchers
+select * from user_vouchers
 
 CREATE TABLE user_vouchers (
     id INT PRIMARY KEY IDENTITY(1,1),
