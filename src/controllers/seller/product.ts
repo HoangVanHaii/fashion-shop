@@ -1,18 +1,21 @@
 import * as productService from "../../services/product";
 import { ProductPayload, ProductColor, ProductSize } from "../../interfaces/product";
 import { Request, Response, NextFunction } from "express";
+import *as userService from '../../services/user'
 
-export const getProducts = async (req: Request, res: Response, next: NextFunction) => {
+export const getAllProductsByShop = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const products = await productService.getAllProducts();
+        const shop_id = await userService.getShopIdByUserId(req.user!.id);
+        const products = await productService.getAllProductsByShop(shop_id);
         res.status(200).json(products);
     } catch (error: any) {
         next(error);
     }
 }
-export const getProductsHidden = async (req: Request, res: Response, next: NextFunction) => {
+export const getAllProductsHiddenByShop = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const products = await productService.getProductsHidden();
+        const shop_id = await userService.getShopIdByUserId(req.user!.id);
+        const products = await productService.getAllProductsHiddenByShop(shop_id);
         res.status(200).json(products);
     } catch (error: any) {
         next(error);

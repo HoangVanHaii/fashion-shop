@@ -38,7 +38,7 @@ export const updateCategoryValidator = [
     .withMessage("Status must be either 'active' or 'inactive'"),
 ];
 
-export const CategoriesByIdValidator = [
+export const categoryByIdValidator = [
   param("id")
     .isInt({ gt: 0 }).withMessage("Categories id must be a positive integer"),
 ];

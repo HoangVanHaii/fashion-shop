@@ -1,41 +1,46 @@
 import *as orderService from '../services/order'
 import *as productService from '../services/product'
 import *as addressService from '../services/address'
+import *as paymentUntils from '../utils/vnpay'
 import { Order, OrderItem } from '../interfaces/order'
 import { ProductPayload } from '../interfaces/product';
-import e, { Request, Response, NextFunction } from 'express';
+import { Request, Response, NextFunction } from 'express';
 import { validateVoucher } from '../services/voucher';
 import { validateOrderItem } from '../middlewares/validateOrder'
 import { AppError } from '../utils/appError';
 
-export const createOrder = async (req: Request, res: Response, next: NextFunction)=> {
+const makeOrderItem = async (orderItems: any, voucherCode: any): Promise<any> => {
+    let total = 0;
+    const orderItemsData: OrderItem[] = [];
+    for (const item of orderItems) {
+        const product: ProductPayload = await productService.getProductById(item.product_id);
+        const productSize = validateOrderItem(product, item);
+
+        total += item.quantity * productSize.price;
+        item.price = productSize.price;
+        const orderItem: OrderItem = {
+            product_id: item.product_id,
+            color_id: item.color_id,
+            size_id: item.size_id,
+            quantity: item.quantity,
+            price: item.price
+        }
+        orderItemsData.push(orderItem);
+    }
+    if (voucherCode) {
+        const discount = await validateVoucher(voucherCode, total);
+        total -= discount;
+    }
+    if (total < 0) total = 0;
+    return { orderItemsData, total };
+}
+export const createOrder = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const user_id  = req.user!.id;
-        const { orderItems, voucherCode, shipping_name, shipping_address, shipping_phone, method_payment, statusPayment } = req.body;
+        const user_id = req.user!.id;
+        const { orderItems, voucherCode, shipping_name, shipping_address, shipping_phone, method_payment } = req.body;
 
-        let total = 0;
-        const orderItemsData: OrderItem[] = [];
-        for(const item of orderItems){
-            const product: ProductPayload = await productService.getProductById(item.product_id);
-            const productSize = validateOrderItem(product, item);
+        const { orderItemsData, total } = await makeOrderItem(orderItems, voucherCode);
 
-            total += item.quantity * productSize.price;
-            item.price = productSize.price; 
-            const orderItem: OrderItem = {
-                product_id: item.product_id,
-                color_id: item.color_id,
-                size_id: item.size_id,
-                quantity: item.quantity,
-                price: item.price
-            }
-            orderItemsData.push(orderItem);
-        }
-        if(voucherCode){
-            const discount = await validateVoucher(voucherCode, total);
-            total -= discount;
-        }
-
-        if(total < 0) total = 0; 
         const orderData: Order = {
             user_id: user_id!,
             total: total,
@@ -44,8 +49,19 @@ export const createOrder = async (req: Request, res: Response, next: NextFunctio
             shipping_address: shipping_address,
             shipping_phone: shipping_phone,
         }
-        await orderService.createOder({order: orderData, orderItems: orderItemsData}, statusPayment);
-        return res.status(201).json({ message: 'Order created successfully' });
+
+        const paymentData = await orderService.createOder({ order: orderData, orderItems: orderItemsData });
+        if (method_payment === 'vnpay') {
+            if( total < 5000){
+                throw new AppError("Minimum order amount for VNPAY is 5000", 400);
+            }
+            const paymentUrl = await paymentUntils.buildPaymentUrl(
+                paymentData.order_id.toString(),
+                paymentData.amount
+            );
+            return res.status(201).json({ paymentUrl });
+        }
+        return res.status(201).json({ message: 'Order created successfully (COD)' });
     } catch (error: any) {
         next(error);
     }
@@ -59,27 +75,27 @@ export const getOrderOfme = async (req: Request, res: Response, next: NextFuncti
         next(error);
     }
 }
-export const getOrderById = async(req: Request, res: Response, next: NextFunction) => {
+export const getOrderById = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const  order_id: number  = parseInt(req.params.id);
+        const order_id: number = parseInt(req.params.id);
         const order = await orderService.getOrderById(order_id);
-        if(order == null) {
-            return res.status(201).json({message: "Order not found"});
+        if (order == null) {
+            return res.status(201).json({ message: "Order not found" });
         }
         res.status(200).json(order);
     } catch (error) {
         next(error);
     }
 }
-export const updateAdressOrder = async(req: Request, res: Response, next: NextFunction) => {
+export const updateAdressOrder = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const { order_id, address_id} = req.body;
+        const { order_id, address_id } = req.body;
         const order = await orderService.getOrderById(order_id);
-        if(!order){
+        if (!order) {
             throw new AppError(`Order id ${order_id} does not exist`, 404);
         }
         const address = await addressService.getAddressById(req.user!.id, address_id);
-        if(!address){
+        if (!address) {
             throw new AppError(`Address id ${address_id} does not exist`, 404);
         }
         await orderService.updateAdressOrder(order_id, address);
@@ -99,7 +115,7 @@ export const cancelOrderByUser = async (req: Request, res: Response, next: NextF
         if (!order) {
             throw new AppError(`Order id ${order_id} does not exist`, 404);
         }
-        if(order.status !== 'pending'){
+        if (order.status !== 'pending') {
             throw new AppError(`Order has status ${order.status}, can't cancel`, 400);
         }
         await orderService.updateStatusOrder(order_id, 'cancelled');

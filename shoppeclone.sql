@@ -1,12 +1,11 @@
 -- =============================
 -- DATABASE
 -- =============================
-
 CREATE DATABASE SHOPEEVN;
 GO
 USE SHOPEEVN;
 GO
-
+select * from users
 CREATE TABLE users (    
     id INT IDENTITY(1,1) PRIMARY KEY,
     name NVARCHAR(100) NOT NULL,
@@ -161,7 +160,6 @@ CREATE TABLE order_items (
 	FOREIGN KEY (size_id) REFERENCES product_sizes(id)
  );
 GO
-
 CREATE TABLE reviews (
     id INT IDENTITY(1,1) PRIMARY KEY,
     product_id INT NOT NULL,
@@ -177,7 +175,7 @@ GO
 CREATE TABLE payments (
     id INT IDENTITY(1,1) PRIMARY KEY,
     order_id INT NOT NULL,
-    method VARCHAR(20) CHECK (method IN ('cod','credit_card','paypal','momo')) DEFAULT 'cod',
+    method VARCHAR(20) CHECK (method IN ('cod','credit_card','paypal','momo', 'vnpay')) DEFAULT 'cod',
     amount DECIMAL(10,2) NOT NULL,
     status VARCHAR(20) CHECK (status IN ('pending','success','failed')) DEFAULT 'pending',
     created_at DATETIME DEFAULT GETDATE(),
@@ -195,6 +193,7 @@ CREATE TABLE vouchers (
     max_discount DECIMAL(10,2),
     quantity INT NOT NULL,
     used INT DEFAULT 0,
+    image_url NVARCHAR(255),
     start_date DATETIME NOT NULL,
     end_date DATETIME NOT NULL,
     created_by INT, 
@@ -203,6 +202,7 @@ CREATE TABLE vouchers (
     FOREIGN KEY (created_by) REFERENCES users(id)
 );
 GO
+ALTER TABLE voucherS add image_url NVARCHAR(255);
 
 CREATE TABLE user_vouchers (
     id INT PRIMARY KEY IDENTITY(1,1),

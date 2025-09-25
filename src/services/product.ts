@@ -7,8 +7,10 @@ const baseQuery = `SELECT
                         p.name,
                         p.description,
                         c.category_name,
+                        sp.id AS shop_id,
                         p.status,
                         i.image_url AS thumbnail,
+                        fsi.flash_sale_price,
                         MIN(s.price) AS min_price,   
                         MAX(s.price) AS max_price,
                         ISNULL(SUM(oi.quantity), 0) AS sold_quantity,
@@ -17,19 +19,70 @@ const baseQuery = `SELECT
                     INNER JOIN categories c ON p.category_id = c.category_id
                     INNER JOIN product_colors i ON i.product_id = p.id AND i.is_main = 1
                     INNER JOIN product_sizes s ON s.color_id = i.id
+                    INNER JOIN shops sp ON p.shop_id = sp.id
+                    LEFT JOIN flash_sale_items fsi ON fsi.product_id = p.id AND fsi.status = 'active'
+                    LEFT JOIN flash_sales fs ON fs.id = fsi.flash_sale_id AND fs.status = 'active' 
                     LEFT JOIN order_items oi ON oi.product_id = p.id
                     LEFT JOIN reviews r ON r.product_id = p.id
-                    GROUP BY p.id, p.name, p.description, c.category_name, p.status, i.image_url`
+                    GROUP BY p.id, p.name, p.description, c.category_name, sp.id, p.status, i.image_url, fsi.flash_sale_price`;
 
 export const getAllProducts = async (): Promise<ProductSummary[]> => {
     try {
         const pool = await connectionDB();
-        const query = baseQuery;
+        const query = baseQuery
         const result = await pool.request().query(query);
         return result.recordset as ProductSummary[];
     } catch (error) {
         console.log(error);
         throw new AppError('Failed to fetch products', 500, false);
+    }
+}
+export const getAllProductsByShop = async (shop_id: number): Promise<ProductSummary[]> => {
+    try {
+        const pool = await connectionDB();
+        const query = `${baseQuery}
+                    HAVING sp.id = @shop_id`;
+        const result = await pool.request().input('shop_id', shop_id).query(query);
+        return result.recordset as ProductSummary[];
+    } catch (error) {
+        console.log(error);
+        throw new AppError('Failed to fetch products', 500, false);
+    }
+}
+export const getProductsActive = async (): Promise<ProductSummary[]> => {
+    try {
+        const query = `${baseQuery}
+                    HAVING p.status = 'active'`
+        const pool = await connectionDB();
+        const result = await pool.request().query(query);
+        return result.recordset as ProductSummary[];
+    } catch (error) {
+        console.error(error);
+        throw new AppError('Failed to fetch active products', 500, false);
+    }
+}
+export const getAllProductsHidden = async (): Promise<ProductSummary[]> => {
+    try {
+        const query = `${baseQuery}
+                    HAVING p.status = 'hidden'`
+        const pool = await connectionDB();
+        const result = await pool.request().query(query);
+        return result.recordset as ProductSummary[];
+    } catch (error) {
+        console.error(error);
+        throw new AppError('Failed to fetch hidden products', 500, false);
+    }
+}
+export const getAllProductsHiddenByShop = async (shop_id: number): Promise<ProductSummary[]> => {
+    try {
+        const query = `${baseQuery}
+                    HAVING p.status = 'hidden' AND sp.id = @shop_id`
+        const pool = await connectionDB();
+        const result = await pool.request().input('shop_id', shop_id).query(query);
+        return result.recordset as ProductSummary[];
+    } catch (error) {
+        console.error(error);
+        throw new AppError('Failed to fetch hidden products', 500, false);
     }
 }
 export const getProductById = async (id: number): Promise<ProductPayload > => {
@@ -51,17 +104,19 @@ export const getProductById = async (id: number): Promise<ProductPayload > => {
                         s.price,
                         cl.id AS color_id,
                         cl.image_url,
-                        cl.color
+                        cl.color,
+                        fsi.flash_sale_price
                     FROM products p
                         INNER JOIN product_colors cl ON p.id = cl.product_id
                         INNER JOIN product_sizes s ON cl.id = s.color_id
                         INNER JOIN categories ct ON p.category_id = ct.category_id
                         INNER JOIN shops sp ON p.shop_id = sp.id
+                        LEFT JOIN flash_sale_items fsi ON fsi.product_id = p.id AND fsi.status = 'active'
+                        LEFT JOIN flash_sales fs ON fs.id = fsi.flash_sale_id AND fs.status = 'active'
                     WHERE p.id = @id`
         const result = await pool.request().input('id', id).query(query);
         const productsMap: Record<number, ProductPayload> = {};
-        // console.log(result.recordset);
-        // return result.recordset[0] ;
+
         result.recordset.forEach(( row ) => {
             if(!productsMap[row.product_id]){
                 productsMap[row.product_id] = {
@@ -73,7 +128,8 @@ export const getProductById = async (id: number): Promise<ProductPayload > => {
                     name: row.product_name,
                     description: row.description,
                     status: row.status,
-                    colors: []
+                    colors: [],
+                    flash_sale_price: row.flash_sale_price
                 }
             }
             const product = productsMap[row.product_id];
@@ -99,9 +155,7 @@ export const getProductById = async (id: number): Promise<ProductPayload > => {
             }
         })
         const proudctPayloads =  Object.values(productsMap);
-        // if(proudctPayloads.length === 0){
-        //     throw new AppError('Product not found', 404);
-        // }
+
         return proudctPayloads[0];
 
     } catch (error) {
@@ -183,18 +237,7 @@ export const updateProduct = async (productPayload: ProductPayload): Promise<voi
         throw new AppError('Failed to update product', 500, false);
     }
 }
-// export const getProductById = async (id: number): Promise<ProductPayload | null> => {
-//     try {
-//         const pool = await connectionDB();
-//         const query = 'SELECT * FROM products WHERE id = @id';
-//         const result = await pool.request()
-//             .input('id', id)
-//             .query(query);
-//         return result.recordset[0] as ProductPayload || null;   
-//     } catch (error) {
-//         throw new AppError('Failed to fetch product', 500, false);   
-//     }
-// }
+
 export const getCategoryById = async (category_id: number): Promise<boolean> => {
     try {
         const pool = await connectionDB();
@@ -231,30 +274,6 @@ export const softDeleteProduct = async (id: number): Promise<void> => {
             .query(query);
     } catch (error) {
         throw error;
-    }
-}
-export const getProductsActive = async (): Promise<ProductSummary[]> => {
-    try {
-        const query = `${baseQuery}
-                    HAVING p.status = 'active'`
-        const pool = await connectionDB();
-        const result = await pool.request().query(query);
-        return result.recordset as ProductSummary[];
-    } catch (error) {
-        console.error(error);
-        throw new AppError('Failed to fetch active products', 500, false);
-    }
-}
-export const getProductsHidden = async (): Promise<ProductSummary[]> => {
-    try {
-        const query = `${baseQuery}
-                    HAVING p.status = 'hidden'`
-        const pool = await connectionDB();
-        const result = await pool.request().query(query);
-        return result.recordset as ProductSummary[];
-    } catch (error) {
-        console.error(error);
-        throw new AppError('Failed to fetch hidden products', 500, false);
     }
 }
 export const getLatestProducts = async (limit: number): Promise<ProductSummary[]> => {
