@@ -100,15 +100,12 @@ GO
 CREATE TABLE cart_items (
     id INT IDENTITY(1,1) PRIMARY KEY,
     cart_id INT NOT NULL,
-	  color_id INT NOT NULL,
-	  size_id INT NOT NULL,
-    product_id INT NOT NULL,
+	size_id INT NOT NULL,
     quantity INT NOT NULL DEFAULT 1,
     FOREIGN KEY (cart_id) REFERENCES carts(id) ON DELETE CASCADE,
-
     FOREIGN KEY (product_id) REFERENCES products(id),
-	  FOREIGN KEY (color_id) REFERENCES product_colors(id),
-	  FOREIGN KEY (size_id) REFERENCES product_sizes(id)
+	FOREIGN KEY (color_id) REFERENCES product_colors(id),
+	FOREIGN KEY (size_id) REFERENCES product_sizes(id)
 );
 GO
 CREATE TABLE vouchers
