@@ -3,64 +3,93 @@ import *as productService from '../services/product'
 import *as addressService from '../services/address'
 import *as paymentUntils from '../utils/vnpay'
 import { Order, OrderItem } from '../interfaces/order'
-import { ProductPayload } from '../interfaces/product';
 import { Request, Response, NextFunction } from 'express';
-import { validateVoucher } from '../services/voucher';
-import { validateOrderItem } from '../middlewares/validateOrder'
+import { validateVoucher, getVoucherIdByCode } from '../services/voucher';
 import { AppError } from '../utils/appError';
 
 const makeOrderItem = async (orderItems: any, voucherCode: any): Promise<any> => {
-    let total = 0;
     const orderItemsData: OrderItem[] = [];
     for (const item of orderItems) {
-        const product: ProductPayload = await productService.getProductById(item.product_id);
-        const productSize = validateOrderItem(product, item);
-
-        total += item.quantity * productSize.price;
+        const productSize = await productService.getProductSizesBySizeId(item.size_id);
+        if (!productSize) {
+            throw new AppError(`Size with ID ${item.size_id} not found`, 404);
+        }
         item.price = productSize.price;
         const orderItem: OrderItem = {
-            product_id: item.product_id,
-            color_id: item.color_id,
             size_id: item.size_id,
             quantity: item.quantity,
             price: item.price
         }
         orderItemsData.push(orderItem);
     }
-    if (voucherCode) {
-        const discount = await validateVoucher(voucherCode, total);
-        total -= discount;
-    }
-    if (total < 0) total = 0;
-    return { orderItemsData, total };
+    return { orderItemsData };
 }
+const splitOrderItems = async (orderItems: any, voucherCode: string): Promise<any> => {
+    let total = 0, discount = 0;
+    const recordOrderItem: Record<number, { orderItems: OrderItem[]; totalPrice: number }> = {};
+    for (const item of orderItems) {
+        const shop_id: number | null = await orderService.getShopIdBySizeId(item.size_id);
+        if(!shop_id){
+            throw new AppError(`Size id ${item.size_id} does not exist`, 404);
+        }
+        if(!recordOrderItem[shop_id]){
+            recordOrderItem[shop_id] = { orderItems: [], totalPrice: 0 };
+        }
+        recordOrderItem[shop_id].orderItems.push(item);
+        recordOrderItem[shop_id].totalPrice += item.price * item.quantity;
+        total += item.price * item.quantity;
+    }
+    if (voucherCode) {
+        discount = await validateVoucher(voucherCode, total);
+        total -= discount;
+        if(total < 0) total = 0;
+    }
+    return { recordOrderItem, total, discount };
+}
+
 export const createOrder = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const user_id = req.user!.id;
-        const { orderItems, voucherCode, shipping_name, shipping_address, shipping_phone, method_payment } = req.body;
+        const { orderItems, voucherCode, shippingName, shippingAddress, shippingPhone, methodPayment } = req.body;
+        const { orderItemsData } = await makeOrderItem(orderItems, voucherCode);
 
-        const { orderItemsData, total } = await makeOrderItem(orderItems, voucherCode);
+        const {recordOrderItem, total, discount} = await splitOrderItems(orderItemsData, voucherCode);
+        const voucher_id = await getVoucherIdByCode(voucherCode)
+        let discount_value = discount / Object.values(recordOrderItem).length || 0;
 
         const orderData: Order = {
             user_id: user_id!,
             total: total,
-            payment_method: method_payment,
-            shipping_name: shipping_name,
-            shipping_address: shipping_address,
-            shipping_phone: shipping_phone,
+            voucher_id: voucher_id || undefined,
+            discount_value: discount_value || 0,
+            payment_method: methodPayment,
+            shipping_name: shippingName,
+            shipping_address: shippingAddress,
+            shipping_phone: shippingPhone,
+        }
+        let listOrderId = "", totalAmount = 0;
+        for (const key in recordOrderItem) {
+            const itemData = recordOrderItem[key];
+
+            orderData.total = itemData.totalPrice;
+            orderData.total -= discount_value;
+            if(orderData.total < 0) orderData.total = 0;
+
+            const paymentData = await orderService.createOder({ order: orderData, orderItems: itemData.orderItems });
+            totalAmount += paymentData.amount;
+            listOrderId += paymentData.order_id + ",";
         }
 
-        const paymentData = await orderService.createOder({ order: orderData, orderItems: orderItemsData });
-        if (method_payment === 'vnpay') {
-            if( total < 5000){
-                throw new AppError("Minimum order amount for VNPAY is 5000", 400);
+        if (methodPayment === 'vnpay') {
+                if( total < 5000){
+                    throw new AppError("Minimum order amount for VNPAY is 5000", 400);
+                }
+                const paymentUrl = await paymentUntils.buildPaymentUrl(
+                    listOrderId.slice(0, -1),
+                    totalAmount
+                );
+                return res.status(201).json({ paymentUrl });
             }
-            const paymentUrl = await paymentUntils.buildPaymentUrl(
-                paymentData.order_id.toString(),
-                paymentData.amount
-            );
-            return res.status(201).json({ paymentUrl });
-        }
         return res.status(201).json({ message: 'Order created successfully (COD)' });
     } catch (error: any) {
         next(error);
@@ -69,7 +98,15 @@ export const createOrder = async (req: Request, res: Response, next: NextFunctio
 export const getOrderOfme = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const user_id = req.user!.id;
-        const orders = await orderService.getOrderOfme(user_id)
+        let status = req.query.status as string;
+        if(status && !["pending", "confirmed", "shipped", "completed", "cancelled"].includes(status)){
+            throw new AppError("Invalid status value", 400);
+        }
+        if(!status){
+            status = "'pending', 'confirmed', 'shipped', 'completed', 'cancelled'";
+        }
+        else status = `'${status}'`;
+        const orders = await orderService.getOrderOfme(user_id, status)
         res.status(200).json(orders);
     } catch (error) {
         next(error);

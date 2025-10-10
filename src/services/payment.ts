@@ -1,11 +1,10 @@
 import { connectionDB } from "../config/database"
 import { AppError } from "../utils/appError"
-export const updatePaymentStatus = async (orderId: number, status: string): Promise<void> => {
+export const updatePaymentStatus = async (orderId: string, status: string): Promise<void> => {
     try {
         const pool = await connectionDB();
-        const query = `UPDATE payments SET status = @status WHERE order_id = @order_id`;
+        const query = `UPDATE payments SET status = @status WHERE order_id IN (${orderId})`;
         await pool.request()
-            .input('order_id', orderId)
             .input('status', status)
             .query(query);
     } catch (error) {

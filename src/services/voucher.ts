@@ -71,6 +71,23 @@ export const getVoucherCodeById = async (voucher_id: number): Promise<string | n
 		throw new AppError('Failed to fetch voucher code', 500, false);
 	}
 }
+export const getVoucherIdByCode = async (code: string): Promise<number | null> => {
+	try {
+		const pool = await connectionDB();
+		const query = `SELECT id FROM vouchers WHERE code = @code`;
+		const result = await pool
+			.request()
+			.input("code", code)
+			.query(query);
+
+		if (result.recordset.length === 0) {
+			return null;
+		}
+		return result.recordset[0].id;
+	} catch (error: any) {
+		throw new AppError('Failed to fetch voucher id', 500, false);
+	}
+}
 export const getVoucherByCode = async (code: string): Promise<Voucher| null> => {
 	try {
 		const pool = await connectionDB();

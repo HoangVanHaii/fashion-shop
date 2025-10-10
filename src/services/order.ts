@@ -6,7 +6,6 @@ import { Address } from "../interfaces/address";
 import { PaymentData } from "../interfaces/vnpay";
 import mssql from 'mssql';
 
-
 const baseQuery = `SELECT 
                     o.id AS order_id,
                     p.name AS product_name,
@@ -28,9 +27,9 @@ const baseQuery = `SELECT
                     o.shipping_phone
                 FROM orders o
                     INNER JOIN order_items oi ON oi.order_id = o.id
-                    INNER JOIN products p ON oi.product_id = p.id
-                    INNER JOIN product_colors pc ON pc.id = oi.color_id
-                    INNER JOIN product_sizes ps ON ps.id = oi.size_id
+                    INNER JOIN product_sizes ps ON oi.size_id = ps.id
+                    INNER JOIN product_colors pc ON ps.color_id = pc.id
+                    INNER JOIN products p ON pc.product_id = p.id
                     INNER JOIN payments pay ON o.id = pay.order_id`; 
 
 const transformationOrder = (result: any[], orderMaps: Record<number, GetOrder>) => {
@@ -62,12 +61,16 @@ const transformationOrder = (result: any[], orderMaps: Record<number, GetOrder>)
             })
         })
 } 
-export const getOrderOfme = async(user_id: number) : Promise<GetOrder[]> => {
+export const getOrderOfme = async(user_id: number, status: string) : Promise<GetOrder[]> => {
     const query = `${baseQuery}
-                WHERE o.user_id = @user_id`;
+                WHERE o.user_id = @user_id AND o.status IN (${status})
+                ORDER BY o.created_at DESC`;
     try {
         const pool = await connectionDB();
-        const result = await pool.request().input('user_id', user_id).query(query);
+        const result = await pool.request()
+            .input('user_id', user_id)
+            // .input('status', status)
+            .query(query);
 
         const orderMaps :Record<number, GetOrder> = {};
         transformationOrder(result.recordset, orderMaps);
@@ -100,9 +103,9 @@ export const getOrderById = async (order_id: number) : Promise<GetOrder |null> =
     }
 }
 const insertOrder = async (transaction: mssql.Transaction, order: Order): Promise<number> => {
-    const query = `INSERT INTO orders (user_id, total, shipping_name, shipping_address, shipping_phone)
+    const query = `INSERT INTO orders (user_id, total, shipping_name, shipping_address, shipping_phone, voucher_id, discount_value)
                    OUTPUT INSERTED.id AS orderId
-                   VALUES (@user_id, @total, @shipping_name, @shipping_address, @shipping_phone)`;
+                   VALUES (@user_id, @total, @shipping_name, @shipping_address, @shipping_phone, @voucher_id, @discount_value)`;
     const result = await new mssql.Request(transaction)
         .input('user_id', order.user_id)
         .input('total', order.total)
@@ -110,17 +113,17 @@ const insertOrder = async (transaction: mssql.Transaction, order: Order): Promis
         .input('shipping_name', order.shipping_name)
         .input('shipping_address', order.shipping_address)
         .input('shipping_phone', order.shipping_phone)
+        .input('voucher_id', order.voucher_id || null)
+        .input('discount_value', order.discount_value || null)
         .query(query);
     return result.recordset[0].orderId;
 }
 const insertOrderItems = async (transaction: mssql.Transaction, orderId: number, orderItems: OrderItem[]): Promise<void> => {
-    const query = `INSERT INTO order_items (order_id, product_id, color_id, size_id, quantity, price)
-                   VALUES (@order_id, @product_id, @color_id, @size_id, @quantity, @price)`;
+    const query = `INSERT INTO order_items (order_id, size_id, quantity, price)
+                   VALUES (@order_id, @size_id, @quantity, @price)`;
     for (const item of orderItems) {
         await new mssql.Request(transaction)
             .input('order_id', orderId)
-            .input('product_id', item.product_id)
-            .input('color_id', item.color_id)
             .input('size_id', item.size_id)
             .input('quantity', item.quantity)
             .input('price', item.price)
@@ -203,5 +206,42 @@ export const updateStatusOrder = async (order_id: number, status: string) : Prom
     } catch (error) {
         console.log(error);
         throw new AppError('Failed to confirm order', 500, false);
+    }
+}
+export const getShopIdBySizeId = async (size_id: number): Promise<number> => {
+    const query = `SELECT p.shop_id
+                    FROM product_sizes ps
+                    INNER JOIN product_colors pc ON ps.color_id = pc.id
+                    INNER JOIN products p ON pc.product_id = p.id
+                    WHERE ps.id = @size_id`;
+    try {
+        const pool = await connectionDB();
+        const result = await pool.request()
+            .input('size_id', size_id)
+            .query(query);
+
+        return result.recordset[0].shop_id;
+    } catch (error) {
+        console.log(error);
+        throw new AppError('Failed to get shop id by size id', 500, false);
+    }
+}
+export const getOrderOfShopMe = async (shop_id: number): Promise<GetOrder[]> => {
+     const query = `${baseQuery}
+                    WHERE p.shop_id = @shop_id
+                    ORDER BY o.created_at DESC`;
+    try {
+        const pool = await connectionDB();
+        const result = await pool.request()
+            .input('shop_id', shop_id)
+            .query(query);
+        const orderMaps : Record<number, GetOrder> = {};
+        transformationOrder(result.recordset, orderMaps);
+
+        return Object.values(orderMaps);
+
+    } catch (error) {
+        console.log(error);
+        throw new AppError(`Failed to fetch order by shop_id: ${shop_id}`, 500, false);
     }
 }
