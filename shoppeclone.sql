@@ -98,7 +98,7 @@ GO
 CREATE TABLE cart_items (
     id INT IDENTITY(1,1) PRIMARY KEY,
     cart_id INT NOT NULL,
-	size_id INT NOT NULL,
+	  size_id INT NOT NULL,
     quantity INT NOT NULL DEFAULT 1,
     FOREIGN KEY (cart_id) REFERENCES carts(id) ON DELETE CASCADE,
     FOREIGN KEY (size_id) REFERENCES product_sizes(id)
