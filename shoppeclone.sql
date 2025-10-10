@@ -5,7 +5,7 @@ CREATE DATABASE SHOPEEVN;
 GO
 USE SHOPEEVN;
 GO
-
+select * from users
 CREATE TABLE users (    
     id INT IDENTITY(1,1) PRIMARY KEY,
     name NVARCHAR(100) NOT NULL,
@@ -142,7 +142,7 @@ CREATE TABLE orders
 CREATE TABLE order_items (
     id INT IDENTITY(1,1) PRIMARY KEY,
     order_id INT NOT NULL,
-	size_id INT NOT NULL,
+	  size_id INT NOT NULL,
     quantity INT NOT NULL,
     price DECIMAL(10,2) NOT NULL,
     FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE CASCADE,
@@ -199,12 +199,15 @@ CREATE TABLE user_vouchers (
     used_date DATETIME
 );
 GO
+
 CREATE TABLE flash_sales (
     id INT PRIMARY KEY IDENTITY(1,1),
     title NVARCHAR(100),
     start_date DATETIME NOT NULL,
     end_date DATETIME NOT NULL,
-    created_by INT FOREIGN KEY REFERENCES users(id)
+    status VARCHAR(20) CHECK (status IN ('pending','active','ended','cancelled'))DEFAULT 'pending',
+    created_by INT FOREIGN KEY REFERENCES users(id),
+    created_at DATETIME DEFAULT GETDATE()
 );
 GO
 
@@ -212,9 +215,11 @@ CREATE TABLE flash_sale_items (
     id INT PRIMARY KEY IDENTITY(1,1),
     flash_sale_id INT FOREIGN KEY REFERENCES flash_sales(id),
     product_id INT FOREIGN KEY REFERENCES products(id),
-    flash_price DECIMAL(10,2) NOT NULL,
+    flash_sale_price DECIMAL(10,2) NOT NULL,
     stock INT NOT NULL,
-    sold INT DEFAULT 0
+    sold INT DEFAULT 0,
+	status VARCHAR(20) CHECK (status IN ('active','sold_out','removed')) DEFAULT 'active',
+    created_at DATETIME DEFAULT GETDATE()
 );
 GO
 CREATE TABLE otp_codes (
