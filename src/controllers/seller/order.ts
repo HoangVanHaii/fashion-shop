@@ -1,6 +1,7 @@
 import *as orderService from '../../services/order';
 import { Request, Response, NextFunction } from 'express';
 import { AppError } from '../../utils/appError';
+import { getShopIdByUserId } from '../../services/user';
 
 export const confirmOrder = async (req: Request, res: Response, next: NextFunction) => {
     try {
@@ -54,3 +55,16 @@ export const cancelOrder = async (req: Request, res: Response, next: NextFunctio
         next(error);
     }
 };
+export const getOderOfShopMe = async (req: Request, res: Response, next : NextFunction) => {
+     try {
+        const user_id = req.user!.id;
+        const shop_id = await getShopIdByUserId(user_id);
+        const order = await orderService.getOrderOfShopMe(shop_id);
+        if (!order) {
+            throw new AppError(`Order id ${shop_id} does not exist`, 404);
+        }
+        res.json(order);
+    } catch (error) {
+        next(error);
+    }
+}

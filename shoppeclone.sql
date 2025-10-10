@@ -44,7 +44,6 @@ CREATE TABLE shops
 );
 GO
 
-select * from categories
 CREATE TABLE categories (
     category_id INT PRIMARY KEY IDENTITY(1,1),
     category_name NVARCHAR(100) NOT NULL,
@@ -96,16 +95,13 @@ CREATE TABLE carts
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 GO
-
 CREATE TABLE cart_items (
     id INT IDENTITY(1,1) PRIMARY KEY,
     cart_id INT NOT NULL,
-	size_id INT NOT NULL,
+	  size_id INT NOT NULL,
     quantity INT NOT NULL DEFAULT 1,
     FOREIGN KEY (cart_id) REFERENCES carts(id) ON DELETE CASCADE,
-    FOREIGN KEY (product_id) REFERENCES products(id),
-	FOREIGN KEY (color_id) REFERENCES product_colors(id),
-	FOREIGN KEY (size_id) REFERENCES product_sizes(id)
+    FOREIGN KEY (size_id) REFERENCES product_sizes(id)
 );
 GO
 CREATE TABLE vouchers
@@ -133,8 +129,9 @@ CREATE TABLE orders
     id INT IDENTITY(1,1) PRIMARY KEY,
     user_id INT NOT NULL,
     voucher_id INT,
+    discount_value DECIMAL(10,2) NULL,
     total DECIMAL(10,2) NOT NULL,
-    status VARCHAR(20) CHECK (status IN ('pending','comfirm','shipped','completed','cancelled')) DEFAULT 'pending',
+    status VARCHAR(20) CHECK (status IN ('pending','confirmed','shipped','completed','cancelled')) DEFAULT 'pending',
     shipping_address NVARCHAR(255) NOT NULL,
     shipping_phone NVARCHAR(20) NOT NULL,
     shipping_name NVARCHAR(255) NOT NULL,
@@ -142,20 +139,15 @@ CREATE TABLE orders
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
     FOREIGN KEY (voucher_id) REFERENCES vouchers(id)
 );
-GO
 CREATE TABLE order_items (
     id INT IDENTITY(1,1) PRIMARY KEY,
     order_id INT NOT NULL,
-    product_id INT NOT NULL,
-    color_id INT NOT NULL,
 	  size_id INT NOT NULL,
     quantity INT NOT NULL,
     price DECIMAL(10,2) NOT NULL,
     FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE CASCADE,
-    FOREIGN KEY (product_id) REFERENCES products(id),
-    FOREIGN KEY (color_id) REFERENCES product_colors(id),
 	FOREIGN KEY (size_id) REFERENCES product_sizes(id)
- );
+);
 GO
 CREATE TABLE reviews (
     id INT IDENTITY(1,1) PRIMARY KEY,
@@ -199,7 +191,6 @@ CREATE TABLE vouchers (
     FOREIGN KEY (created_by) REFERENCES users(id)
 );
 GO
-ALTER TABLE voucherS add image_url NVARCHAR(255);
 
 CREATE TABLE user_vouchers (
     id INT PRIMARY KEY IDENTITY(1,1),
