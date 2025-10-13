@@ -21,6 +21,7 @@ export interface ProductColor {
 
 }
 export interface ProductSize {
+    product_id: number;
     id?: number;
     size: string;
     stock: number;

@@ -142,7 +142,7 @@ CREATE TABLE orders
 CREATE TABLE order_items (
     id INT IDENTITY(1,1) PRIMARY KEY,
     order_id INT NOT NULL,
-	  size_id INT NOT NULL,
+	size_id INT NOT NULL,
     quantity INT NOT NULL,
     price DECIMAL(10,2) NOT NULL,
     FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE CASCADE,

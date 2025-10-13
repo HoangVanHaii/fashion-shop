@@ -14,11 +14,16 @@ const makeOrderItem = async (orderItems: any, voucherCode: any): Promise<any> =>
         if (!productSize) {
             throw new AppError(`Size with ID ${item.size_id} not found`, 404);
         }
+        if(productSize.stock < item.quantity) {
+            throw new AppError(`Insufficient stock for size ${productSize.id} (available: ${productSize.stock}, requested: ${item.quantity}`, 400)
+        }
+        console.log(productSize.)
         item.price = productSize.price;
         const orderItem: OrderItem = {
             size_id: item.size_id,
             quantity: item.quantity,
-            price: item.price
+            price: item.price,
+            flash_price: item.price
         }
         orderItemsData.push(orderItem);
     }
