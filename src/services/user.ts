@@ -469,7 +469,7 @@ export const getShopIdByUserId = async (user_id: number): Promise<number> => {
     const result = await pool
       .request()
       .input("user_id", user_id)
-      .query(`SELECT id FROM shops WHERE user_id = @user_id`);
+      .query(`SELECT id FROM shops WHERE seller_id = @user_id`);
     if (result.recordset.length === 0) {
       throw new AppError("Shop not found for this user", 404);
     }

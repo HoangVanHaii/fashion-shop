@@ -1,15 +1,11 @@
 export interface CartItem{
     cart_item_id?: number;
     cart_id?: number;
-    product_id: number;
-    color_id: number;
     size_id: number;
     quantity: number;
 }
 export interface CartItemDetail{
     cart_item_id: number;
-    product_id: number;
-    color_id: number;
     size_id: number;
 
     name: string;
@@ -20,8 +16,13 @@ export interface CartItemDetail{
     image_url: string;
     total_price: number;
 }
+export interface ShopCart{
+    shop_id: number;
+    shop_name: string;
+    carts?: CartItemDetail[];
+}
 export interface Cart{
-    items: CartItemDetail[];
+    shops: ShopCart[];
     total_quantity: number;
     total_amount: number;
 }

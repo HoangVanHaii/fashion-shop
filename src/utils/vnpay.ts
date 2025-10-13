@@ -1,6 +1,6 @@
 import { ProductCode, VnpLocale, dateFormat, VNPay, HashAlgorithm, ignoreLogger } from 'vnpay';
 
-const vnpay = new VNPay({
+export const vnpay = new VNPay({
     tmnCode: process.env.VNP_TMNCODE!,
     secureSecret: process.env.VNP_HASHSECRET!,
     vnpayHost: 'https://sandbox.vnpayment.vn',

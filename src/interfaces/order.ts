@@ -2,6 +2,7 @@ export interface Order {
     id?: number;
     user_id: number;
     voucher_id?: number;
+    discount_value?: number;
     total: number;
     payment_method: 'cod' | 'credit_card' | 'paypal' | 'vnpay' | 'momo';
     shipping_name: string;
@@ -13,8 +14,6 @@ export interface Order {
 export interface OrderItem {
     id?: number;
     order_id?: number;
-    product_id: number;
-    color_id: number;
     size_id:number;
     quantity: number;
     price: number;

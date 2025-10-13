@@ -14,6 +14,8 @@ import favouriteRouter from './src/routers/favourite'
 import productSellerRouter from "./src/routers/seller/product";
 import productAdminRouter from "./src/routers/admin/product";
 import orderSellerRouter from "./src/routers/seller/order";
+import flashSaleRouter from "./src/routers/flashSale";
+import "./src/cron/flashSaleCron";
 import paymentRouter from './src/routers/vnpay'
 import voucherRouter from './src/routers/voucher'
 import { Request, Response } from "express";
@@ -40,6 +42,7 @@ app.use('/api/admin/category', categoryAdminRouter);
 app.use('/api/seller/category', categorySellerRouter);
 app.use('/api/favourite', favouriteRouter);
 app.use("/api/review", reviewRouter);
+app.use("/api/flashSale", flashSaleRouter);
 app.use('/api/payments', paymentRouter);
 app.use('/api/voucher', voucherRouter);
 

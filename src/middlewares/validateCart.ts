@@ -7,8 +7,6 @@ const positiveIntValidator = (fieldName: string) => {
 }
 
 export const addToCartValidator = [
-    positiveIntValidator('product_id'),
-    positiveIntValidator('color_id'),
     positiveIntValidator('size_id'),
     positiveIntValidator('quantity')
 ]
@@ -18,7 +16,6 @@ export const updateCartItemQuantityValidator = [
 ]
 export const updateCartItemValidator = [
     param('id').isInt({ gt: 0 }).withMessage('Cart item id must be a positive integer'),
-    positiveIntValidator('color_id'),
     positiveIntValidator('size_id')
 ]
 export const removeCartItemValidator = [
