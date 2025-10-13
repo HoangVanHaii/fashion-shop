@@ -260,22 +260,81 @@ export const addProduct = async (product: ProductPayload): Promise<void> => {
     }
 }
 
-export const updateProduct = async (productPayload: ProductPayload): Promise<void> => {
+const updateProductInfo = async (transaction: mssql.Transaction, product: ProductPayload): Promise<void> => {
+    await transaction.request()
+    .input("id", mssql.Int, product.id)
+    .input("category_id", mssql.Int, product.category_id)
+    .input("name", mssql.NVarChar, product.name)
+    .input("description", mssql.NVarChar, product.description)
+     .input("status", mssql.NVarChar, product.status)
+     .query(`UPDATE products SET category_id=@category_id, name=@name, description=@description, status=@status WHERE id=@id`);
+};
+
+// Upsert bảng colors
+const upsertProductColor = async (transaction: mssql.Transaction, productId: number, color: ProductColor): Promise<number> => {
+    if (color.id) {
+        await transaction.request()
+        .input("id", mssql.Int, color.id)
+        .input("color", mssql.NVarChar, color.color)
+        .input("image_url", mssql.NVarChar, color.image_url)
+        .input("is_main", mssql.Bit, color.is_main ? 1 : 0)
+        .query(`UPDATE product_colors SET color=@color, image_url=@image_url, is_main=@is_main WHERE id=@id`);
+        return color.id;
+    } else {
+        const inserted = await transaction.request()
+        .input("product_id", mssql.Int, productId)
+        .input("color", mssql.NVarChar, color.color)
+        .input("image_url", mssql.NVarChar, color.image_url)
+        .input("is_main", mssql.Bit, color.is_main ? 1 : 0)
+        .query(`INSERT INTO product_colors (product_id, color, image_url, is_main) OUTPUT INSERTED.id VALUES (@product_id, @color, @image_url, @is_main)`);
+        return inserted.recordset[0].id;
+    }
+    };
+
+// Upsert bảng sizes
+const upsertProductSize = async (transaction: mssql.Transaction, colorId: number, size: ProductSize): Promise<void> => {
+    if (size.id) {
+        await transaction.request()
+        .input("id", mssql.Int, size.id)
+        .input("size", mssql.NVarChar, size.size)
+        .input("stock", mssql.Int, size.stock)
+        .input("price", mssql.Decimal(18, 2), size.price)
+         .query(`UPDATE product_sizes SET size=@size, stock=@stock, price=@price WHERE id=@id`);
+    } else {
+        await transaction.request()
+        .input("color_id", mssql.Int, colorId)
+        .input("size", mssql.NVarChar, size.size)
+        .input("stock", mssql.Int, size.stock)
+        .input("price", mssql.Decimal(18, 2), size.price)
+        .query(`INSERT INTO product_sizes (color_id, size, stock, price) VALUES (@color_id, @size, @stock, @price)`);
+    }
+};
+
+export const updateProduct = async ( product: ProductPayload): Promise<void> => {
     const pool = await connectionDB();
     const transaction = new mssql.Transaction(pool);
-    try {
-        transaction.begin();
+     try {
+        await transaction.begin();
 
-        let updates: string[] = [];
-       
+         // 1. Update product info
+        await updateProductInfo(transaction, product);
 
+        // 2. Upsert colors + sizes
+        for (const color of product.colors) {
+        const colorId = await upsertProductColor(transaction, Number(product.id), color);
 
-        transaction.commit();
+        for (const size of color.sizes) {
+            await upsertProductSize(transaction, colorId, size);
+        }
+        }
+
+        await transaction.commit();
     } catch (error) {
-        transaction.rollback();
-        throw new AppError('Failed to update product', 500, false);
+        await transaction.rollback();
+        throw error;
     }
-}
+};
+
 
 export const getCategoryById = async (category_id: number): Promise<boolean> => {
     try {
