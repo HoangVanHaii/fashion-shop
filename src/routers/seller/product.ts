@@ -27,7 +27,7 @@ router.post(
     validateRequest,
     productController.addProduct
 );
-// router.put("/updateProduct",productMiddleware.updateProduct ,productController.updateProduct);
+router.put("/updateProduct",authMiddleware, isSeller, productMiddleware.updateProduct, validateRequest ,productController.updateProduct);
 router.delete(
     "/deleteProduct", 
     authMiddleware, 
