@@ -18,6 +18,7 @@ export interface ProductColor {
     image_url: string;
     is_main?: boolean,
     sizes: ProductSize[];
+    images: string[];
 
 }
 export interface ProductSize {

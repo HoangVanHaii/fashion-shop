@@ -23,14 +23,23 @@ export const getAllProductsHiddenByShop = async (req: Request, res: Response, ne
 }
 export const addProduct = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const { shop_id, category_id, name, description, colors } = req.body;
+        const { category_id, name, description, colors } = req.body;
+        const shop_id = await userService.getShopIdByUserId(req.user!.id);
+        
         const files = req.files as Express.Multer.File[];
         const parseColors = JSON.parse(colors);
 
         let productColors: ProductColor[] = [];
+        let indexImage = 0;
         for(let i = 0; i < parseColors.length ; i++){
             const color = parseColors[i];
-            const image = files[i];
+            const start = 4 * i;
+            const end = 4 * i + 3
+            const image = files[start];
+            let color_images: string[] = [];
+            for(let j = start + 1; j <= end; j++){
+                color_images.push(`/uploads/products/${files[j].filename}`)
+            }
             let productSizes: ProductSize[] = [];
             for(const size of color.sizes){
                 productSizes.push({size: size.size, stock: size.stock, price: size.price});
@@ -39,7 +48,8 @@ export const addProduct = async (req: Request, res: Response, next: NextFunction
                 color: color.color, 
                 image_url: `/uploads/products/${image.filename}`,
                 is_main: i == 0,
-                sizes: productSizes
+                sizes: productSizes,
+                images: color_images
             })
         }
         const productPayload:ProductPayload = { 
