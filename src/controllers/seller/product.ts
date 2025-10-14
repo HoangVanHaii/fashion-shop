@@ -71,7 +71,7 @@ export const updateProduct = async (req: Request, res: Response, next: NextFunct
     const productId = parseInt(req.params.id);
     const existingProduct = await productService.getProductById(productId);
 
-    const { shop_id, category_id, name, description, colors } = req.body;
+    const { category_id, name, description, colors } = req.body;
     const files = req.files as Express.Multer.File[];
     let fileIndex = 0;
     const parseColors = JSON.parse(colors);
@@ -83,17 +83,28 @@ export const updateProduct = async (req: Request, res: Response, next: NextFunct
       );
 
       if(newColor){
+        let mainImage = oldColor.image_url;
+        let imageList: string[] = oldColor.images || [];
         //xử lý ảnh
-        let imageUrl = oldColor.image_url
         if (newColor.newImage && files[fileIndex]) {
-          imageUrl = `/uploads/products/${files[fileIndex].filename}`;
-          fileIndex++;
-         }
+          const start = fileIndex;
+          const end = start + 3; 
+          //mainImage 
+          const mainImageFile = files[start];
+          mainImage = `/uploads/products/${mainImageFile.filename}`;
+
+          imageList = [];
+          for (let j = start + 1; j <= end; j++) {
+            imageList.push(`/uploads/products/${files[j].filename}`);
+          }
+
+          fileIndex += 4; // dịch sang bộ ảnh tiếp theo
+        }
 
         // xử lý sizes
         let updatedSizes: ProductSize[] = [];
         for (const oldSize of oldColor.sizes) {
-          const newSize = newColor.sizes.find((s: any) => s.id === oldSize.id);
+          const newSize = newColor.sizes.find((s: any) => s.id === oldSize.id || s.size === oldSize.size);
           updatedSizes.push({
             id: oldSize.id,
             size: newSize?.size || oldSize.size,
@@ -103,7 +114,8 @@ export const updateProduct = async (req: Request, res: Response, next: NextFunct
         }
 
         // thêm size mới hoàn toàn
-        const newSizes = newColor.sizes.filter((s: any) => !s.id);
+        const newSizes = newColor.sizes.filter((s: any) =>!s.id && !oldColor.sizes.some((os: any) => os.size === s.size)
+);
         for (const s of newSizes) {
           updatedSizes.push({
             size: s.size,
@@ -116,12 +128,12 @@ export const updateProduct = async (req: Request, res: Response, next: NextFunct
           id: oldColor.id,
           product_id: oldColor.product_id,
           color: newColor.color || oldColor.color,
-          image_url: imageUrl,
+          image_url: mainImage,
           is_main: newColor.is_main ?? oldColor.is_main,
+          images: imageList,
           sizes: updatedSizes,
         });
       }else {
-        // giữ nguyên color cũ nếu không gửi lên
         finalColors.push(oldColor);
       } 
     }
@@ -130,13 +142,22 @@ export const updateProduct = async (req: Request, res: Response, next: NextFunct
       (c: any) => !c.id && !existingProduct.colors.some(ec => ec.color === c.color)
     );
     for (const c of newColors) {
-      const imageUrl = `/uploads/products/${files[fileIndex].filename}`;
-      fileIndex++;
+      const start = fileIndex;
+      const end = start + 3;
+      const mainImage = `/uploads/products/${files[start].filename}`;
+      const imageList: string[] = [];
+
+      for (let j = start + 1; j <= end; j++) {
+        imageList.push(`/uploads/products/${files[j].filename}`);
+      }
+
+      fileIndex += 4;
 
       finalColors.push({
         color: c.color,
-        image_url: imageUrl,
+        image_url: mainImage,
         is_main: c.is_main ?? false,
+        images: imageList,
         sizes: c.sizes,
       });
     }
@@ -157,6 +178,7 @@ export const updateProduct = async (req: Request, res: Response, next: NextFunct
 
     res.status(200).json({ message: "Product updated successfully" });
   } catch (error:any) {
+    console.log(error)
     next(error);
    }
 }
