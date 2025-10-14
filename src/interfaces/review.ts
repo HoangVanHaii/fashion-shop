@@ -1,6 +1,6 @@
 export interface Review {
     id?: number;
-    product_id: number;
+    order_item_id: number;
     user_id: number;
     rating: number;
     comment: string;
