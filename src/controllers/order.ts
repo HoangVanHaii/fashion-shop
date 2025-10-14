@@ -14,11 +14,15 @@ const makeOrderItem = async (orderItems: any, voucherCode: any): Promise<any> =>
         if (!productSize) {
             throw new AppError(`Size with ID ${item.size_id} not found`, 404);
         }
+        if(productSize.stock < item.quantity) {
+            throw new AppError(`Insufficient stock for size ${productSize.id} (available: ${productSize.stock}, requested: ${item.quantity}`, 400)
+        }
         item.price = productSize.price;
         const orderItem: OrderItem = {
             size_id: item.size_id,
             quantity: item.quantity,
-            price: item.price
+            price: productSize.flash_sale_price && productSize.flash_sale_price < item.price ? productSize.flash_sale_price: item.price,
+            flash_sale_item_id: productSize.flash_sale_item_id
         }
         orderItemsData.push(orderItem);
     }
@@ -52,8 +56,8 @@ export const createOrder = async (req: Request, res: Response, next: NextFunctio
         const user_id = req.user!.id;
         const { orderItems, voucherCode, shippingName, shippingAddress, shippingPhone, methodPayment } = req.body;
         const { orderItemsData } = await makeOrderItem(orderItems, voucherCode);
-
-        const {recordOrderItem, total, discount} = await splitOrderItems(orderItemsData, voucherCode);
+        const { recordOrderItem, total, discount } = await splitOrderItems(orderItemsData, voucherCode);
+        console.log(req.body);
         const voucher_id = await getVoucherIdByCode(voucherCode)
         let discount_value = discount / Object.values(recordOrderItem).length || 0;
 

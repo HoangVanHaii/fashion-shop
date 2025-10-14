@@ -37,17 +37,20 @@ export const getAllProducts = async (): Promise<ProductSummary[]> => {
         throw new AppError('Failed to fetch products', 500, false);
     }
 }
-export const getProductSizesBySizeId = async (size_id: number): Promise<ProductSize | null> => {
+export const getProductSizesBySizeId = async (size_id: number): Promise<any> => {
     try {
         const pool = await connectionDB();
-        const query = `SELECT * FROM product_sizes WHERE id = @size_id`;
+        const query = `SELECT ps.stock, ps.id, ps.price, fsi.id as flash_sale_item_id, fsi.flash_sale_price
+                    FROM product_sizes ps
+                    LEFT JOIN flash_sale_items fsi ON fsi.size_id = ps.id
+                    WHERE ps.id = @size_id`;
         const result = await pool.request()
             .input('size_id', size_id)
             .query(query);
         if (result.recordset.length === 0) {
             return null;
         }
-        return result.recordset[0] as ProductSize;
+        return result.recordset[0] ;
     } catch (error) {
         console.log(error);
         throw new AppError('Failed to fetch product size', 500, false);

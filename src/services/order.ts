@@ -119,14 +119,15 @@ const insertOrder = async (transaction: mssql.Transaction, order: Order): Promis
     return result.recordset[0].orderId;
 }
 const insertOrderItems = async (transaction: mssql.Transaction, orderId: number, orderItems: OrderItem[]): Promise<void> => {
-    const query = `INSERT INTO order_items (order_id, size_id, quantity, price)
-                   VALUES (@order_id, @size_id, @quantity, @price)`;
+    const query = `INSERT INTO order_items (order_id, size_id, quantity, price, flash_sale_item_id)
+                   VALUES (@order_id, @size_id, @quantity, @price, @flash_sale_item_id)`;
     for (const item of orderItems) {
         await new mssql.Request(transaction)
             .input('order_id', orderId)
             .input('size_id', item.size_id)
             .input('quantity', item.quantity)
             .input('price', item.price)
+            .input('flash_sale_item_id', item.flash_sale_item_id)
             .query(query);
         await updateProductStock(transaction, item.size_id, item.quantity);
     }
