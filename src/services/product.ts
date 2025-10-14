@@ -2,29 +2,28 @@ import  { ProductPayload, ProductSize, ProductColor, ProductSummary } from '../i
 import { connectionDB } from '../config/database';
 import { AppError } from '../utils/appError';
 import mssql, { query } from 'mssql';
-const baseQuery = `SELECT 
-                        p.id,
-                        p.name,
-                        p.description,
-                        c.category_name,
-                        sp.id AS shop_id,
-                        p.status,
-                        i.image_url AS thumbnail,
-                        fsi.flash_sale_price,
-                        MIN(s.price) AS min_price,   
-                        MAX(s.price) AS max_price,
-                        ISNULL(SUM(oi.quantity), 0) AS sold_quantity,
-                        ISNULL(AVG(r.rating), 0) AS avg_rating
-                    FROM products p
-                    INNER JOIN categories c ON p.category_id = c.category_id
-                    INNER JOIN product_colors i ON i.product_id = p.id AND i.is_main = 1
-                    INNER JOIN product_sizes s ON s.color_id = i.id
-                    INNER JOIN shops sp ON p.shop_id = sp.id
-                    LEFT JOIN flash_sale_items fsi ON fsi.product_id = p.id AND fsi.status = 'active'
-                    LEFT JOIN flash_sales fs ON fs.id = fsi.flash_sale_id AND fs.status = 'active' 
-                    LEFT JOIN order_items oi ON oi.product_id = p.id
-                    LEFT JOIN reviews r ON r.product_id = p.id
-                    GROUP BY p.id, p.name, p.description, c.category_name, sp.id, p.status, i.image_url, fsi.flash_sale_price`;
+const baseQuery = `
+                SELECT 
+                    p.id,
+                    p.name,
+                    p.description,
+                    c.category_name,
+                    sp.id AS shop_id,
+                    p.status,
+                    i.image_url AS thumbnail,
+                    fsi.flash_sale_price,
+                    MIN(s.price) AS min_price,   
+                    MAX(s.price) AS max_price,
+                    ISNULL(SUM(oi.quantity), 0) AS sold_quantity
+                FROM products p
+                INNER JOIN categories c ON p.category_id = c.category_id
+                INNER JOIN product_colors i ON i.product_id = p.id AND i.is_main = 1
+                INNER JOIN product_sizes s ON s.color_id = i.id
+                INNER JOIN shops sp ON p.shop_id = sp.id
+                LEFT JOIN flash_sale_items fsi ON fsi.size_id = s.id AND fsi.status = 'active'
+                LEFT JOIN flash_sales fs ON fs.id = fsi.flash_sale_id AND fs.status = 'active' 
+                LEFT JOIN order_items oi ON oi.size_id = s.id
+                GROUP BY p.id, p.name, p.description, c.category_name, sp.id, p.status, i.image_url, fsi.flash_sale_price`;
 
 export const getAllProducts = async (): Promise<ProductSummary[]> => {
     try {
@@ -109,31 +108,38 @@ export const getProductById = async (id: number): Promise<ProductPayload > => {
     try {
         const pool = await connectionDB();
         const query = `SELECT 
-                        p.id AS product_id,
-                        p.shop_id,
-                        sp.name AS shop_name,
-                        p.category_id,
-                        ct.category_name,
-                        p.name AS product_name,
-                        p.description,
-                        p.status,
-                        p.created_at,
-                        s.id AS size_id,
-                        s.size,
-                        s.stock,
-                        s.price,
-                        cl.id AS color_id,
-                        cl.image_url,
-                        cl.color,
-                        fsi.flash_sale_price
-                    FROM products p
-                        INNER JOIN product_colors cl ON p.id = cl.product_id
-                        INNER JOIN product_sizes s ON cl.id = s.color_id
-                        INNER JOIN categories ct ON p.category_id = ct.category_id
-                        INNER JOIN shops sp ON p.shop_id = sp.id
-                        LEFT JOIN flash_sale_items fsi ON fsi.product_id = p.id AND fsi.status = 'active'
-                        LEFT JOIN flash_sales fs ON fs.id = fsi.flash_sale_id AND fs.status = 'active'
-                    WHERE p.id = @id`
+            p.id AS product_id,
+            p.shop_id,
+            sp.name AS shop_name,
+            p.category_id,
+            ct.category_name,
+            p.name AS product_name,
+            p.description,
+            p.status,
+            p.created_at,
+            s.id AS size_id,
+            s.size,
+            s.stock,
+            s.price,
+            cl.id AS color_id,
+            cl.image_url,
+            cl.color,
+            fsi.flash_sale_price,
+            ci.id AS detail_image_id,
+            ci.image_url AS detail_image
+            FROM products p
+            INNER JOIN product_colors cl ON p.id = cl.product_id
+            INNER JOIN product_sizes s ON cl.id = s.color_id
+            INNER JOIN color_images ci ON ci.color_id = cl.id 
+            INNER JOIN categories ct ON p.category_id = ct.category_id
+            INNER JOIN shops sp ON p.shop_id = sp.id
+            LEFT JOIN flash_sale_items fsi 
+                ON fsi.product_id = p.id 
+                AND fsi.status = 'active'
+            LEFT JOIN flash_sales fs 
+                ON fs.id = fsi.flash_sale_id 
+                AND fs.status = 'active'
+            WHERE p.id = @id`
         const result = await pool.request().input('id', id).query(query);
         const productsMap: Record<number, ProductPayload> = {};
 
@@ -160,18 +166,27 @@ export const getProductById = async (id: number): Promise<ProductPayload > => {
                     product_id: row.product_id,
                     color: row.color,
                     image_url: row.image_url,
-                    sizes: []
+                    sizes: [],
+                    images: []
                 }
                 product.colors.push(color);
             }
             if(row.size_id){
-                color.sizes.push({
-                    id: row.size_id,
-                    stock: row.stock,
-                    price: row.price,
-                    size: row.size
-                })
-
+                const size = color.sizes.find(s => s.id === row.size_id);
+                if(!size){
+                    color.sizes.push({
+                        id: row.size_id,
+                        stock: row.stock,
+                        price: row.price,
+                        size: row.size
+                    })
+                }
+            }
+            if(row.detail_image_id){
+                const image = color.images.find(i => i === row.detail_image)
+                if(!image){
+                    color.images.push(`/uploads/products/${image}`);
+                }
             }
         })
         const proudctPayloads =  Object.values(productsMap);
@@ -196,6 +211,16 @@ const insertProduct = async(transaction: mssql.Transaction, product: ProductPayl
         .query(query);
         return result.recordset[0].product_id;
 }
+const insertColorImages = async (transaction: mssql.Transaction, color_id: number, images: string[]) :Promise<void> => {
+    const query = `INSERT INTO color_images (color_id, image_url)
+                VALUES (@color_id, @image_url)`
+     for(const url of images){
+         await new mssql.Request(transaction)
+        .input('color_id', color_id)
+        .input('image_url', url)
+        .query(query);
+    }
+}
 const insertProductColors = async(transaction: mssql.Transaction, product_id: number, productColors: ProductColor[]): Promise<void> => {
     const query = `INSERT INTO product_colors (product_id, color, image_url, is_main)
                 OUTPUT INSERTED.id AS color_id
@@ -209,6 +234,7 @@ const insertProductColors = async(transaction: mssql.Transaction, product_id: nu
             .query(query)
         const color_id = result.recordset[0].color_id;
         await insertProductSizes(transaction, color_id, color.sizes);
+        await insertColorImages(transaction, color_id, color.images)
     }
 }
 const insertProductSizes = async(transaction: mssql.Transaction, color_id: number, productSizes: ProductSize[]) : Promise<void> => {
@@ -241,22 +267,98 @@ export const addProduct = async (product: ProductPayload): Promise<void> => {
     }
 }
 
-export const updateProduct = async (productPayload: ProductPayload): Promise<void> => {
+const updateProductInfo = async (transaction: mssql.Transaction, product: ProductPayload): Promise<void> => {
+    await transaction.request()
+        .input("id", product.id)
+        .input("category_id", product.category_id)
+        .input("name", product.name)
+        .input("description",  product.description)
+        .input("status",  product.status)
+        .query(`
+            UPDATE products 
+            SET category_id=@category_id, name=@name, description=@description, status=@status 
+            WHERE id=@id
+        `);
+};
+// Upsert bảng colors
+const upsertProductColor = async (transaction: mssql.Transaction, productId: number, color: ProductColor): Promise<number> => {
+    if (color.id) {
+        await transaction.request()
+            .input("id", color.id)
+            .input("color", color.color)
+            .input("image_url", color.image_url)
+            .input("is_main",  color.is_main ? 1 : 0)
+            .query(`
+                UPDATE product_colors 
+                SET color=@color, image_url=@image_url, is_main=@is_main 
+                WHERE id=@id
+            `);
+        return color.id;
+    } else {
+       const inserted = await transaction.request()
+            .input("product_id",  productId)
+            .input("color",  color.color)
+            .input("image_url",  color.image_url)
+            .input("is_main", color.is_main ? 1 : 0)
+            .query(`
+                INSERT INTO product_colors (product_id, color, image_url, is_main)
+                OUTPUT INSERTED.id
+                VALUES (@product_id, @color, @image_url, @is_main)
+            `);
+        return inserted.recordset[0].id;
+    }
+    };
+
+// Upsert bảng sizes
+const upsertProductSize = async (transaction: mssql.Transaction, colorId: number, size: ProductSize): Promise<void> => {
+    if (size.id) {
+        await transaction.request()
+            .input("id", size.id)
+            .input("size", size.size)
+            .input("stock", size.stock)
+            .input("price",  size.price)
+            .query(`
+                UPDATE product_sizes 
+                SET size=@size, stock=@stock, price=@price 
+                WHERE id=@id
+            `);
+    } else {
+        await transaction.request()
+            .input("color_id",  colorId)
+            .input("size",  size.size)
+            .input("stock", size.stock)
+            .input("price",  size.price)
+            .query(`
+                INSERT INTO product_sizes (color_id, size, stock, price)
+                VALUES (@color_id, @size, @stock, @price)
+            `);
+    }
+};
+
+export const updateProduct = async ( product: ProductPayload): Promise<void> => {
     const pool = await connectionDB();
     const transaction = new mssql.Transaction(pool);
-    try {
-        transaction.begin();
+     try {
+        await transaction.begin();
 
-        let updates: string[] = [];
-       
+         // 1. Update product info
+        await updateProductInfo(transaction, product);
 
+        // 2. Upsert colors + sizes
+         for (const color of product.colors) {
+            const colorId = await upsertProductColor(transaction, Number(product.id), color);
+            for (const size of color.sizes) {
+                await upsertProductSize(transaction, colorId, size);
+            }
+        }
 
-        transaction.commit();
+        await transaction.commit();
     } catch (error) {
-        transaction.rollback();
-        throw new AppError('Failed to update product', 500, false);
+        await transaction.rollback();
+        throw error;
     }
-}
+};
+
 
 export const getCategoryById = async (category_id: number): Promise<boolean> => {
     try {

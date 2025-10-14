@@ -18,11 +18,6 @@ export const validateLimit = [
   query("limit").optional().isInt({ gt: 0 }).withMessage("Limit must be a positive integer"),
 ];
 
-const validateShopId = body('shop_id').isInt({ gt :0 })
-    .withMessage('shop_id must be a positive integer')
-    .notEmpty().withMessage("shop_id is required")
-    .bail()
-
 const validateCategoryId = body('category_id').isInt({ gt :0 })
     .withMessage('category_id must be a positive integer')
     .notEmpty().withMessage("category_id is required")
@@ -49,7 +44,7 @@ const validateColor =  body("colors").custom((value, { req }) => {
     if (!req.files || req.files.length === 0) {
         throw new Error("At least one image is required");
     }
-    if (req.files.length !== colors.length) {
+    if (req.files.length !== 4 * colors.length) {
       throw new Error(`Number of images (${req.files.length}) must be equal to number of colors (${colors.length})`)
     }
     colors.forEach((color: ProductColor, index) => {
@@ -87,10 +82,9 @@ const atLeastOneField = body().custom((_, { req }) => {
     return true;
 })
 
-export const AddProduct = [validateShopId, validateCategoryId, validateName, validateDescription, validateColor];
+export const AddProduct = [validateCategoryId, validateName, validateDescription, validateColor];
 
 export const updateProduct = [
-    makeOptionalValidator(validateShopId),
     makeOptionalValidator(validateCategoryId),
     makeOptionalValidator(validateName),
     makeOptionalValidator(validateDescription),
