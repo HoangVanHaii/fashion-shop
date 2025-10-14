@@ -17,7 +17,7 @@ export interface OrderItem {
     size_id:number;
     quantity: number;
     price: number;
-    flash_price?: number;
+    flash_sale_item_id: number;
 }
 export interface OrderItemDetail{
     id?: number;

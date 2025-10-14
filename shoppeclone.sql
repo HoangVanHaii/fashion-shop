@@ -145,6 +145,7 @@ CREATE TABLE order_items (
 	size_id INT NOT NULL,
     quantity INT NOT NULL,
     price DECIMAL(10,2) NOT NULL,
+    flash_sale_item_id INT FOREIGN KEY REFERENCES flash_sale_items(id),
     FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE CASCADE,
 	FOREIGN KEY (size_id) REFERENCES product_sizes(id)
 );
