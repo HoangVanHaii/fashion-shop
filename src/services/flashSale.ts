@@ -23,93 +23,54 @@ export const createFlashSale = async (flashSale: FlashSale): Promise<number> => 
         throw new AppError("Failed to create flash sale", 500, false);
     }
 }
-export const addItemToFlashSale = async (user_id: number, flash_sale_id: number, items: FlashSaleItem[]): Promise<void> => {
-    const pool = await connectionDB();
-    const transaction = new mssql.Transaction(pool);
+export const addItemToFlashSale = async (shop_id: number, flash_sale_id: number, item: FlashSaleItem): Promise<void> => {
     try {
-        await transaction.begin();
-        
-        const checkFlashSale = await new mssql.Request(transaction)
+        const pool = await connectionDB();
+        console.log('fl', flash_sale_id);
+        const checkFlashSale = await pool.request()
             .input("flash_sale_id", flash_sale_id)
-            .query(`SELECT fs.id, fs.created_by, fs.status, fs.title, u.role
-                FROM flash_sales fs
-                    JOIN users u ON u.id = fs.created_by
-                WHERE fs.id = @flash_sale_id`);
-        
+            .query(`SELECT id, created_by, status, title
+                FROM flash_sales 
+                WHERE id = @flash_sale_id`);
         const flash_sale = checkFlashSale.recordset[0];
         if (!flash_sale) {
             throw new AppError("Flash sale not found", 404,);
         }
-
+        console.log(item);
         if (flash_sale.status !== "pending") {
             throw new AppError(`Cannot add items while the flash sale is ${flash_sale.status}`, 400);
         }
-        for (const item of items) {
-            const checkProduct = await new mssql.Request(transaction)
-                .input("product_id", item.product_id)
-                .input("user_id", user_id)
-                .query(`SELECT p.id 
-                    FROM users u
-                    JOIN shops s ON u.id = s.seller_id
-                    JOIN products p ON s.id = p.shop_id
-                    WHERE p.id = @product_id AND u.id = @user_id`);
-
-            if (checkProduct.recordset.length === 0) {
-                throw new AppError(`Product with ID ${item.product_id} does not belong to your shop`, 404);
-            }
-            
-            const existingItem = await new mssql.Request(transaction)
-                .input("flash_sale_id", flash_sale_id)
-                .input("product_id", item.product_id)
-                .query(`SELECT id FROM flash_sale_items 
-                        WHERE flash_sale_id = @flash_sale_id AND product_id = @product_id`);
-            
-            if (existingItem.recordset.length > 0) {
-                throw new AppError(`Product with ID ${item.product_id} is already in the flash sale <${checkFlashSale.recordset[0].title}>`, 400,);
-            }
-
-            const checkConflict = await new mssql.Request(transaction)
-                .input("product_id", item.product_id)
-                .input("new_start_date", flash_sale.start_date)
-                .input("new_end_date", flash_sale.end_date)
-                .input("flash_sale_id", flash_sale_id)
-                .query(`
-                SELECT fsi.id, fs.title
-                FROM flash_sale_items fsi
-                JOIN flash_sales fs ON fsi.flash_sale_id = fs.id
-                WHERE fsi.product_id = @product_id
-                    AND fs.id <> @flash_sale_id
-                    AND fs.status IN ('pending','active')
-                    AND NOT (
-                        fs.end_date < @new_start_date
-                        OR fs.start_date > @new_end_date
-                    )
-                `);
-
-            if (checkConflict.recordset.length > 0) {
-                throw new AppError(`Product with ID ${item.product_id} is already in another active flash sale during the same period <${checkConflict.recordset[0].title}>`, 400);
-            }
-            await new mssql.Request(transaction)
-                .input("flash_sale_id", flash_sale_id)
-                .input("product_id", item.product_id)
-                .input("flash_sale_price", item.flash_sale_price)
-                .input("stock", item.stock)
-                .query(`INSERT INTO flash_sale_items (flash_sale_id, product_id, flash_sale_price, stock)
-                        VALUES (@flash_sale_id, @product_id, @flash_sale_price, @stock)`);
+        const checkSize = await pool.request()
+            .input('shop_id', shop_id)
+            .input('size_id', item.size_id)
+            .query(`
+                SELECT ps.id
+                FROM product_sizes ps
+                INNER JOIN product_colors pc ON ps.color_id = pc.id
+                INNER JOIN products p ON pc.product_id = p.id
+                WHERE ps.id = @size_id AND p.shop_id = @shop_id
+            `);  
+        if (checkSize.recordset.length === 0) {
+            throw new AppError("Size không thuộc về shop này", 400);
         }
-        await transaction.commit();
+        await pool.request()
+            .input("flash_sale_id", flash_sale_id)
+            .input("size_id", item.size_id)
+            .input("flash_sale_price", item.flash_sale_price)
+            .input("stock", item.stock)
+            .query(`INSERT INTO flash_sale_items (flash_sale_id, size_id, flash_sale_price, stock)
+                        VALUES (@flash_sale_id, @size_id, @flash_sale_price, @stock)`);
+        
     } catch (err) {
-        await transaction.rollback();
         console.error(err);
         if (err instanceof AppError) throw err;
-        throw new AppError("Failed to add items to flash sale", 500, false);   
+        throw new AppError("Failed to add items to flash sale", 500, false);
     }
 }
 export const getAllFlashSaleDetails = async (status: string): Promise<FlashSale[]> => {
     try {
         const pool = await connectionDB();
         const result = await pool.request()
-            .input("status", status  || "active")
             .query(`
                 SELECT 
                     fs.id AS flash_sale_id,
@@ -128,102 +89,19 @@ export const getAllFlashSaleDetails = async (status: string): Promise<FlashSale[
                     fsi.created_at AS flash_sale_item_created_at,
 
                     p.id AS product_id,
+                    ps.id AS size_id,
                     p.name AS product_name,
                     MIN(ps.price) AS original_price,
                     pc.image_url AS product_image
                 FROM flash_sales fs
                     LEFT JOIN flash_sale_items fsi ON fs.id = fsi.flash_sale_id
-                    LEFT JOIN products p ON fsi.product_id = p.id
-                    LEFT JOIN product_colors pc ON p.id = pc.product_id AND pc.is_main = 1
-                    LEFT JOIN product_sizes ps ON pc.id = ps.color_id
-                WHERE fs.status = @status
+                    LEFT JOIN product_sizes ps ON ps.id = fsi.size_id
+                    LEFT JOIN product_colors pc ON ps.color_id = pc.id AND pc.is_main = 1
+                    LEFT JOIN products p ON p.id = pc.product_id
                 GROUP BY 
                     fs.id, fs.title, fs.start_date, fs.end_date, fs.status, fs.created_by, fs.created_at,
                     fsi.id, fsi.flash_sale_price, fsi.stock, fsi.sold, fsi.status, fsi.created_at,
-                    p.id, p.name, pc.image_url
-            `);
-            const rows = result.recordset;
-        const flashSaleMap = new Map<number, FlashSale>();
-
-        rows.forEach(row => {
-            if (!flashSaleMap.has(row.flash_sale_id)) {
-                flashSaleMap.set(row.flash_sale_id, {
-                    id: row.flash_sale_id,
-                    title: row.title,
-                    start_date: row.start_date,
-                    end_date: row.end_date,
-                    status: row.status,
-                    created_by: row.created_by,
-                    created_at: row.created_at,
-                    items: []
-                });
-            }
-
-            if (row.flash_sale_item_id !== null) {
-                const item: FlashSaleItem = {
-                    id: row.flash_sale_item_id,
-                    product_id: row.product_id,
-                    product_name: row.product_name,
-                    original_price: row.original_price,
-                    product_image: row.product_image,
-                    flash_sale_price: row.flash_sale_price,
-                    stock: row.stock,
-                    sold: row.sold,
-                    status: row.flash_sale_item_status,
-                    created_at: row.flash_sale_item_created_at
-                };
-                const flashSale = flashSaleMap.get(row.flash_sale_id);
-                if (flashSale) {
-                    flashSale.items = flashSale.items || [];
-                    flashSale.items.push(item);
-                }
-            }
-        });
-
-        return Array.from(flashSaleMap.values());
-    } catch (err) {
-        console.error(err);
-        throw new AppError("Failed to get flash sales for seller", 500, false);
-    }
-};
-export const getAllFlashSaleForSeller = async (user_id: number, status: string): Promise<FlashSale[]> => {
-    try {
-        const pool = await connectionDB();
-        const result = await pool.request()
-            .input("status", status || "active")
-            .input("user_id", user_id)
-            .query(`
-                SELECT 
-                    fs.id AS flash_sale_id,
-                    fs.title,
-                    fs.start_date,
-                    fs.end_date,
-                    fs.status,
-                    fs.created_by,
-                    fs.created_at,
-
-                    fsi.id AS flash_sale_item_id,
-                    fsi.flash_sale_price,
-                    fsi.stock,
-                    fsi.sold,
-                    fsi.status AS flash_sale_item_status,
-                    fsi.created_at AS flash_sale_item_created_at,
-
-                    p.id AS product_id,
-                    p.name AS product_name,
-                    MIN(ps.price) AS original_price,
-                    pc.image_url AS product_image
-                FROM flash_sales fs
-                    INNER JOIN flash_sale_items fsi ON fs.id = fsi.flash_sale_id
-                    INNER JOIN products p ON fsi.product_id = p.id
-                    INNER JOIN product_colors pc ON p.id = pc.product_id AND pc.is_main = 1
-                    INNER JOIN product_sizes ps ON pc.id = ps.color_id
-                    INNER JOIN shops s ON s.id = p.shop_id
-                WHERE fs.status = @status AND s.seller_id = @user_id
-                GROUP BY 
-                    fs.id, fs.title, fs.start_date, fs.end_date, fs.status, fs.created_by, fs.created_at,
-                    fsi.id, fsi.flash_sale_price, fsi.stock, fsi.sold, fsi.status, fsi.created_at,
-                    p.id, p.name, pc.image_url
+                    p.id, ps.id, p.name, pc.image_url
             `);
         const rows = result.recordset;
         const flashSaleMap = new Map<number, FlashSale>();
@@ -241,11 +119,13 @@ export const getAllFlashSaleForSeller = async (user_id: number, status: string):
                     items: []
                 });
             }
+            const newItems = flashSaleMap.get(row.flash_sale_id)?.items?.find(i => i.product_id == row.product_id);
 
-            if (row.flash_sale_item_id !== null) {
+            if (row.flash_sale_item_id !== null && !newItems) {
                 const item: FlashSaleItem = {
                     id: row.flash_sale_item_id,
                     product_id: row.product_id,
+                    size_id: row.size_id,
                     product_name: row.product_name,
                     original_price: row.original_price,
                     product_image: row.product_image,
@@ -279,7 +159,7 @@ export const getFlashSaleById = async (id: number): Promise<FlashSale | null> =>
         if (checkFlashSale.recordset.length === 0) {
             throw new AppError("Flash sale not found", 404);
         }
-        const result = await pool.request() 
+        const result = await pool.request()
             .input("flash_sale_id", id)
             .query(`SELECT 
                         fs.id AS flash_sale_id,
@@ -311,7 +191,7 @@ export const getFlashSaleById = async (id: number): Promise<FlashSale | null> =>
         if (rows.length === 0) return null;
         const itemMap = new Map<number, FlashSaleItem>();
         rows.forEach(row => {
-            if(row.flash_sale_item_id !== null && !itemMap.has(row.flash_sale_item_id)) {
+            if (row.flash_sale_item_id !== null && !itemMap.has(row.flash_sale_item_id)) {
                 itemMap.set(row.flash_sale_item_id, {
                     id: row.flash_sale_item_id,
                     product_id: row.product_id,
@@ -393,7 +273,7 @@ export const getAllFlashSalesByStatus = async (status: string): Promise<FlashSal
             `);
         return result.recordset || null;
     } catch (err) {
-        console.error(err); 
+        console.error(err);
         throw new AppError("Failed to get flash sales by status", 500, false);
     }
 };
@@ -403,8 +283,8 @@ export const cancelFlashSaleForAdmin = async (id: number): Promise<void> => {
     const transaction = new mssql.Transaction(pool);
 
     try {
-        await transaction.begin();            
-        
+        await transaction.begin();
+
         const checkSale = await new mssql.Request(transaction)
             .input("flash_sale_id", id)
             .query(`
@@ -454,8 +334,8 @@ export const cancelAllFlashSaleItemsBySeller = async (user_id: number, id: numbe
     const transaction = new mssql.Transaction(pool);
 
     try {
-        await transaction.begin();            
-        
+        await transaction.begin();
+
         const checkSale = await new mssql.Request(transaction)
             .input("flash_sale_id", id)
             .query(`
@@ -498,8 +378,8 @@ export const cancelAllFlashSaleItemsBySeller = async (user_id: number, id: numbe
 
 export const removeFlashSaleItem = async (user_id: number, flash_sale_item_id: number): Promise<void> => {
     try {
-        const pool = await connectionDB();  
-        const checkItem = await pool.request()  
+        const pool = await connectionDB();
+        const checkItem = await pool.request()
             .input("flash_sale_item_id", flash_sale_item_id)
             .input("user_id", user_id)
             .query(`SELECT fs.id
@@ -554,7 +434,7 @@ export const updateFlashSale = async (flashSale: FlashSale): Promise<void> => {
         Object.entries(flashSale).forEach(([key, value]) => {
             if (allowedFields.includes(key) && value != null && value !== "") {
                 if (key === "start_date" || key === "end_date") {
-                     const vnTime = new Date(new Date(value as any).getTime() + 7 * 60 * 60 * 1000);
+                    const vnTime = new Date(new Date(value as any).getTime() + 7 * 60 * 60 * 1000);
                     setList.push(`${key} = @${key}`);
                     request.input(key, vnTime);
                 } else {
@@ -579,9 +459,9 @@ export const updateFlashSale = async (flashSale: FlashSale): Promise<void> => {
     }
 };
 
-export const updateFlashSaleItem = async (user_id: number,item: FlashSaleItem): Promise<void> => {
+export const updateFlashSaleItem = async (user_id: number, item: FlashSaleItem): Promise<void> => {
     try {
-        const pool = await connectionDB();  
+        const pool = await connectionDB();
 
         const checkItem = await pool.request()
             .input("flash_sale_item_id", item.id)

@@ -18,18 +18,18 @@ export const validateCreateFlashSale = [
 ]
 
 export const validateAddFlashSaleItem = [
-    body('items')
-        .isArray({ min: 1 }).withMessage('Items must be a non-empty array')
+    body('item')
+        .notEmpty().withMessage('Item is required')
         .bail(),
-    body('items.*.product_id')
+    body('item.size_id')
         .notEmpty().withMessage((value, { path }) => `${path} is required`)
         .isInt({ gt: 0 }).withMessage((value, { path }) => `${path} must be a positive integer`)
         .bail(),
-    body('items.*.flash_sale_price')
+    body('item.flash_sale_price')
         .notEmpty().withMessage((value, { path }) => `${path} is required`)
         .isFloat({ gt: 0 }).withMessage((value, { path }) => `${path} must be a positive number`)
         .bail(),
-    body('items.*.stock')
+    body('item.stock')
         .notEmpty().withMessage((value, { path }) => `${path} is required`)
         .isInt({ gt: -1 }).withMessage((value, { path }) => `${path} must be a non-negative integer`)
         .bail()

@@ -25,10 +25,9 @@ router.post(
 
 router.get(
     "/detail",
-    authMiddleware,
+    // authMiddleware,
     flashSaleController.getAllFlashSaleDetails
 );
-router.get("/seller", authMiddleware, isSeller, flashSaleController.getAllFlashSaleForSeller);
 router.get("/", authMiddleware, flashSaleController.getAllFlashSales);
 router.get(
     "/:id",

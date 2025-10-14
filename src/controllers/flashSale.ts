@@ -2,6 +2,7 @@ import { FlashSale, FlashSaleItem } from "../interfaces/flashSale";
 import { Request, Response, NextFunction } from "express";
 import * as FlashSaleService from "../services/flashSale";
 import { AppError } from "../utils/appError";
+import *as userService from "../services/user"
 
 export const createFlashSale = async (req: Request, res: Response, next: NextFunction) => {
     try {
@@ -45,20 +46,7 @@ export const getAllFlashSaleDetails = async (req: Request, res: Response, next: 
         next(err);
     }
 }
-export const getAllFlashSaleForSeller = async (req: Request, res: Response, next: NextFunction) => {
-    try {
-        const status = req.query.status as string;
-        const user_id = req.user!.id;
-        const flashSales = await FlashSaleService.getAllFlashSaleForSeller(user_id, status)
-        return res.status(200).json({
-            success: true,
-            message: 'Get all flash sales successfully',
-            data: flashSales
-        })
-    } catch (err) {
-        next(err);
-    }
-}
+
 export const getFlashSaleById = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const flash_sale_id = parseInt(req.params.id);
@@ -124,10 +112,10 @@ export const cancelAllFlashSaleItemsBySeller = async (req: Request, res: Respons
 export const addFlashSaleItem = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const flashSaleId = parseInt(req.params.id);
-        const { items } = req.body;
-        const item: FlashSaleItem[] = items;
+        const { item } = req.body as any;
         const user_id = req.user!.id;
-        const flash_sale_item_id = await FlashSaleService.addItemToFlashSale(user_id, flashSaleId, item);
+        const shop_id = await userService.getShopIdByUserId(user_id);
+        const flash_sale_item_id = await FlashSaleService.addItemToFlashSale(shop_id, flashSaleId, item);
         return res.status(201).json({
             success: true,
             message: 'Flash sale item added successfully',
