@@ -17,9 +17,13 @@ router.get(
     productController.getProductByShop
 );
 router.get(
+    '/searchByCategoryGender',
+    productController.getProductByCategoryGender
+)
+router.get(
     "/searchByCategory",
-    productMiddleware.validateSearchByCategoryId,
-    validateRequest,
+    // productMiddleware.validateSearchByCategoryId,
+    // validateRequest,
     productController.getProductsByCategory
 );
 router.get("/actives",
