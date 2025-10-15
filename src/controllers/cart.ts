@@ -6,8 +6,8 @@ import { AppError } from "../utils/appError";
 export const addtoCart = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const user_id = req.user!.id;
-        const { product_id, quantity, size_id, color_id } = req.body;
-        const cartItem = {product_id, quantity, size_id, color_id} as CartItem;   
+        const { quantity, size_id } = req.body;
+        const cartItem = { quantity, size_id } as CartItem;;
         await cartService.addToCart(user_id, cartItem);
         return res.status(201).json({
             success: true,
@@ -49,11 +49,8 @@ export const updateCartItemQuantity = async (req: Request, res: Response, next: 
 export const updateCartItem = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const cart_item_id = parseInt(req.params.id);
-        const { size_id, color_id } = req.body;
-        if(isNaN(cart_item_id)) {
-            throw new AppError("Invalid cart item id", 400);
-        }
-        await cartService.updateCartItem(cart_item_id, color_id, size_id);
+        const { size_id } = req.body;
+        await cartService.updateCartItem(cart_item_id, size_id);
         return res.status(200).json({
             success: true,
             message: "Cart item updated successfully"

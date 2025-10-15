@@ -976,3 +976,19 @@ export const getReviewImage = async (review_id: number): Promise<reviewImages[]>
   return images;
 };
 
+export const getShopIdByUserId = async (user_id: number): Promise<number> => {
+  try {
+    const pool = await connectionDB();
+    const result = await pool
+      .request()
+      .input("user_id", user_id)
+      .query(`SELECT id FROM shops WHERE seller_id = @user_id`);
+    if (result.recordset.length === 0) {
+      throw new AppError("Shop not found for this user", 404);
+    }
+    return result.recordset[0].id;
+  } catch (err: any) {
+    console.error(err);
+    throw new AppError("Failed to getShopIdByUserId", 500, false);
+  }
+};

@@ -10,12 +10,13 @@ router.get(
     "/",
     authMiddleware,
     isSeller,
-    productController.getProducts
+    productController.getAllProductsByShop
 );
-router.get("/hiddens", 
+router.get(
+    "/hidden", 
     authMiddleware, 
     isSeller, 
-    productController.getProductsHidden
+    productController.getAllProductsHiddenByShop
 );
 router.post(
     "/addProduct", 
@@ -26,7 +27,7 @@ router.post(
     validateRequest,
     productController.addProduct
 );
-// router.put("/updateProduct",productMiddleware.updateProduct ,productController.updateProduct);
+router.put("/:id",authMiddleware, isSeller,uploadProductImages, productMiddleware.updateProduct, validateRequest ,productController.updateProduct);
 router.delete(
     "/deleteProduct", 
     authMiddleware, 

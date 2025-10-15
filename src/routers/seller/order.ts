@@ -4,7 +4,12 @@ import { isSeller } from '../../middlewares/authMiddleware';
 import express from 'express'
 
 const router = express.Router();
-
+router.get(
+    '/getOrderOfShopMe',
+    authMiddleware,
+    isSeller,
+    orderController.getOderOfShopMe
+)
 router.put(
     '/confirm',
     authMiddleware,

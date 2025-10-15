@@ -1,18 +1,21 @@
 import * as productService from "../../services/product";
 import { ProductPayload, ProductColor, ProductSize } from "../../interfaces/product";
 import { Request, Response, NextFunction } from "express";
+import *as userService from '../../services/user'
 
-export const getProducts = async (req: Request, res: Response, next: NextFunction) => {
+export const getAllProductsByShop = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const products = await productService.getAllProducts();
+        const shop_id = await userService.getShopIdByUserId(req.user!.id);
+        const products = await productService.getAllProductsByShop(shop_id);
         res.status(200).json(products);
     } catch (error: any) {
         next(error);
     }
 }
-export const getProductsHidden = async (req: Request, res: Response, next: NextFunction) => {
+export const getAllProductsHiddenByShop = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const products = await productService.getProductsHidden();
+        const shop_id = await userService.getShopIdByUserId(req.user!.id);
+        const products = await productService.getAllProductsHiddenByShop(shop_id);
         res.status(200).json(products);
     } catch (error: any) {
         next(error);
@@ -20,14 +23,23 @@ export const getProductsHidden = async (req: Request, res: Response, next: NextF
 }
 export const addProduct = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const { shop_id, category_id, name, description, colors } = req.body;
+        const { category_id, name, description, colors } = req.body;
+        const shop_id = await userService.getShopIdByUserId(req.user!.id);
+        
         const files = req.files as Express.Multer.File[];
         const parseColors = JSON.parse(colors);
 
         let productColors: ProductColor[] = [];
+        let indexImage = 0;
         for(let i = 0; i < parseColors.length ; i++){
             const color = parseColors[i];
-            const image = files[i];
+            const start = 4 * i;
+            const end = 4 * i + 3
+            const image = files[start];
+            let color_images: string[] = [];
+            for(let j = start + 1; j <= end; j++){
+                color_images.push(`/uploads/products/${files[j].filename}`)
+            }
             let productSizes: ProductSize[] = [];
             for(const size of color.sizes){
                 productSizes.push({size: size.size, stock: size.stock, price: size.price});
@@ -36,7 +48,8 @@ export const addProduct = async (req: Request, res: Response, next: NextFunction
                 color: color.color, 
                 image_url: `/uploads/products/${image.filename}`,
                 is_main: i == 0,
-                sizes: productSizes
+                sizes: productSizes,
+                images: color_images
             })
         }
         const productPayload:ProductPayload = { 
@@ -53,27 +66,123 @@ export const addProduct = async (req: Request, res: Response, next: NextFunction
         next(error);
     }
 }
-export const updateProduct = async (req: Request, res: Response, next: NextFunction) => {
-    // try {
-    // 	const { id, shop_id, category_id, name, description, price, stock, status } = req.body;
-    // 	const existingProduct = await productService.getProductById(id);
-    // 	if (!existingProduct) {
-    // 		throw new AppError("Product not found", 404);
-    // 	}
-    // 	if (category_id) {
-    // 		//addtional check category exists
-    // 		const categoryExists = await productService.getCategoryById(category_id);
-    // 		if (!categoryExists) {
-    // 			throw new AppError("Category not found", 404);
-    // 		}
-    // 	}
-    // 	const product = { id, shop_id, category_id, name, description, price, stock, status } as Product;
-    // 	await productService.updateProduct(product);
-    // 	res.status(200).json({ message: "Product updated successfully" });
-    // } catch (error: any) {
-    // 	next(error);
-    // }
+export const updateProduct = async (req: Request, res: Response, next: NextFunction) =>{
+  try {
+    const productId = parseInt(req.params.id);
+    const existingProduct = await productService.getProductById(productId);
+
+    const { category_id, name, description, colors } = req.body;
+    const files = req.files as Express.Multer.File[];
+    let fileIndex = 0;
+    const parseColors = JSON.parse(colors);
+
+    let finalColors: ProductColor[] = [];
+    for(const oldColor of existingProduct.colors){
+      const newColor = parseColors.find(
+        (c: any) => c.id === oldColor.id || c.color === oldColor.color
+      );
+
+      if(newColor){
+        let mainImage = oldColor.image_url;
+        let imageList: string[] = oldColor.images || [];
+        //xử lý ảnh
+        if (newColor.newImage && files[fileIndex]) {
+          const start = fileIndex;
+          const end = start + 3; 
+          //mainImage 
+          const mainImageFile = files[start];
+          mainImage = `/uploads/products/${mainImageFile.filename}`;
+
+          imageList = [];
+          for (let j = start + 1; j <= end; j++) {
+            imageList.push(`/uploads/products/${files[j].filename}`);
+          }
+
+          fileIndex += 4; // dịch sang bộ ảnh tiếp theo
+        }
+
+        // xử lý sizes
+        let updatedSizes: ProductSize[] = [];
+        for (const oldSize of oldColor.sizes) {
+          const newSize = newColor.sizes.find((s: any) => s.id === oldSize.id || s.size === oldSize.size);
+          updatedSizes.push({
+            id: oldSize.id,
+            size: newSize?.size || oldSize.size,
+            stock: newSize?.stock ?? oldSize.stock,
+            price: newSize?.price ?? oldSize.price,
+          });
+        }
+
+        // thêm size mới hoàn toàn
+        const newSizes = newColor.sizes.filter((s: any) =>!s.id && !oldColor.sizes.some((os: any) => os.size === s.size)
+);
+        for (const s of newSizes) {
+          updatedSizes.push({
+            size: s.size,
+            stock: s.stock,
+            price: s.price,
+          });
+        }
+
+        finalColors.push({
+          id: oldColor.id,
+          product_id: oldColor.product_id,
+          color: newColor.color || oldColor.color,
+          image_url: mainImage,
+          is_main: newColor.is_main ?? oldColor.is_main,
+          images: imageList,
+          sizes: updatedSizes,
+        });
+      }else {
+        finalColors.push(oldColor);
+      } 
+    }
+    // thêm color mới hoàn toàn
+    const newColors = parseColors.filter(
+      (c: any) => !c.id && !existingProduct.colors.some(ec => ec.color === c.color)
+    );
+    for (const c of newColors) {
+      const start = fileIndex;
+      const end = start + 3;
+      const mainImage = `/uploads/products/${files[start].filename}`;
+      const imageList: string[] = [];
+
+      for (let j = start + 1; j <= end; j++) {
+        imageList.push(`/uploads/products/${files[j].filename}`);
+      }
+
+      fileIndex += 4;
+
+      finalColors.push({
+        color: c.color,
+        image_url: mainImage,
+        is_main: c.is_main ?? false,
+        images: imageList,
+        sizes: c.sizes,
+      });
+    }
+
+    // Ghép 
+    const finalProduct: ProductPayload = {
+      id: productId,
+      shop_id: existingProduct.shop_id,
+      category_id: Number(category_id) || existingProduct.category_id,
+      name: name || existingProduct.name,
+      description: description || existingProduct.description,
+      status: existingProduct.status,
+      colors: finalColors,
+      flash_sale_price: existingProduct.flash_sale_price,
+    };
+
+    await productService.updateProduct(finalProduct);
+
+    res.status(200).json({ message: "Product updated successfully" });
+  } catch (error:any) {
+    console.log(error)
+    next(error);
+   }
 }
+
 export const softDeleteProduct = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const { id } = req.body;

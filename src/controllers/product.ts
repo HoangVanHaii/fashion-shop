@@ -1,10 +1,22 @@
 import * as productService from "../services/product";
 import { ProductSummary } from "../interfaces/product";
 import { Request, Response, NextFunction } from "express";
+import redisClient from "../config/redisClient";
 
 export const getProductsActive = async (req: Request, res: Response, next: NextFunction) => {
 	try {
+		const cacheKey = 'products:active';
+		const cachedData = await redisClient.get(cacheKey);
+		if(cachedData){
+			console.log("Cache hit");
+      		return res.status(200).json(JSON.parse(cachedData));
+		}
+
 		const products = await productService.getProductsActive();
+
+		await redisClient.setEx(cacheKey, 300, JSON.stringify(products));
+		console.log("Cache miss → saved new data");
+
 		res.status(200).json(products);
 	} catch (error) {
 		next(error);

@@ -10,5 +10,6 @@ router.post('/', authMiddleware, uploadReview, reviewValidator.createReviewValid
 router.get('/product/:product_id', reviewValidator.product_idValidator, authMiddleware, reviewController.getReviewsByProductId);
 router.get('/:review_id', reviewValidator.review_idValidator , authMiddleware, reviewController.getReviewById);
 router.delete('/:review_id', reviewValidator.review_idValidator, authMiddleware, validateRequest, reviewController.removeReviewById);
+router.put('/:review_id',authMiddleware, uploadReview, reviewValidator.updateReviewValidator, validateRequest, reviewController.updateReview);
 
 export default router

@@ -254,9 +254,6 @@ export const resetPassword = async (req: Request, res: Response, next: NextFunct
         next(err);
     }
 }
-
-///////////////////////////////////////////////////////////////
-
 export const createRequestSeller = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const user_id = req.user!.id;

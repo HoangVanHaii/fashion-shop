@@ -59,7 +59,7 @@ export const registerValidator = [
     .withMessage("Name must be between 2 and 50 characters"),
   phoneValidator,
   emailValidator,
-  passwordValidator, 
+  passwordValidator,
   dateOfBirthValidator,
   body("role")
     .optional()

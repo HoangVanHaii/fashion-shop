@@ -2,8 +2,9 @@ export interface Order {
     id?: number;
     user_id: number;
     voucher_id?: number;
+    discount_value?: number;
     total: number;
-    payment_method: 'cod' | 'credit_card' | 'paypal' | 'momo';
+    payment_method: 'cod' | 'credit_card' | 'paypal' | 'vnpay' | 'momo';
     shipping_name: string;
     shipping_address: string;
     shipping_phone: string;
@@ -13,11 +14,10 @@ export interface Order {
 export interface OrderItem {
     id?: number;
     order_id?: number;
-    product_id: number;
-    color_id: number;
     size_id:number;
     quantity: number;
     price: number;
+    flash_sale_item_id: number;
 }
 export interface OrderItemDetail{
     id?: number;
@@ -43,7 +43,7 @@ export interface GetOrder {
     updatedAt?: Date;
     items: OrderItemDetail[];
     total: number; 
-    payment_method?: 'cod' | 'credit_card' | 'paypal' | 'momo';
+    payment_method?: 'cod' | 'credit_card' | 'paypal' | 'momo' | 'vnpay';
     shipping_name?: string;
     shipping_address?: string;
     shipping_phone?: string;
