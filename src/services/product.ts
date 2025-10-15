@@ -8,6 +8,7 @@ const baseQuery = `
                     p.name,
                     p.description,
                     c.category_name,
+                    c.gender,
                     sp.id AS shop_id,
                     p.status,
                     i.image_url AS thumbnail,
@@ -23,7 +24,7 @@ const baseQuery = `
                 LEFT JOIN flash_sale_items fsi ON fsi.size_id = s.id AND fsi.status = 'active'
                 LEFT JOIN flash_sales fs ON fs.id = fsi.flash_sale_id AND fs.status = 'active' 
                 LEFT JOIN order_items oi ON oi.size_id = s.id
-                GROUP BY p.id, p.name, p.description, c.category_name, sp.id, p.status, i.image_url, fsi.flash_sale_price`;
+                GROUP BY p.id, p.name, p.description, c.category_name, c.gender, sp.id, p.status, i.image_url, fsi.flash_sale_price`;
 
 export const getAllProducts = async (): Promise<ProductSummary[]> => {
     try {
@@ -108,38 +109,34 @@ export const getProductById = async (id: number): Promise<ProductPayload > => {
     try {
         const pool = await connectionDB();
         const query = `SELECT 
-            p.id AS product_id,
-            p.shop_id,
-            sp.name AS shop_name,
-            p.category_id,
-            ct.category_name,
-            p.name AS product_name,
-            p.description,
-            p.status,
-            p.created_at,
-            s.id AS size_id,
-            s.size,
-            s.stock,
-            s.price,
-            cl.id AS color_id,
-            cl.image_url,
-            cl.color,
-            fsi.flash_sale_price,
-            ci.id AS detail_image_id,
-            ci.image_url AS detail_image
-            FROM products p
-            INNER JOIN product_colors cl ON p.id = cl.product_id
-            INNER JOIN product_sizes s ON cl.id = s.color_id
-            INNER JOIN color_images ci ON ci.color_id = cl.id 
-            INNER JOIN categories ct ON p.category_id = ct.category_id
-            INNER JOIN shops sp ON p.shop_id = sp.id
-            LEFT JOIN flash_sale_items fsi 
-                ON fsi.product_id = p.id 
-                AND fsi.status = 'active'
-            LEFT JOIN flash_sales fs 
-                ON fs.id = fsi.flash_sale_id 
-                AND fs.status = 'active'
-            WHERE p.id = @id`
+                        p.id AS product_id,
+                        p.shop_id,
+                        sp.name AS shop_name,
+                        p.category_id,
+                        ct.category_name,
+                        p.name AS product_name,
+                        p.description,
+                        p.status,
+                        p.created_at,
+                        s.id AS size_id,
+                        s.size,
+                        s.stock,
+                        s.price,
+                        cl.id AS color_id,
+                        cl.image_url,
+                        cl.color,
+                        fsi.flash_sale_price,
+                        ci.id as detail_image_id,
+                        ci.image_url as detail_image
+                    FROM products p
+                        INNER JOIN product_colors cl ON p.id = cl.product_id
+                        INNER JOIN product_sizes s ON cl.id = s.color_id
+                        INNER JOIN color_images ci ON ci.color_id = cl.id 
+                        INNER JOIN categories ct ON p.category_id = ct.category_id
+                        INNER JOIN shops sp ON p.shop_id = sp.id
+                        LEFT JOIN flash_sale_items fsi ON fsi.size_id = s.id AND fsi.status = 'active'
+                        LEFT JOIN flash_sales fs ON fs.id = fsi.flash_sale_id AND fs.status = 'active'
+                    WHERE p.id = @id`
         const result = await pool.request().input('id', id).query(query);
         const productsMap: Record<number, ProductPayload> = {};
 
@@ -175,6 +172,7 @@ export const getProductById = async (id: number): Promise<ProductPayload > => {
                 const size = color.sizes.find(s => s.id === row.size_id);
                 if(!size){
                     color.sizes.push({
+                        product_id: row.product_id,
                         id: row.size_id,
                         stock: row.stock,
                         price: row.price,
@@ -183,9 +181,10 @@ export const getProductById = async (id: number): Promise<ProductPayload > => {
                 }
             }
             if(row.detail_image_id){
+                // console.log(row.detail_image_id);
                 const image = color.images.find(i => i === row.detail_image)
                 if(!image){
-                    color.images.push(`/uploads/products/${image}`);
+                    color.images.push(`/uploads/products/${row.detail_image}`);
                 }
             }
         })
@@ -198,7 +197,23 @@ export const getProductById = async (id: number): Promise<ProductPayload > => {
         throw new AppError('Failed to fetch products', 500, false);
     }
 }
-
+export const getProductByCategoryGender = async(gender: string) : Promise<ProductSummary[]> => {
+    try {
+        let query = `${baseQuery}
+                    HAVING c.gender = @gender`
+        if(!gender){
+            query = baseQuery;
+        }
+        const pool = await connectionDB();
+        const result = await pool.request()
+            .input('gender', gender)
+            .query(query);
+        return result.recordset as ProductSummary[];
+    } catch (error) {
+        console.log(error);
+        throw new AppError('Failed to fetch products by category', 500, false);
+    }
+}
 const insertProduct = async(transaction: mssql.Transaction, product: ProductPayload): Promise<number> => {
     const query = `INSERT INTO products (shop_id, category_id, name, description)
                 OUTPUT INSERTED.id AS product_id
@@ -412,13 +427,13 @@ export const getLatestProducts = async (limit: number): Promise<ProductSummary[]
         throw new AppError('Failed to fetch latest products', 500, false);
     }
 }
-export const getProductsByCategory = async (category_id: number): Promise<ProductSummary[]> => {
+export const getProductsByCategory = async (arrayName: string): Promise<ProductSummary[]> => {
     try {
         const query = `${baseQuery}
-                    HAVING p.category_id = @category_id`
+                    HAVING c.category_name IN (${arrayName})`
+                
         const pool = await connectionDB();
         const result = await pool.request()
-            .input('category_id', category_id)
             .query(query);
         return result.recordset as ProductSummary[];
     } catch (error) {

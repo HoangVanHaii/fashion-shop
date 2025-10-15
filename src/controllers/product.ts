@@ -57,8 +57,23 @@ export const getProductByShop = async (req: Request, res: Response, next: NextFu
 }
 export const getProductsByCategory = async (req: Request, res: Response, next: NextFunction) => {
 	try {
-		const category_id: number = parseInt(req.query.category_id as string)
-		const products = await productService.getProductsByCategory(category_id);
+		const categoryNames: string = req.query.categoryNames as string;
+		const categoryArray = categoryNames.split(',').map(name => {
+			const trimmedName = name.trim();
+			return `N'${trimmedName}'`;
+		});
+		const arrayName = categoryArray.join(', ');
+
+		const products = await productService.getProductsByCategory(arrayName);
+		res.status(200).json(products);
+	} catch (error: any) {
+		next(error);
+	}
+}
+export const getProductByCategoryGender = async (req: Request, res: Response, next: NextFunction) => {
+	try {
+		const gender: string = req.query.gender as string
+		const products = await productService.getProductByCategoryGender(gender);
 		res.status(200).json(products);
 	} catch (error: any) {
 		next(error);
