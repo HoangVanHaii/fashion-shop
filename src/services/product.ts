@@ -425,6 +425,7 @@ export const getProductsByCategory = async (category_id: number): Promise<Produc
         throw new AppError('Failed to fetch products by category', 500, false);
     }
 }
+
 export const getProductByShop = async (shop_id:number) : Promise<ProductSummary[]> => {
     try {
         const query = `${baseQuery}
