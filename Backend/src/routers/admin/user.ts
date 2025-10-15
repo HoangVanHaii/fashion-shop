@@ -12,5 +12,5 @@ router.get("/:id", authMiddleware, isAdmin, userValidator.idValidator, validateR
 router.put('/unlock/:id', authMiddleware, isAdmin, userValidator.idValidator, validateRequest, userController.unlockUser);
 router.put('/:id', authMiddleware, isAdmin, userValidator.updateUserByAdminValidator, validateRequest, validateRequest, userController.updateUserByAdmin)
 router.delete('/:id', userValidator.idValidator, validateRequest, authMiddleware, isAdmin, userController.deleteUser);
-
+router.put("/respondSellerRequest/:id", authMiddleware, isAdmin, userController.respondSellerRequest);
 export default router;
