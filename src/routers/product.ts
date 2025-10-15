@@ -22,8 +22,6 @@ router.get(
 )
 router.get(
     "/searchByCategory",
-    // productMiddleware.validateSearchByCategoryId,
-    // validateRequest,
     productController.getProductsByCategory
 );
 router.get("/actives",
