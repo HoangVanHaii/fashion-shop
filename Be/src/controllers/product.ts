@@ -97,6 +97,7 @@ export const getBestSellerProduct = async (req: Request, res: Response, next: Ne
 		next(error);
 	}
 }
+
 export const getMostDiscountedProduct = async (req: Request, res: Response, next: NextFunction) => {
 	try {
 		let limit: number = parseInt(req.query.limit as string);
