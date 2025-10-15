@@ -17,6 +17,10 @@ router.get(
     productController.getProductByShop
 );
 router.get(
+    '/searchByCategoryGender',
+    productController.getProductByCategoryGender
+)
+router.get(
     "/searchByCategory",
     productController.getProductsByCategory
 );
