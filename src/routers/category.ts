@@ -9,6 +9,7 @@ const router = Router();
 
 router.get("/active",authMiddleware,categoryController.getAllActiveCategories);
 router.get("/inactive",authMiddleware,categoryController.getAllInactiveCategories);
+router.get('/categoryName', categoryController.getCategoryNameByGender);
 router.get("/:id",authMiddleware,categoriesValidator.categoryByIdValidator,validateRequest,categoryController.getCategoryById);
 
 
