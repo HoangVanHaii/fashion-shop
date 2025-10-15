@@ -7,14 +7,14 @@ import { AppError } from "../../utils/appError";
 export const createUserByAdmin = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const { name, email, phone, role, dateOfBirth } = req.body;
-        const avatar = "/uploads/default-avatar.png";
+        const avatar = "/uploads/users/default-avatar.png";
         const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
 
         let password = "";
         for (let i = 0; i < 8; i++){
             password += chars.charAt(Math.floor(Math.random() * chars.length));
         }
-        await userService.createUser({ email, phone, name, date_of_birth: dateOfBirth, password, role, avatar, is_verified: true } as User);
+        await userService.createUser({ email, phone, name, date_of_birth: dateOfBirth, password, role, avatar, is_verified: true, gender: "other" } as User);
         const subject: string = "Thông tin tài khoản đăng nhập";
         const html: string = `Tài khoản của bạn đã được tạo thành công.
             Email: ${email}
@@ -139,3 +139,26 @@ export const unlockUser = async (req: Request, res: Response, next: NextFunction
         next(err);
     }
 }
+
+
+//////////////////////////////////////////////
+
+
+export const respondSellerRequest = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const id = parseInt(req.params.id);
+        const { status } = req.body;
+        await userService.respondSellerRequest(id, status);
+        
+        const message = status === "approved"
+            ? "You have been successfully upgraded to a seller!" : "Your request to become a seller has been rejected."
+
+        return res.status(200).json({
+            success: true,
+            message: message
+        })
+    } catch (err) {
+        next(err);
+    }
+}
+

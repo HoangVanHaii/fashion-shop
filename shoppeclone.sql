@@ -14,6 +14,7 @@ CREATE TABLE users (
     password VARCHAR(255) NOT NULL,
     phone VARCHAR(20) NOT NULL,
     date_of_birth DATE ,
+    gender NVARCHAR(10) CHECK ( gender IN ('male', 'female', 'other')) DEFAULT 'other',
     avatar NVARCHAR(255),
     role VARCHAR(20) CHECK (role IN ('customer', 'seller', 'admin')) DEFAULT 'customer',
     status VARCHAR(20) CHECK (status IN ('active','banned')) DEFAULT 'active',
@@ -38,11 +39,39 @@ CREATE TABLE shops
     id INT IDENTITY(1,1) PRIMARY KEY,
     seller_id INT NOT NULL,
     name NVARCHAR(150) NOT NULL,
+    phone VARCHAR(20) NOT NULL,
+    address NVARCHAR(255) NULL,
+    email VARCHAR(150) NOT NULL UNIQUE,
+    cccd VARCHAR(20) NOT NULL,
     description NVARCHAR(255),
+    logo NVARCHAR(255),
     status VARCHAR(20) CHECK (status IN ('active','banned')) DEFAULT 'active',
     created_at DATETIME DEFAULT GETDATE(),
     FOREIGN KEY (seller_id) REFERENCES users(id) ON DELETE CASCADE
 );
+GO
+CREATE TABLE shop_visits (
+    id INT IDENTITY(1,1) PRIMARY KEY,
+    shop_id INT NOT NULL,
+    ip_address NVARCHAR(50) NOT NULL,
+    visit_date DATE NOT NULL,
+    visit_count INT DEFAULT 1
+);
+GO
+CREATE TABLE seller_requests (
+    id INT IDENTITY PRIMARY KEY,
+    user_id INT NOT NULL,
+    name NVARCHAR(100) NOT NULL,
+    phone VARCHAR(20) NOT NULL,
+    address NVARCHAR(255) NULL,
+    email VARCHAR(150) NOT NULL UNIQUE,
+    cccd VARCHAR(20) NOT NULL,
+    description NVARCHAR(255),
+    status VARCHAR(20) CHECK (status IN ('pending','approved', 'rejected')) DEFAULT 'pending',
+    request_date DATETIME DEFAULT GETDATE(),
+    FOREIGN KEY (user_id) REFERENCES users(id)
+);
+
 GO
 
 select * from categories
@@ -164,7 +193,7 @@ GO
 
 CREATE TABLE reviews (
     id INT IDENTITY(1,1) PRIMARY KEY,
-    product_id INT NOT NULL,
+    order_item INT NOT NULL,
     user_id INT NOT NULL,
     rating INT CHECK (rating >= 1 AND rating <= 5),
     comment NVARCHAR(250),
