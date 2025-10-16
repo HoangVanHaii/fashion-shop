@@ -17,6 +17,9 @@ export const addCategoryValidator = [
     .optional()
     .isIn(["active", "inactive"])
     .withMessage("Status must be either 'active' or 'inactive'"),
+  body("gender")
+    .optional()
+    .isIn(["Nam", "Nữ"]).withMessage("Gender is in Nam or Nu")
 ];
 
 export const updateCategoryValidator = [

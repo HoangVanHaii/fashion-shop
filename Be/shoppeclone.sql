@@ -237,8 +237,8 @@ CREATE TABLE review_images
 (
     id INT IDENTITY(1,1) PRIMARY KEY,
     review_id INT NOT NULL,
-    image_url INT NOT NULL
-        FOREIGN KEY (review_id) REFERENCES reviews(id) ON DELETE CASCADE,
+    image_url NVARCHAR(255) NOT NULL
+     FOREIGN KEY (review_id) REFERENCES reviews(id) ON DELETE CASCADE,
 );
 
 CREATE TABLE payments

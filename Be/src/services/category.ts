@@ -9,9 +9,10 @@ export const addCategory = async (category: Category): Promise<void> => {
             .input("category_name", category.category_name)
             .input("description", category.description || null)
             .input("status", category.status || "active")
+            .input('gender', category.gender)
             .query(`
-        INSERT INTO categories (category_name, description, status)
-        VALUES (@category_name, @description, @status)
+        INSERT INTO categories (category_name, description, status, gender)
+        VALUES (@category_name, @description, @status, @gender)
       `);
     } catch (error) {
         throw new AppError("Failed to add category", 500, false);
@@ -23,7 +24,7 @@ export const getAllActiveCategories = async (): Promise<Category[]> => {
         const pool = await connectionDB();
         const result = await pool.request()
             .query(`
-        SELECT category_id, category_name, description, status
+        SELECT category_id, category_name, description, status, gender
         FROM categories
         WHERE status = 'active'
       `);
@@ -55,7 +56,7 @@ export const getAllInactiveCategories = async (): Promise<Category[]> => {
         const pool = await connectionDB();
         const result = await pool.request()
             .query(`
-        SELECT category_id, category_name, description, status
+        SELECT category_id, category_name, description, status, gender
         FROM categories
         WHERE status = 'inactive'
       `);
@@ -71,7 +72,7 @@ export const getCategoryById = async (id: number): Promise<Category | null> => {
         const result = await pool.request()
             .input("id", id)
             .query(`
-        SELECT category_id, category_name, description, status
+        SELECT category_id, category_name, description, status, gender
         FROM categories
         WHERE category_id = @id
       `);
@@ -103,10 +104,10 @@ export const updateCategory = async (category: Category): Promise<void> => {
         request.input("id", category.category_id);
 
         const query = `
-      UPDATE categories
-      SET ${updates.join(", ")}
-      WHERE category_id = @id
-    `;
+            UPDATE categories
+            SET ${updates.join(", ")}
+            WHERE category_id = @id
+        `;
 
         await request.query(query);
     } catch (error) {
