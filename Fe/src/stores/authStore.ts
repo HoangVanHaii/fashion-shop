@@ -1,0 +1,111 @@
+import { defineStore } from "pinia";
+import { ref } from "vue";
+import { registerSendOTP } from "../services/user";
+import { verifyRegister, loginUser } from "../services/user";
+import type { User } from "../interfaces/user";
+
+export const useAuthStore = defineStore('auth', () => {
+    const loading = ref(false)
+    const error = ref<string | null>(null)
+    const success = ref<string | null>(null)
+    const OTP = ref<string | null>(null);
+    const isLogin = ref<boolean>(false);
+    const user = ref<User | null> (null);
+
+    const registerSendOtpStore = async (name: string, email: string, phone: string, password: string, dateOfBirth: string) => {
+        try {
+            loading.value = true;
+            error.value = null;
+            success.value = null;
+
+            const otp = await registerSendOTP(name, email, phone, password, dateOfBirth);
+            success.value = `Vui lòng xác nhận OTP đã gửi đến ${email}`;
+            OTP.value = otp;
+
+        } catch (err: any) {
+            const status = err.response?.status;
+            const errors = err.response?.data?.errors;
+            if (status === 409) {
+                error.value = `Email ${email} đã tồn tại`;
+            } else if (status === 400 && Array.isArray(errors)) {
+                const messages = errors.map((e: any) => e.msg);
+                error.value = messages[0];
+            } else {
+                error.value = 'Lỗi máy chủ';
+            }
+
+            success.value = `Không thể gửi OTP đến email ${email}`;
+        } finally {
+            loading.value = false;
+        }
+    };
+
+    const verifyRegisterStore = async (email: string, otp: string) => {
+        try {
+            loading.value = true
+            error.value = null
+            success.value = null
+
+            await verifyRegister(email, otp);
+            
+            success.value = `Đăng ký thành công`
+        } catch (err: any) {
+            const status = err.response?.status;
+            if( status == 400) {
+                error.value = `OTP không hợp lệ!`;
+            } else {
+                error.value = 'Lỗi máy chủ'
+            }
+        } finally {
+            loading.value = false;
+        }
+    }
+
+    const loginStore = async (email: string, password: string) => {
+        loading.value = true;
+        error.value = null;
+        success.value = null;
+        isLogin.value = false;
+        user.value = null;
+
+        try {
+            const data = await loginUser(email, password);
+            user.value = data.user;
+            localStorage.setItem("accessToken", data.data.accessToken);
+            localStorage.setItem("refreshToken", data.data.refreshToken);
+            isLogin.value = true;
+            success.value = "Đăng nhập thành công";
+        } catch (err: any) {
+            const status = err.response?.status || 500;
+            switch (status) {
+                case 400:
+                    error.value = "Dữ liệu không hợp ldhdhệ!";
+                    break;
+                case 404:
+                    error.value = "Email không tồn tại!";
+                    break;
+                case 403:
+                    error.value = "Tài khoản đã bị khóa!";
+                    break;
+                case 401:
+                    error.value = "Sai mật khẩu!"
+                    break;                        
+                default:
+                    error.value = "Lỗi máy chủ!"
+                    break;
+            }
+        }
+        finally {
+            loading.value = false;
+        }
+    };
+    return {
+        OTP,
+        loading,
+        error,
+        success,
+        registerSendOtpStore,
+        verifyRegisterStore,
+        loginStore
+    }
+})

@@ -1,3 +1,4 @@
+import cors from "cors"
 import express from "express";
 import dotenv from "dotenv";
 import userRouter from "./src/routers/user";
@@ -25,6 +26,7 @@ import { errorHandler } from "./src/middlewares/errorHandler";
 dotenv.config();
 const app = express();
 
+app.use(cors());
 app.use(express.json());
 app.use("/uploads", express.static("uploads"));
 

@@ -2,6 +2,24 @@ import { connectionDB } from "../config/database";
 import { Cart, CartItem, CartItemDetail, ShopCart } from "../interfaces/cart";
 import { AppError } from "../utils/appError";
 
+export const countCartItems = async (user_id: number): Promise<number> => {
+    try {
+        const pool = await connectionDB();
+        const result = await pool.request()
+            .input("user_id", user_id)
+            .query(`
+                SELECT COALESCE(SUM(ci.quantity), 0) AS total
+                FROM carts c
+                JOIN cart_items ci ON c.id = ci.cart_id
+                WHERE c.user_id = @user_id
+            `);
+        return Number(result.recordset[0]?.total ?? 0);
+    } catch (err: any) {
+        if (err instanceof AppError) throw err;
+        console.error(err);
+        throw new AppError("Failed to countCartItems", 500, false);
+    }
+}
 export const addToCart = async(user_id: number, cart_item: CartItem):Promise<void> => {
     const pool = await connectionDB();
     const transaction = await pool.transaction();

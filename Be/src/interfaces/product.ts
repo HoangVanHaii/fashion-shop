@@ -40,5 +40,6 @@ export interface ProductSummary {
     sold_quantity: number;
     avg_rating: number;
     flash_price?: number;
+    images: string[];
 }
 

@@ -88,6 +88,7 @@ export const loginUser = async (req: Request, res: Response, next: NextFunction)
         });
         
     } catch (err) {
+        console.log(err);
         next(err);
     }
 }
