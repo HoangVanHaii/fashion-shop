@@ -7,10 +7,10 @@ export interface CartItem{
 export interface CartItemDetail{
     cart_item_id: number;
     size_id: number;
-
     name: string;
     quantity: number;
     price: number;
+    price_after_reduction?:number;  //them moi
     size: string;
     color: string;
     image_url: string;
