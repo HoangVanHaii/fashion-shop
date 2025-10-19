@@ -21,9 +21,13 @@ import voucherRouter from './src/routers/voucher'
 import { Request, Response } from "express";
 
 import { errorHandler } from "./src/middlewares/errorHandler";
+import cors from "cors";
+
 
 dotenv.config();
 const app = express();
+
+app.use(cors());
 
 app.use(express.json());
 app.use("/uploads", express.static("uploads"));
