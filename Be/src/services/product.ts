@@ -1,30 +1,31 @@
-import  { ProductPayload, ProductSize, ProductColor, ProductSummary } from '../interfaces/product';
+import { ProductPayload, ProductSize, ProductColor, ProductSummary } from '../interfaces/product';
 import { connectionDB } from '../config/database';
 import { AppError } from '../utils/appError';
 import mssql, { query } from 'mssql';
 const baseQuery = `
-                SELECT 
-                    p.id,
-                    p.name,
-                    p.description,
-                    c.category_name,
-                    c.gender,
-                    sp.id AS shop_id,
-                    p.status,
-                    i.image_url AS thumbnail,
-                    fsi.flash_sale_price,
-                    MIN(s.price) AS min_price,   
-                    MAX(s.price) AS max_price,
-                    ISNULL(SUM(oi.quantity), 0) AS sold_quantity
-                FROM products p
-                INNER JOIN categories c ON p.category_id = c.category_id
-                INNER JOIN product_colors i ON i.product_id = p.id AND i.is_main = 1
-                INNER JOIN product_sizes s ON s.color_id = i.id
-                INNER JOIN shops sp ON p.shop_id = sp.id
-                LEFT JOIN flash_sale_items fsi ON fsi.size_id = s.id AND fsi.status = 'active'
-                LEFT JOIN flash_sales fs ON fs.id = fsi.flash_sale_id AND fs.status = 'active' 
-                LEFT JOIN order_items oi ON oi.size_id = s.id
-                GROUP BY p.id, p.name, p.description, c.category_name, c.gender, sp.id, p.status, i.image_url, fsi.flash_sale_price`;
+                SELECT  
+                p.id,
+                p.name,
+                p.description,
+                c.category_name,
+                c.gender,
+                sp.id AS shop_id,
+                p.status,
+                i.image_url,
+                fsi.flash_sale_price,
+                MIN(s.price) AS min_price,   
+                MAX(s.price) AS max_price,
+                ISNULL(SUM(oi.quantity), 0) AS sold_quantity
+            FROM products p
+            INNER JOIN categories c ON p.category_id = c.category_id
+            INNER JOIN product_colors i ON i.product_id = p.id
+            INNER JOIN product_sizes s ON s.color_id = i.id
+            INNER JOIN shops sp ON p.shop_id = sp.id
+            LEFT JOIN flash_sale_items fsi ON fsi.size_id = s.id AND fsi.status = 'active'
+            LEFT JOIN flash_sales fs ON fs.id = fsi.flash_sale_id AND fs.status = 'active' 
+            LEFT JOIN order_items oi ON oi.size_id = s.id
+            GROUP BY 
+                p.id, p.name, p.description, c.category_name, c.gender, sp.id, p.status, i.image_url, fsi.flash_sale_price  `;
 
 export const getAllProducts = async (): Promise<ProductSummary[]> => {
     try {
@@ -50,7 +51,7 @@ export const getProductSizesBySizeId = async (size_id: number): Promise<any> => 
         if (result.recordset.length === 0) {
             return null;
         }
-        return result.recordset[0] ;
+        return result.recordset[0];
     } catch (error) {
         console.log(error);
         throw new AppError('Failed to fetch product size', 500, false);
@@ -69,18 +70,50 @@ export const getAllProductsByShop = async (shop_id: number): Promise<ProductSumm
         throw new AppError('Failed to fetch products', 500, false);
     }
 }
+const makeProductSumary = (productMap: Map<number, ProductSummary> ,records: any) => {
+    for (const row of records) {
+        const { id, name, shop_id, description, category_name, image_url, min_price, max_price, sold_quantity, flash_sale_price, avg_rating } = row;
+
+        if (!productMap.has(id)) {
+            productMap.set(id, {
+                id,
+                name,
+                shop_id,
+                description,
+                category_name,
+                min_price,
+                max_price,
+                sold_quantity,
+                avg_rating: avg_rating ?? 0,
+                flash_price: flash_sale_price ?? null,
+                images: [],
+                thumbnail: image_url
+            });
+        }
+
+        const product = productMap.get(id)!;
+        if (image_url && !product.images.includes(image_url)) {
+            product.images.push(image_url);
+        }
+    }
+}
 export const getProductsActive = async (): Promise<ProductSummary[]> => {
     try {
         const query = `${baseQuery}
-                    HAVING p.status = 'active'`
+            HAVING p.status = 'active'`;
         const pool = await connectionDB();
         const result = await pool.request().query(query);
-        return result.recordset as ProductSummary[];
+        const records = result.recordset;
+        const productMap = new Map<number, ProductSummary>();
+        makeProductSumary(productMap, records);
+
+        return Array.from(productMap.values());
     } catch (error) {
         console.error(error);
         throw new AppError('Failed to fetch active products', 500, false);
     }
-}
+};
+
 export const getAllProductsHidden = async (): Promise<ProductSummary[]> => {
     try {
         const query = `${baseQuery}
@@ -105,7 +138,7 @@ export const getAllProductsHiddenByShop = async (shop_id: number): Promise<Produ
         throw new AppError('Failed to fetch hidden products', 500, false);
     }
 }
-export const getProductById = async (id: number): Promise<ProductPayload > => {
+export const getProductById = async (id: number): Promise<ProductPayload> => {
     try {
         const pool = await connectionDB();
         const query = `SELECT 
@@ -140,8 +173,8 @@ export const getProductById = async (id: number): Promise<ProductPayload > => {
         const result = await pool.request().input('id', id).query(query);
         const productsMap: Record<number, ProductPayload> = {};
 
-        result.recordset.forEach(( row ) => {
-            if(!productsMap[row.product_id]){
+        result.recordset.forEach((row) => {
+            if (!productsMap[row.product_id]) {
                 productsMap[row.product_id] = {
                     id: row.product_id,
                     shop_id: row.shop_id,
@@ -157,7 +190,7 @@ export const getProductById = async (id: number): Promise<ProductPayload > => {
             }
             const product = productsMap[row.product_id];
             let color = product.colors.find(c => c.id === row.color_id);
-            if(!color){
+            if (!color) {
                 color = {
                     id: row.color_id,
                     product_id: row.product_id,
@@ -168,9 +201,9 @@ export const getProductById = async (id: number): Promise<ProductPayload > => {
                 }
                 product.colors.push(color);
             }
-            if(row.size_id){
+            if (row.size_id) {
                 const size = color.sizes.find(s => s.id === row.size_id);
-                if(!size){
+                if (!size) {
                     color.sizes.push({
                         product_id: row.product_id,
                         id: row.size_id,
@@ -180,41 +213,42 @@ export const getProductById = async (id: number): Promise<ProductPayload > => {
                     })
                 }
             }
-            if(row.detail_image_id){
-                // console.log(row.detail_image_id);
-                const image = color.images.find(i => i === row.detail_image)
-                if(!image){
-                    color.images.push(`/uploads/products/${row.detail_image}`);
+            if (row.detail_image) {
+                const imagePath = `/uploads/products/${row.detail_image}`;
+                if (!color.images.includes(imagePath)) {
+                    color.images.push(imagePath);
                 }
             }
         })
-        const proudctPayloads =  Object.values(productsMap);
+        const productPayloads = Object.values(productsMap);
 
-        return proudctPayloads[0];
+        return productPayloads[0];
 
     } catch (error) {
         console.error(error);
         throw new AppError('Failed to fetch products', 500, false);
     }
 }
-export const getProductByCategoryGender = async(gender: string) : Promise<ProductSummary[]> => {
+export const getProductByCategoryGender = async (gender: string): Promise<ProductSummary[]> => {
     try {
         let query = `${baseQuery}
                     HAVING c.gender = @gender`
-        if(!gender){
-            query = baseQuery;
-        }
+
         const pool = await connectionDB();
         const result = await pool.request()
             .input('gender', gender)
             .query(query);
-        return result.recordset as ProductSummary[];
+        const records = result.recordset;
+        const productMap = new Map<number, ProductSummary>();
+        makeProductSumary(productMap, records);
+
+        return Array.from(productMap.values());
     } catch (error) {
         console.log(error);
         throw new AppError('Failed to fetch products by category', 500, false);
     }
 }
-const insertProduct = async(transaction: mssql.Transaction, product: ProductPayload): Promise<number> => {
+const insertProduct = async (transaction: mssql.Transaction, product: ProductPayload): Promise<number> => {
     const query = `INSERT INTO products (shop_id, category_id, name, description)
                 OUTPUT INSERTED.id AS product_id
                 VALUES(@shop_id, @category_id, @name, @description)`;
@@ -224,23 +258,23 @@ const insertProduct = async(transaction: mssql.Transaction, product: ProductPayl
         .input('name', product.name)
         .input('description', product.description)
         .query(query);
-        return result.recordset[0].product_id;
+    return result.recordset[0].product_id;
 }
-const insertColorImages = async (transaction: mssql.Transaction, color_id: number, images: string[]) :Promise<void> => {
+const insertColorImages = async (transaction: mssql.Transaction, color_id: number, images: string[]): Promise<void> => {
     const query = `INSERT INTO color_images (color_id, image_url)
                 VALUES (@color_id, @image_url)`
-     for(const url of images){
-         await new mssql.Request(transaction)
-        .input('color_id', color_id)
-        .input('image_url', url)
-        .query(query);
+    for (const url of images) {
+        await new mssql.Request(transaction)
+            .input('color_id', color_id)
+            .input('image_url', url)
+            .query(query);
     }
 }
-const insertProductColors = async(transaction: mssql.Transaction, product_id: number, productColors: ProductColor[]): Promise<void> => {
+const insertProductColors = async (transaction: mssql.Transaction, product_id: number, productColors: ProductColor[]): Promise<void> => {
     const query = `INSERT INTO product_colors (product_id, color, image_url, is_main)
                 OUTPUT INSERTED.id AS color_id
                 VALUES (@product_id, @color, @image_url, @is_main)`
-    for(const color of productColors){
+    for (const color of productColors) {
         const result = await new mssql.Request(transaction)
             .input('product_id', product_id)
             .input('color', color.color)
@@ -252,16 +286,16 @@ const insertProductColors = async(transaction: mssql.Transaction, product_id: nu
         await insertColorImages(transaction, color_id, color.images)
     }
 }
-const insertProductSizes = async(transaction: mssql.Transaction, color_id: number, productSizes: ProductSize[]) : Promise<void> => {
+const insertProductSizes = async (transaction: mssql.Transaction, color_id: number, productSizes: ProductSize[]): Promise<void> => {
     const query = `INSERT INTO product_sizes (color_id, size, stock, price)
                 VALUES(@color_id, @size, @stock, @price)`
-    for(const size of productSizes){
-         await new mssql.Request(transaction)
-        .input('color_id', color_id)
-        .input('size',size.size)
-        .input('stock', size.stock)
-        .input('price', size.price)
-        .query(query);
+    for (const size of productSizes) {
+        await new mssql.Request(transaction)
+            .input('color_id', color_id)
+            .input('size', size.size)
+            .input('stock', size.stock)
+            .input('price', size.price)
+            .query(query);
     }
 }
 
@@ -287,8 +321,8 @@ const updateProductInfo = async (transaction: mssql.Transaction, product: Produc
         .input("id", product.id)
         .input("category_id", product.category_id)
         .input("name", product.name)
-        .input("description",  product.description)
-        .input("status",  product.status)
+        .input("description", product.description)
+        .input("status", product.status)
         .query(`
             UPDATE products 
             SET category_id=@category_id, name=@name, description=@description, status=@status 
@@ -302,7 +336,7 @@ const upsertProductColor = async (transaction: mssql.Transaction, productId: num
             .input("id", color.id)
             .input("color", color.color)
             .input("image_url", color.image_url)
-            .input("is_main",  color.is_main ? 1 : 0)
+            .input("is_main", color.is_main ? 1 : 0)
             .query(`
                 UPDATE product_colors 
                 SET color=@color, image_url=@image_url, is_main=@is_main 
@@ -310,10 +344,10 @@ const upsertProductColor = async (transaction: mssql.Transaction, productId: num
             `);
         return color.id;
     } else {
-       const inserted = await transaction.request()
-            .input("product_id",  productId)
-            .input("color",  color.color)
-            .input("image_url",  color.image_url)
+        const inserted = await transaction.request()
+            .input("product_id", productId)
+            .input("color", color.color)
+            .input("image_url", color.image_url)
             .input("is_main", color.is_main ? 1 : 0)
             .query(`
                 INSERT INTO product_colors (product_id, color, image_url, is_main)
@@ -322,7 +356,7 @@ const upsertProductColor = async (transaction: mssql.Transaction, productId: num
             `);
         return inserted.recordset[0].id;
     }
-    };
+};
 
 // Upsert bảng sizes
 const upsertProductSize = async (transaction: mssql.Transaction, colorId: number, size: ProductSize): Promise<void> => {
@@ -331,7 +365,7 @@ const upsertProductSize = async (transaction: mssql.Transaction, colorId: number
             .input("id", size.id)
             .input("size", size.size)
             .input("stock", size.stock)
-            .input("price",  size.price)
+            .input("price", size.price)
             .query(`
                 UPDATE product_sizes 
                 SET size=@size, stock=@stock, price=@price 
@@ -339,10 +373,10 @@ const upsertProductSize = async (transaction: mssql.Transaction, colorId: number
             `);
     } else {
         await transaction.request()
-            .input("color_id",  colorId)
-            .input("size",  size.size)
+            .input("color_id", colorId)
+            .input("size", size.size)
             .input("stock", size.stock)
-            .input("price",  size.price)
+            .input("price", size.price)
             .query(`
                 INSERT INTO product_sizes (color_id, size, stock, price)
                 VALUES (@color_id, @size, @stock, @price)
@@ -350,17 +384,17 @@ const upsertProductSize = async (transaction: mssql.Transaction, colorId: number
     }
 };
 
-export const updateProduct = async ( product: ProductPayload): Promise<void> => {
+export const updateProduct = async (product: ProductPayload): Promise<void> => {
     const pool = await connectionDB();
     const transaction = new mssql.Transaction(pool);
-     try {
+    try {
         await transaction.begin();
 
-         // 1. Update product info
+        // 1. Update product info
         await updateProductInfo(transaction, product);
 
         // 2. Upsert colors + sizes
-         for (const color of product.colors) {
+        for (const color of product.colors) {
             const colorId = await upsertProductColor(transaction, Number(product.id), color);
             for (const size of color.sizes) {
                 await upsertProductSize(transaction, colorId, size);
@@ -382,9 +416,9 @@ export const getCategoryById = async (category_id: number): Promise<boolean> => 
         const result = await pool.request()
             .input('category_id', category_id)
             .query(query);
-        return result.recordset[0].count > 0;   
+        return result.recordset[0].count > 0;
     } catch (error) {
-        throw new AppError('Failed to fetch category', 500, false);   
+        throw new AppError('Failed to fetch category', 500, false);
     }
 }
 
@@ -397,9 +431,9 @@ export const getProductByName = async (name: string): Promise<ProductSummary[]> 
         const result = await pool.request()
             .input('name', name)
             .query(query);
-        return result.recordset as ProductSummary[];   
+        return result.recordset as ProductSummary[];
     } catch (error) {
-        throw new AppError('Failed to fetch product ', 500, false);   
+        throw new AppError('Failed to fetch product ', 500, false);
     }
 }
 export const softDeleteProduct = async (id: number): Promise<void> => {
@@ -413,25 +447,58 @@ export const softDeleteProduct = async (id: number): Promise<void> => {
         throw error;
     }
 }
+
 export const getLatestProducts = async (limit: number): Promise<ProductSummary[]> => {
     try {
-        const query = `${baseQuery}
-                    ORDER BY p.id DESC
-                    OFFSET 0 ROWS FETCH NEXT @limit ROWS ONLY`
+        const query = `WITH NewProducts AS (
+                            SELECT TOP ${limit}
+                                p.id
+                            FROM products p
+                            INNER JOIN product_colors i ON i.product_id = p.id
+                            INNER JOIN product_sizes s ON s.color_id = i.id
+                            GROUP BY p.id, p.created_at                            
+                            ORDER BY p.id DESC 
+                        )
+                        SELECT
+                            p.id,
+                            p.name,
+                            p.description,
+                            p.status,
+                            thumb.image_url AS thumbnail,
+                            i.image_url,
+                            MIN(fsi.flash_sale_price) AS flash_sale_price,
+                            MIN(s.price) AS min_price,
+                            MAX(s.price) AS max_price,
+                            0 AS sold_quantity 
+                        FROM NewProducts np
+                        INNER JOIN products p ON p.id = np.id
+                        INNER JOIN product_colors i ON i.product_id = p.id
+                        INNER JOIN product_sizes s ON s.color_id = i.id
+                        LEFT JOIN product_colors thumb 
+                            ON thumb.product_id = p.id AND thumb.is_main = 1
+                        LEFT JOIN flash_sale_items fsi ON fsi.size_id = s.id AND fsi.status = 'active'
+                        LEFT JOIN flash_sales fs ON fs.id = fsi.flash_sale_id AND fs.status = 'active' 
+                                                
+                        GROUP BY
+                            p.id, p.name, p.description, p.status, i.image_url, thumb.image_url
+                        ORDER BY p.id DESC
+                        `;
         const pool = await connectionDB();
         const result = await pool.request()
-            .input('limit', limit)
             .query(query);
-        return result.recordset as ProductSummary[];
+        return mapToProductSummary(result.recordset);
+
     } catch (error) {
-        throw new AppError('Failed to fetch latest products', 500, false);
+        console.log("Erorr fetching fetch lates products", error)
+        throw new AppError('Failed to fetch lates products', 500, false);
     }
 }
+        
 export const getProductsByCategory = async (arrayName: string): Promise<ProductSummary[]> => {
     try {
         const query = `${baseQuery}
                     HAVING c.category_name IN (${arrayName})`
-                
+
         const pool = await connectionDB();
         const result = await pool.request()
             .query(query);
@@ -441,7 +508,7 @@ export const getProductsByCategory = async (arrayName: string): Promise<ProductS
     }
 }
 
-export const getProductByShop = async (shop_id:number) : Promise<ProductSummary[]> => {
+export const getProductByShop = async (shop_id: number): Promise<ProductSummary[]> => {
     try {
         const query = `${baseQuery}
                     HAVING p.shop_id = @shop_id`
@@ -454,22 +521,96 @@ export const getProductByShop = async (shop_id:number) : Promise<ProductSummary[
         throw new AppError('Failed to fetch products by shop', 500, false);
     }
 }
-export const getBestSellerProduct = async(limit: number) : Promise<ProductSummary[]> => {
+export const getBestSellerProduct = async (limit: number): Promise<ProductSummary[]> => {
     try {
-        const query = `${baseQuery}
-                    ORDER BY sold_quantity DESC
-                    OFFSET 0 ROWS FETCH NEXT @limit ROWS ONLY`
+        const query = `WITH TopProducts AS (
+                            SELECT TOP ${limit}
+                                p.id,
+                                ISNULL(SUM(oi.quantity), 0) AS sold_quantity
+                            FROM products p
+                            INNER JOIN product_colors i ON i.product_id = p.id
+                            INNER JOIN product_sizes s ON s.color_id = i.id
+                            LEFT JOIN order_items oi ON oi.size_id = s.id
+                            GROUP BY p.id
+                            ORDER BY sold_quantity DESC
+                        )
+                        SELECT
+                            p.id,
+                            p.name,
+                            p.description,
+                            p.status,
+                            thumb.image_url AS thumbnail,
+                            i.image_url,
+                            MIN(fsi.flash_sale_price) AS flash_sale_price,
+                            MIN(s.price) AS min_price,
+                            MAX(s.price) AS max_price,
+                            tp.sold_quantity 
+                        FROM TopProducts tp
+                        INNER JOIN products p ON p.id = tp.id
+                        INNER JOIN product_colors i ON i.product_id = p.id
+                        INNER JOIN product_sizes s ON s.color_id = i.id
+                        LEFT JOIN product_colors thumb 
+                            ON thumb.product_id = p.id AND thumb.is_main = 1
+                        LEFT JOIN flash_sale_items fsi ON fsi.size_id = s.id AND fsi.status = 'active'
+                        LEFT JOIN flash_sales fs ON fs.id = fsi.flash_sale_id AND fs.status = 'active' 
+                        GROUP BY
+                            p.id, p.name, p.description, p.status, i.image_url, thumb.image_url, tp.sold_quantity
+                        ORDER BY tp.sold_quantity DESC
+                        `;
         const pool = await connectionDB();
         const result = await pool.request()
-            .input('limit', limit)
             .query(query);
-        return result.recordset as ProductSummary[];
+        return mapToProductSummary(result.recordset);
+
     } catch (error) {
-        console.log("Erorr fetching best seller products")
+        console.log("Erorr fetching best seller products", error)
         throw new AppError('Failed to fetch best seller products', 500, false);
     }
 }
-export const getMostDiscountedProduct = async(limit: number) : Promise<ProductSummary[]>=> {
+export const mapToProductSummary = (rows: any[]): ProductSummary[] => {
+    const map = new Map<number, ProductSummary>();
+
+    for (const row of rows) {
+        if (!map.has(row.id)) {
+            map.set(row.id, {
+                id: row.id,
+                name: row.name,
+                description: row.description,
+                thumbnail: row.thumbnail || row.image_url,
+                min_price: row.min_price,
+                max_price: row.max_price,
+                sold_quantity: row.sold_quantity,
+                avg_rating: 0, // set tạm
+                flash_price: row.flash_sale_price ?? undefined,
+                images: row.image_url ? [row.image_url] : []
+            });
+        } else {
+            // thêm ảnh nếu chưa có
+            const product = map.get(row.id)!;
+            if (row.image_url && !product.images.includes(row.image_url)) {
+                product.images.push(row.image_url);
+            }
+
+            // cập nhật min/max giá nếu cần
+            product.min_price = Math.min(product.min_price, row.min_price);
+            product.max_price = Math.max(product.max_price, row.max_price);
+
+            // cập nhật flash_price nếu thấp hơn hiện tại
+            if (row.flash_sale_price != null) {
+                if (!product.flash_price || row.flash_sale_price < product.flash_price) {
+                    product.flash_price = row.flash_sale_price;
+                }
+            }
+
+            // cập nhật sold_quantity
+            product.sold_quantity += row.sold_quantity;
+        }
+    }
+
+    return Array.from(map.values());
+};
+
+export const getMostDiscountedProduct = async (limit: number): Promise<ProductSummary[]> => {
     try {
         return [];
     } catch (error) {

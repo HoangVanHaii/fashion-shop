@@ -189,3 +189,17 @@ export const getVoucherByShopId = async (shop_id: number): Promise<Voucher[]> =>
 		throw new AppError('Failed to fetch vouchers by shop id', 500, false);
 	}
 }
+export const getTopVouchers = async(top: number, scope: string): Promise<Voucher[]> => {
+	try {
+		const pool = await connectionDB();
+		const result = await pool.request()
+			.input("scope", scope || "GLOBAL")
+			.query(`SELECT TOP ${top} * FROM vouchers 
+				WHERE scope = @scope
+				ORDER BY id ASC
+				`);
+		return result.recordset as Voucher[];
+	} catch (error) {
+		throw new AppError('Failed to fetch vouchers', 500, false);
+	}
+}

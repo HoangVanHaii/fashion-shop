@@ -20,4 +20,14 @@ export interface FlashSaleItem {
     sold?: number;
     status?: 'active' | 'cancelled';
     created_at?: Date;
+    ImageProducts?: ImageProducts[];
 }
+export interface ImageProducts {
+    color_id: number;
+    image_url: string;
+}
+export interface FlashSaleProductSold {
+    product_id: number;
+    total_flash_sale_sold: number;
+  }
+  

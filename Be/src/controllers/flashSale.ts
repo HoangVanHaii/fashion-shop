@@ -2,6 +2,7 @@ import { FlashSale, FlashSaleItem } from "../interfaces/flashSale";
 import { Request, Response, NextFunction } from "express";
 import * as FlashSaleService from "../services/flashSale";
 import { AppError } from "../utils/appError";
+import redisClient from "../config/redisClient";
 
 export const createFlashSale = async (req: Request, res: Response, next: NextFunction) => {
     try {
@@ -75,6 +76,91 @@ export const getFlashSaleById = async (req: Request, res: Response, next: NextFu
         next(err);
     }
 }
+export const getFlashSaleHome = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        
+        const cacheKey = `FlashSaleHome`;
+        const cachedData = await redisClient.get(cacheKey);
+        if (cachedData) {
+            console.log("Cache hit FlashSaleHome")
+            const data = JSON.parse(cachedData);
+            return res.status(200).json({
+                success: true,
+                message: 'Get flash sale (from cache) successfully',
+                ...data
+            });
+        }
+        const { flash_sale, products } = await FlashSaleService.getFlashSaleHome();
+        const dataToCache = { flash_sale, products };
+        await redisClient.setEx(cacheKey, 600, JSON.stringify(dataToCache));
+
+        return res.status(200).json({
+            success: true,
+            message: 'Get flash sale by id successfully',
+            flash_sale,
+            products
+        })
+    } catch (err) {
+        next(err);
+    }
+}
+export const getFlashSaleHotDeal = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const excludeIdsParam = req.query.excludeIds as string;
+        
+        const excludeIds: number[]  = excludeIdsParam
+            ? excludeIdsParam
+                .split(",")
+                .map((id: string) => parseInt(id.trim(), 10))
+                .filter((num: number) => Number.isFinite(num))
+            : [];
+        const cacheKey = `FlashSaleDealHotNotId${excludeIds}`;
+        const cachedData = await redisClient.get(cacheKey);
+        if (cachedData) {
+            console.log(`Cache hit FlashSaleDe${cacheKey}`)
+            const data = JSON.parse(cachedData);
+            return res.status(200).json({
+                success: true,
+                message: 'Get flash sale (from cache) successfully',
+                ...data
+            });
+        }
+        const { flash_sale, products } = await FlashSaleService.getFlashSaleHotDeal(excludeIds);
+        const dataToCache = { flash_sale, products };
+        await redisClient.setEx(cacheKey, 600, JSON.stringify(dataToCache));
+
+        return res.status(200).json({
+            success: true,
+            message: 'Get flash sale by id successfully',
+            flash_sale,
+            products
+        })
+    } catch (err) {
+        next(err)
+    }
+}
+export const getTotalSoldFlashSaleById = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const id = Number(req.params.id);
+  
+      if (!id) {
+        return res.status(400).json({
+          success: false,
+          message: "Flash sale id is required",
+        });
+      }
+  
+      const result = await FlashSaleService.getTotalSoldFlashSaleById(id);
+  
+      return res.status(200).json({
+        success: true,
+        message: "Get total sold by flash sale successfully",
+        data: result,
+      });
+    } catch (err) {
+      next(err);
+    }
+  };
 export const updateFlashSales = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const flash_sale_id = parseInt(req.params.id);

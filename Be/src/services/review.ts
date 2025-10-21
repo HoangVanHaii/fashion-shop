@@ -59,12 +59,11 @@ export const getReviewsByProductId = async (product_id: number): Promise<ReviewO
                 
             `);
         const reviewsMap: { [key: number]: Review } = {};
-        const total_reviews = result.recordset.length;
-        const average_rating = result.recordset.reduce((acc, row) => acc + row.rating, 0) / total_reviews;
+        
         result.recordset.forEach(row => {
-            if (!reviewsMap[row.id]) {
-                reviewsMap[row.id] = {
-                    id: row.id,
+            if (!reviewsMap[row.review_id]) {
+                reviewsMap[row.review_id] = {
+                    id: row.review_id,
                     order_item_id: row.order_item_id,
                     user_id: row.user_id,
                     rating: row.rating,
@@ -74,12 +73,15 @@ export const getReviewsByProductId = async (product_id: number): Promise<ReviewO
                 };
             }
             if (row.review_image_id) {
-                reviewsMap[row.id].review_images.push({
+                reviewsMap[row.review_id].review_images.push({
                     id: row.review_image_id,
                     image_url: row.image_url
                 });
             }
         });
+        const total_reviews = Object.values(reviewsMap).length;
+        const average_rating = Object.values(reviewsMap).reduce((acc, row) => acc + row.rating, 0) / total_reviews;
+        console.log(reviewsMap);
         const reviewOfProduct: ReviewOfProduct = { total_reviews, average_rating, Reviews: Object.values(reviewsMap) };
         
         return reviewOfProduct;
