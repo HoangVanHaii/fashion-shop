@@ -81,18 +81,35 @@ export const getProductByCategoryGender = async (req: Request, res: Response, ne
 }
 export const getLatestProducts = async (req: Request, res: Response, next: NextFunction) => {
 	try {
-		const limit: number = parseInt(req.query.limit as string) || 10;
+		let limit: number = parseInt(req.query.limit as string);
+		const cacheKey = `LatestProductTop${limit}`;
+		const cachedData = await redisClient.get(cacheKey);
+		if (cachedData) {
+			console.log("Cache hit Latest Products")
+			const products = JSON.parse(cachedData);
+            return res.status(200).json(products);
+        }
 		const products = await productService.getLatestProducts(limit);
-		res.status(200).json(products);
+		await redisClient.setEx(cacheKey, 600, JSON.stringify(products));
+		return res.status(200).json(products);
 	} catch (error: any) {
 		next(error);
 	}
 }
+
 export const getBestSellerProduct = async (req: Request, res: Response, next: NextFunction) => {
 	try {
 		let limit: number = parseInt(req.query.limit as string);
+		const cacheKey = `BestSellerTop${limit}`;
+		const cachedData = await redisClient.get(cacheKey);
+		if (cachedData) {
+			console.log("Cache hit BestSeller")
+			const products = JSON.parse(cachedData);
+            return res.status(200).json(products);
+        }
 		const products = await productService.getBestSellerProduct(limit);
-		res.status(200).json(products);
+		await redisClient.setEx(cacheKey, 600, JSON.stringify(products));
+		return res.status(200).json(products);
 	} catch (error: any) {
 		next(error);
 	}

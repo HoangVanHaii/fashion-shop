@@ -2,6 +2,7 @@ import *as voucherService from '../services/voucher'
 import *as userService from '../services/user'
 import { Request, Response, NextFunction } from 'express';
 import { Voucher } from '../interfaces/voucher';
+import redisClient from "../config/redisClient";
 
 export const getVoucherCodeById = async (req: Request, res: Response, next: NextFunction) => {
     try {
@@ -113,3 +114,32 @@ export const updateVoucher = async (req: Request, res: Response, next: NextFunct
         next(err);
     }
 }
+export const getTopVouchers = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const top = req.query.top ? parseInt(req.query.top as string, 10) : 4;
+        const scope = (req.query.scope as string) || "GLOBAL";
+
+        const cacheKey = `Voucher${scope}${top}`;
+        const cachedData = await redisClient.get(cacheKey);
+        if (cachedData) {
+            console.log(`Cache hit ${cacheKey}`);
+            const vouchers = JSON.parse(cachedData);
+            return res.status(200).json({
+              success: true,
+              vouchers
+            });
+        }
+          
+        const vouchers = await voucherService.getTopVouchers(top, scope);
+        await redisClient.setEx(cacheKey, 300, JSON.stringify(vouchers));
+        console.log("Cache miss → saved new data");
+        
+        return res.status(200).json({
+            success: true,
+            vouchers
+        });
+    } catch (err) {
+        next(err);
+    }
+  };
+  
