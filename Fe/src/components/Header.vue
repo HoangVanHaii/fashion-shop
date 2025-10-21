@@ -360,5 +360,4 @@ const goToProfile = () => {
             height: 24px;
         }
     }
-
 </style>

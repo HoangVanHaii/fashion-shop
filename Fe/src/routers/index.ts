@@ -10,9 +10,9 @@ import DealHot from '../pages/DealHot.vue';
 import AddToCart from '../components/AddToCart.vue';
 import Voucher from '../components/Voucher.vue';
 
-
 const routes = [
   { path: '/', redirect: '/home' },
+  { path: '/home', name: 'Home', component: Home },
   { path: '/auth/login', name: 'login', component: Auth },
   { path: '/notification', name: 'noti', component: Notification },
   { path: '/header', name: 'header', component: Header },
@@ -20,7 +20,6 @@ const routes = [
   { path: '/verifyRegister', name: 'register-verify', component: VerifyOTP },
   { path: '/categoryGender', name: 'category-gender', component: CategoryGender },
   { path: '/product/:id', name: 'product-detail', component: ProductDetail },
-  { path: '/home', name: 'Home', component: Home },
   { path: '/dealHot', name: 'DealHot', component: DealHot },
   { path: '/addToCart', name: 'Add', component: AddToCart },
   { path: '/selectVoucher', name: 'SelectVoucher', component: Voucher },

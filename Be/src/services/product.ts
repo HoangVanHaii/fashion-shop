@@ -215,10 +215,14 @@ export const getProductById = async (id: number): Promise<ProductPayload> => {
             }
             if (row.detail_image) {
 <<<<<<< HEAD
+<<<<<<< HEAD
                 const imagePath = `${row.detail_image}`;
 =======
                 const imagePath = `/uploads/products/${row.detail_image}`;
 >>>>>>> origin/main
+=======
+                const imagePath = `${row.detail_image}`;
+>>>>>>> 9c6d26570948261e3149da8b70562790858fa8ef
                 if (!color.images.includes(imagePath)) {
                     color.images.push(imagePath);
                 }
@@ -575,7 +579,11 @@ export const getBestSellerProduct = async (limit: number): Promise<ProductSummar
     }
 }
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
+=======
+
+>>>>>>> 9c6d26570948261e3149da8b70562790858fa8ef
 export const mapToProductSummary = (rows: any[]): ProductSummary[] => {
     const map = new Map<number, ProductSummary>();
 
@@ -619,7 +627,10 @@ export const mapToProductSummary = (rows: any[]): ProductSummary[] => {
     return Array.from(map.values());
 };
 
+<<<<<<< HEAD
 >>>>>>> origin/main
+=======
+>>>>>>> 9c6d26570948261e3149da8b70562790858fa8ef
 export const getMostDiscountedProduct = async (limit: number): Promise<ProductSummary[]> => {
     try {
         return [];

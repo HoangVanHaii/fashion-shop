@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 export const formatPrice = (value: number) => {
     return value.toLocaleString("vi-VN") + "đ";
 }
@@ -20,11 +19,4 @@ export const formatDateTime = (isoString: any): string =>{
     const minutes = String(date.getMinutes()).padStart(2, '0');
 
     return `${day}/${month}/${year} ${hours}:${minutes}`;
-=======
-export const getImage = (path:string) =>{
-    if(/^https?:\/\//.test(path)){
-        return path;
-    }
-    return `http://localhost:3000${path}`;
->>>>>>> origin/main
 }
