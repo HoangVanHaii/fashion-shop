@@ -294,3 +294,15 @@ CREATE TABLE otp_codes
     created_at DATETIME DEFAULT GETDATE(),
     expires_at DATETIME NOT NULL
 );
+
+CREATE TABLE favourites
+(
+    id INT IDENTITY(1,1) PRIMARY KEY,
+    user_id INT NOT NULL,
+    product_id INT NOT NULL,
+    created_at DATETIME DEFAULT GETDATE(),
+    CONSTRAINT FK_Favourites_Users FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE,
+    CONSTRAINT FK_Favourites_Products FOREIGN KEY(product_id) REFERENCES products(id) ON DELETE CASCADE,
+    CONSTRAINT UQ_Favourites_User_Product UNIQUE (user_id, product_id)
+);
+GO

@@ -49,11 +49,14 @@ export const getReviewsByProductId = async (product_id: number): Promise<ReviewO
                        r.comment,
                        r.created_at,
                        ri.id AS review_image_id,
-                       ri.image_url
+                       ri.image_url,
+                       u.name AS user_name,
+                       u.avatar AS user_image_url
                 FROM reviews r
                 INNER JOIN order_items oi ON r.order_item_id = oi.id
                 INNER JOIN product_sizes ps ON oi.size_id = ps.id
                 INNER JOIN product_colors pc ON ps.color_id = pc.id
+                INNER JOIN users u ON r.user_id = u.id
                 LEFT JOIN review_images ri ON r.id = ri.review_id
                 WHERE pc.product_id = @product_id
                 
@@ -66,6 +69,8 @@ export const getReviewsByProductId = async (product_id: number): Promise<ReviewO
                     id: row.review_id,
                     order_item_id: row.order_item_id,
                     user_id: row.user_id,
+                    user_name: row.user_name,
+                    user_image_url: row.user_image_url,
                     rating: row.rating,
                     comment: row.comment,
                     created_at: row.created_at,

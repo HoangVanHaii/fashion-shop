@@ -8,7 +8,6 @@ export interface ProductPayload {
     description?: string;
     status?: string;
     colors: ProductColor[];
-    flash_sale_price?: number;
 }
 
 export interface ProductColor {
@@ -27,6 +26,7 @@ export interface ProductSize {
     size: string;
     stock: number;
     price: number;
+    flash_sale_price?: number;
 }
 export interface ProductSummary {
     id: number;

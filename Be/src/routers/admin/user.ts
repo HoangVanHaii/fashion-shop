@@ -8,7 +8,7 @@ const router = express.Router();
 router.post("/createUser", authMiddleware, isAdmin, userValidator.createUserByAdminValidator, validateRequest, userController.createUserByAdmin);
 router.get("/", authMiddleware, isAdmin, userController.getAllUsers);
 router.get("/search", authMiddleware, isAdmin, userController.searchUsers);
-router.get("/:id", authMiddleware, isAdmin, userValidator.idValidator, validateRequest, userController.getUserById);
+router.get("/:id", userValidator.idValidator, validateRequest, userController.getUserById);
 router.put('/unlock/:id', authMiddleware, isAdmin, userValidator.idValidator, validateRequest, userController.unlockUser);
 router.put('/:id', authMiddleware, isAdmin, userValidator.updateUserByAdminValidator, validateRequest, validateRequest, userController.updateUserByAdmin)
 router.delete('/:id', userValidator.idValidator, validateRequest, authMiddleware, isAdmin, userController.deleteUser);

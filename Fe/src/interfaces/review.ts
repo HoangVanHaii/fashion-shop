@@ -14,7 +14,7 @@ export interface ReviewImage {
     image_url: string;
 }
 
-export interface ReviewOfProduct{
+export interface ReviewOfProduct {
     total_reviews: number;
     average_rating: number;
     Reviews: Review[];

@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from "express";
 import * as categoryService from "../services/category";
 import { AppError } from "../utils/appError";
+import redisClient from "../config/redisClient";
 
 export const getAllActiveCategories = async (req: Request, res: Response, next: NextFunction) => {
     try {
@@ -18,17 +19,42 @@ export const getAllActiveCategories = async (req: Request, res: Response, next: 
 export const getCategoryNameByGender = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const gender = req.query.gender as string;
+        if (!gender) {
+            return res.status(400).json({
+                success: false,
+                message: "Missing gender parameter",
+            });
+        }
+
+        const cacheKey = `category:name:${gender}`;
+        const cachedData = await redisClient.get(cacheKey);
+
+        if (cachedData) {
+            console.log("Cache hit");
+            return res.status(200).json({
+                success: true,
+                message: "Get category names successfully (from cache)",
+                data: JSON.parse(cachedData),
+            });
+        }
+
         const categoryNames = await categoryService.getCategoryNamByGender(gender);
+
+        if (categoryNames && categoryNames.length > 0) {
+            await redisClient.setEx(cacheKey, 3000, JSON.stringify(categoryNames));
+            console.log("Cache miss → saved new data");
+        }
+
         res.json({
             success: true,
             message: "Get category names successfully",
-            data: categoryNames
+            data: categoryNames,
         });
 
     } catch (error) {
         next(error);
     }
-}
+};
 
 export const getAllInactiveCategories = async (req: Request, res: Response, next: NextFunction) => {
     try {

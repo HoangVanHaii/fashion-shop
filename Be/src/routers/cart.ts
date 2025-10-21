@@ -9,6 +9,7 @@ const router = Router();
 router.post('/addToCart', cartValidator.addToCartValidator, validateRequest, authMiddleware, cartController.addtoCart);
 router.get('/', authMiddleware, cartController.getCartItems);
 router.put('/updateItemQuantity/:id', cartValidator.updateCartItemQuantityValidator, validateRequest, authMiddleware, cartController.updateCartItemQuantity);
+router.get('/getCountCart', authMiddleware, cartController.getCartItemCount);
 router.put('/updateItem/:id', cartValidator.updateCartItemValidator, validateRequest, authMiddleware, cartController.updateCartItem);
 router.delete('/removeItem/:id', cartValidator.removeCartItemValidator, validateRequest, authMiddleware, cartController.removeCartItem);
 router.delete('/clearCart', authMiddleware, cartController.clearCart);

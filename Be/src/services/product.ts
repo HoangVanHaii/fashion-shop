@@ -184,8 +184,7 @@ export const getProductById = async (id: number): Promise<ProductPayload> => {
                     name: row.product_name,
                     description: row.description,
                     status: row.status,
-                    colors: [],
-                    flash_sale_price: row.flash_sale_price
+                    colors: []
                 }
             }
             const product = productsMap[row.product_id];
@@ -209,12 +208,13 @@ export const getProductById = async (id: number): Promise<ProductPayload> => {
                         id: row.size_id,
                         stock: row.stock,
                         price: row.price,
-                        size: row.size
+                        size: row.size,
+                        flash_sale_price: row.flash_sale_price
                     })
                 }
             }
             if (row.detail_image) {
-                const imagePath = `/uploads/products/${row.detail_image}`;
+                const imagePath = `${row.detail_image}`;
                 if (!color.images.includes(imagePath)) {
                     color.images.push(imagePath);
                 }
@@ -502,7 +502,10 @@ export const getProductsByCategory = async (arrayName: string): Promise<ProductS
         const pool = await connectionDB();
         const result = await pool.request()
             .query(query);
-        return result.recordset as ProductSummary[];
+        const productsMap = new Map<number, ProductSummary>();
+        makeProductSumary(productsMap, result.recordset);
+
+        return Array.from(productsMap.values());
     } catch (error) {
         throw new AppError('Failed to fetch products by category', 500, false);
     }
@@ -567,6 +570,7 @@ export const getBestSellerProduct = async (limit: number): Promise<ProductSummar
         throw new AppError('Failed to fetch best seller products', 500, false);
     }
 }
+
 export const mapToProductSummary = (rows: any[]): ProductSummary[] => {
     const map = new Map<number, ProductSummary>();
 
