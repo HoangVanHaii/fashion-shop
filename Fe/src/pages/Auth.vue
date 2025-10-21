@@ -160,14 +160,13 @@
     font-size: 15px;
 }
 .container {
-    position: fixed;
-    top: 19%; 
+    margin-top: 9%; 
     width: 96%;
     height: 100vh;
     display: flex;
     flex-direction: row;
     justify-content: space-between;
-    padding: 1rem;
+    padding: 1rem;    
 }
 .slogan {
     height: 60%;
@@ -416,22 +415,20 @@ button:hover{
 }
 .modal-overlay {
     position: fixed;
-    top: 100;
+    top: 0;
     left: 0;
-    width: 100vw;
-    height: auto;
-    background-color: rgba(0, 0, 0, 0.5); 
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5); /* Background đen mờ */
     display: flex;
     justify-content: center;
     align-items: center;
-    z-index: 999;
+    z-index: 9999;
 }
+
 .modal-content {
-    background-color: rgba(126, 126, 126, 0.5); 
-    padding: 2rem;
-    border-radius: 8px;
-    width: 400px;
-    max-width: 90%;
+    position: relative;
+    z-index: 10000;
 }
 .loading-button {
     cursor: wait !important;

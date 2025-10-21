@@ -41,7 +41,7 @@ export const getCategoryNameByGender = async (req: Request, res: Response, next:
         const categoryNames = await categoryService.getCategoryNamByGender(gender);
 
         if (categoryNames && categoryNames.length > 0) {
-            await redisClient.setEx(cacheKey, 300, JSON.stringify(categoryNames));
+            await redisClient.setEx(cacheKey, 3000, JSON.stringify(categoryNames));
             console.log("Cache miss → saved new data");
         }
 

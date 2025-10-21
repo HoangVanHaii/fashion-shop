@@ -39,4 +39,8 @@ export const resetPassword = async (email: string, otp: string, newPassword: str
     return response.data;
 };
 
+export const getUserById = async (id: number) => {
+    const response = await axios.get(`http://localhost:3000/api/admin/${id}`);
+    return response.data;
+}
 

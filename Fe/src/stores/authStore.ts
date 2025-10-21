@@ -1,7 +1,7 @@
 import { defineStore } from "pinia";
 import { ref } from "vue";
 import { registerSendOTP } from "../services/user";
-import { verifyRegister, loginUser } from "../services/user";
+import { verifyRegister, loginUser, getUserById } from "../services/user";
 import type { User } from "../interfaces/user";
 
 export const useAuthStore = defineStore('auth', () => {
@@ -99,6 +99,14 @@ export const useAuthStore = defineStore('auth', () => {
             loading.value = false;
         }
     };
+    const getUserByIdStore = async (id: number) => {
+        try {
+            const data = await getUserById(id);
+            return data;
+        } catch (error) {
+            console.error("Failed to get user by ID:", error);
+        }
+    }
     return {
         OTP,
         loading,
@@ -106,6 +114,7 @@ export const useAuthStore = defineStore('auth', () => {
         success,
         registerSendOtpStore,
         verifyRegisterStore,
-        loginStore
+        loginStore,
+        getUserByIdStore,
     }
 })
