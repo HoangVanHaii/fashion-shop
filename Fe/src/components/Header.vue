@@ -57,8 +57,8 @@ const goToProfile = () => {
                 </div>
 
                 <nav class="nav-menu">
-                    <a href="/" class="nav-link">Trang chủ</a>
-                    <a href="/collections" class="nav-link">Ưu đãi cực hot</a>
+                    <a href="/home" class="nav-link">Trang chủ</a>
+                    <a href="/dealHot" class="nav-link">Ưu đãi cực hot</a>
           
                     <div class="dropdown" @mouseenter="showNamDropdown = true" @mouseleave="showNamDropdown = false">
                         <a href="/CategoryGender?gender=Nam" class="nav-link">

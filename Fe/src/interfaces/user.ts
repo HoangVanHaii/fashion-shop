@@ -11,6 +11,7 @@ export interface User{
     status?: "active" | "banned";
     is_verified?: boolean;
     created_at?: Date;
+<<<<<<< HEAD
 }
 
 export interface SellerRequest{
@@ -93,3 +94,6 @@ export interface ReviewSummary {
     recentReviewCount: number;    
   }
   
+=======
+}
+>>>>>>> origin/main

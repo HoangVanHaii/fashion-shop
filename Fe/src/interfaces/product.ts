@@ -1,9 +1,17 @@
+<<<<<<< HEAD
+=======
+
+>>>>>>> origin/main
 export interface ProductSummary {
     id: number;
     name: string;
     shop_id?: number;
     description?: string;
+<<<<<<< HEAD
     category_name: string;
+=======
+    category_name?: string;
+>>>>>>> origin/main
     thumbnail?: string;
     min_price: number;
     max_price: number;
@@ -12,6 +20,7 @@ export interface ProductSummary {
     flash_price?: number;
     images: string[];
 }
+<<<<<<< HEAD
 export interface ProductPayload {
     id?: number,
     shop_id: number;
@@ -42,3 +51,5 @@ export interface ProductSize {
     price: number;
     flash_sale_price?: number;
 }
+=======
+>>>>>>> origin/main

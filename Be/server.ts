@@ -16,6 +16,7 @@ import productSellerRouter from "./src/routers/seller/product";
 import productAdminRouter from "./src/routers/admin/product";
 import orderSellerRouter from "./src/routers/seller/order";
 import flashSaleRouter from "./src/routers/flashSale";
+import cors from 'cors'
 import "./src/cron/flashSaleCron";
 import paymentRouter from './src/routers/vnpay'
 import voucherRouter from './src/routers/voucher'
@@ -25,11 +26,11 @@ import { errorHandler } from "./src/middlewares/errorHandler";
 
 dotenv.config();
 const app = express();
+app.use(cors());
 
 app.use(cors());
 app.use(express.json());
 app.use("/uploads", express.static("uploads"));
-
 app.use("/api/cart", cartRouter);
 app.use("/api/admin/product", productAdminRouter);
 app.use("/api/seller/product", productSellerRouter);

@@ -79,7 +79,7 @@ export const useAuthStore = defineStore('auth', () => {
             const status = err.response?.status || 500;
             switch (status) {
                 case 400:
-                    error.value = "Dữ liệu không hợp ldhdhệ!";
+                    error.value = "Dữ liệu không hợp lệ!";
                     break;
                 case 404:
                     error.value = "Email không tồn tại!";

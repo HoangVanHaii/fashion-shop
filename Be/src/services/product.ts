@@ -214,7 +214,11 @@ export const getProductById = async (id: number): Promise<ProductPayload> => {
                 }
             }
             if (row.detail_image) {
+<<<<<<< HEAD
                 const imagePath = `${row.detail_image}`;
+=======
+                const imagePath = `/uploads/products/${row.detail_image}`;
+>>>>>>> origin/main
                 if (!color.images.includes(imagePath)) {
                     color.images.push(imagePath);
                 }
@@ -447,20 +451,53 @@ export const softDeleteProduct = async (id: number): Promise<void> => {
         throw error;
     }
 }
+
 export const getLatestProducts = async (limit: number): Promise<ProductSummary[]> => {
     try {
-        const query = `${baseQuery}
-                    ORDER BY p.id DESC
-                    OFFSET 0 ROWS FETCH NEXT @limit ROWS ONLY`
+        const query = `WITH NewProducts AS (
+                            SELECT TOP ${limit}
+                                p.id
+                            FROM products p
+                            INNER JOIN product_colors i ON i.product_id = p.id
+                            INNER JOIN product_sizes s ON s.color_id = i.id
+                            GROUP BY p.id, p.created_at                            
+                            ORDER BY p.id DESC 
+                        )
+                        SELECT
+                            p.id,
+                            p.name,
+                            p.description,
+                            p.status,
+                            thumb.image_url AS thumbnail,
+                            i.image_url,
+                            MIN(fsi.flash_sale_price) AS flash_sale_price,
+                            MIN(s.price) AS min_price,
+                            MAX(s.price) AS max_price,
+                            0 AS sold_quantity 
+                        FROM NewProducts np
+                        INNER JOIN products p ON p.id = np.id
+                        INNER JOIN product_colors i ON i.product_id = p.id
+                        INNER JOIN product_sizes s ON s.color_id = i.id
+                        LEFT JOIN product_colors thumb 
+                            ON thumb.product_id = p.id AND thumb.is_main = 1
+                        LEFT JOIN flash_sale_items fsi ON fsi.size_id = s.id AND fsi.status = 'active'
+                        LEFT JOIN flash_sales fs ON fs.id = fsi.flash_sale_id AND fs.status = 'active' 
+                                                
+                        GROUP BY
+                            p.id, p.name, p.description, p.status, i.image_url, thumb.image_url
+                        ORDER BY p.id DESC
+                        `;
         const pool = await connectionDB();
         const result = await pool.request()
-            .input('limit', limit)
             .query(query);
-        return result.recordset as ProductSummary[];
+        return mapToProductSummary(result.recordset);
+
     } catch (error) {
-        throw new AppError('Failed to fetch latest products', 500, false);
+        console.log("Erorr fetching fetch lates products", error)
+        throw new AppError('Failed to fetch lates products', 500, false);
     }
 }
+        
 export const getProductsByCategory = async (arrayName: string): Promise<ProductSummary[]> => {
     try {
         const query = `${baseQuery}
@@ -493,19 +530,96 @@ export const getProductByShop = async (shop_id: number): Promise<ProductSummary[
 }
 export const getBestSellerProduct = async (limit: number): Promise<ProductSummary[]> => {
     try {
-        const query = `${baseQuery}
-                    ORDER BY sold_quantity DESC
-                    OFFSET 0 ROWS FETCH NEXT @limit ROWS ONLY`
+        const query = `WITH TopProducts AS (
+                            SELECT TOP ${limit}
+                                p.id,
+                                ISNULL(SUM(oi.quantity), 0) AS sold_quantity
+                            FROM products p
+                            INNER JOIN product_colors i ON i.product_id = p.id
+                            INNER JOIN product_sizes s ON s.color_id = i.id
+                            LEFT JOIN order_items oi ON oi.size_id = s.id
+                            GROUP BY p.id
+                            ORDER BY sold_quantity DESC
+                        )
+                        SELECT
+                            p.id,
+                            p.name,
+                            p.description,
+                            p.status,
+                            thumb.image_url AS thumbnail,
+                            i.image_url,
+                            MIN(fsi.flash_sale_price) AS flash_sale_price,
+                            MIN(s.price) AS min_price,
+                            MAX(s.price) AS max_price,
+                            tp.sold_quantity 
+                        FROM TopProducts tp
+                        INNER JOIN products p ON p.id = tp.id
+                        INNER JOIN product_colors i ON i.product_id = p.id
+                        INNER JOIN product_sizes s ON s.color_id = i.id
+                        LEFT JOIN product_colors thumb 
+                            ON thumb.product_id = p.id AND thumb.is_main = 1
+                        LEFT JOIN flash_sale_items fsi ON fsi.size_id = s.id AND fsi.status = 'active'
+                        LEFT JOIN flash_sales fs ON fs.id = fsi.flash_sale_id AND fs.status = 'active' 
+                        GROUP BY
+                            p.id, p.name, p.description, p.status, i.image_url, thumb.image_url, tp.sold_quantity
+                        ORDER BY tp.sold_quantity DESC
+                        `;
         const pool = await connectionDB();
         const result = await pool.request()
-            .input('limit', limit)
             .query(query);
-        return result.recordset as ProductSummary[];
+        return mapToProductSummary(result.recordset);
+
     } catch (error) {
-        console.log("Erorr fetching best seller products")
+        console.log("Erorr fetching best seller products", error)
         throw new AppError('Failed to fetch best seller products', 500, false);
     }
 }
+<<<<<<< HEAD
+=======
+export const mapToProductSummary = (rows: any[]): ProductSummary[] => {
+    const map = new Map<number, ProductSummary>();
+
+    for (const row of rows) {
+        if (!map.has(row.id)) {
+            map.set(row.id, {
+                id: row.id,
+                name: row.name,
+                description: row.description,
+                thumbnail: row.thumbnail || row.image_url,
+                min_price: row.min_price,
+                max_price: row.max_price,
+                sold_quantity: row.sold_quantity,
+                avg_rating: 0, // set tạm
+                flash_price: row.flash_sale_price ?? undefined,
+                images: row.image_url ? [row.image_url] : []
+            });
+        } else {
+            // thêm ảnh nếu chưa có
+            const product = map.get(row.id)!;
+            if (row.image_url && !product.images.includes(row.image_url)) {
+                product.images.push(row.image_url);
+            }
+
+            // cập nhật min/max giá nếu cần
+            product.min_price = Math.min(product.min_price, row.min_price);
+            product.max_price = Math.max(product.max_price, row.max_price);
+
+            // cập nhật flash_price nếu thấp hơn hiện tại
+            if (row.flash_sale_price != null) {
+                if (!product.flash_price || row.flash_sale_price < product.flash_price) {
+                    product.flash_price = row.flash_sale_price;
+                }
+            }
+
+            // cập nhật sold_quantity
+            product.sold_quantity += row.sold_quantity;
+        }
+    }
+
+    return Array.from(map.values());
+};
+
+>>>>>>> origin/main
 export const getMostDiscountedProduct = async (limit: number): Promise<ProductSummary[]> => {
     try {
         return [];

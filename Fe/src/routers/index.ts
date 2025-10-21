@@ -5,17 +5,27 @@ import VerifyOTP from '../components/VerifyOTP.vue';
 import ProductDetail from '../pages/ProductDetail.vue';
 import CategoryGender from '../pages/CategoryGender.vue';
 import Notification from '../components/Notification.vue';
+import Home from '../pages/Home.vue';
+import DealHot from '../pages/DealHot.vue';
+import AddToCart from '../components/AddToCart.vue';
+import Voucher from '../components/Voucher.vue';
+
 
 const routes = [
-  { path: '/', redirect: '/header' },
+  { path: '/', redirect: '/home' },
   { path: '/auth/login', name: 'login', component: Auth },
   { path: '/notification', name: 'noti', component: Notification },
   { path: '/header', name: 'header', component: Header },
   { path: '/auth/register', name: 'register-sendOTP', component: Auth },
   { path: '/verifyRegister', name: 'register-verify', component: VerifyOTP },
   { path: '/categoryGender', name: 'category-gender', component: CategoryGender },
-  { path: '/product/:id', name: 'product-detail', component: ProductDetail }
+  { path: '/product/:id', name: 'product-detail', component: ProductDetail },
+  { path: '/home', name: 'Home', component: Home },
+  { path: '/dealHot', name: 'DealHot', component: DealHot },
+  { path: '/addToCart', name: 'Add', component: AddToCart },
+  { path: '/selectVoucher', name: 'SelectVoucher', component: Voucher },
 ];
 const router = createRouter({ history: createWebHistory(import.meta.env.BASE_URL), routes });
 
 export default router;
+

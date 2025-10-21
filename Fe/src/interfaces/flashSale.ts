@@ -1,3 +1,5 @@
+import type { ProductSummary } from "./product";
+
 export interface FlashSale {
     id?: number;
     title: string;
@@ -6,8 +8,10 @@ export interface FlashSale {
     status?: 'active' | 'cancelled';  
     created_by: number;
     created_at?: Date;
-    items?: FlashSaleItem[];
+    Products: ProductSummary[]
+
 }
+
 export interface FlashSaleItem {
     id?: number;
     flash_sale_id?: number;
@@ -20,11 +24,6 @@ export interface FlashSaleItem {
     sold?: number;
     status?: 'active' | 'cancelled';
     created_at?: Date;
-    ImageProducts?: ImageProducts[];
-}
-export interface ImageProducts {
-    color_id: number;
-    image_url: string;
 }
 export interface FlashSaleProductSold {
     product_id: number;
