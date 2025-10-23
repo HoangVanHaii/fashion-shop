@@ -1,90 +1,62 @@
 <script setup lang="ts">
-import { ref, watch, onMounted } from "vue";
-
-const props = defineProps({
-  ['text']: String,
-  ['status']: Boolean
-});
-onMounted(() => {
-    alert(props.text);
-}); 
-const visible = ref(false);
-watch(
-  () => props.status,
-  (newVal) => {
+import { ref, watch } from 'vue';
+const props = defineProps<{
+  text: string
+  isSuccess?: boolean
+}>()
+const show = ref(false);
+watch(() => props.text, (newVal) => {
     if (newVal) {
-      visible.value = true;
-
-      setTimeout(() => {
-        visible.value = false;
-      }, 2500);
+        show.value = true;
+        setTimeout(() => (show.value = false), 1700);
     }
-  }
-);
+})
 </script>
-
 <template>
-  <div
-    v-if="visible"
-    :class="['notification', props.status ? 'success' : 'error']"
-  >
-    <i :class="props.status ? 'fa-solid fa-check' : 'fa-solid fa-xmark'"></i>
-    <p>{{ props.text }}</p>
-  </div>
+    <teleport to="body">
+        <transition name="fade-slide"> 
+            <div v-if="show" class="toast" :class="{'toast-success': isSuccess, 'toast-error': !isSuccess}">
+                {{ text }}
+            </div>
+        </transition>
+    </teleport>
 </template>
 
 <style scoped>
-.notification {
-  position: fixed;
-  top: 120px;
-  right: 20px;
-  display: flex;
-  align-items: center;
-  justify-content: start;
-  padding: 12px 16px;
-  border-radius: 6px;
-  font-size: 14px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
-  width: 280px;
-  z-index: 9999;
-  animation: slideInOut 2.5s ease forwards;
+.toast{
+    position: fixed;
+    top: 35px;
+    left: 50%;
+    transform: translateX(-50%);
+    color: white;
+    padding: 20px 30px;
+    border-radius: 6px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+    z-index: 9999;
+    font-size: 18px;
+    max-width: 300px;
+    text-align: center;
+}
+.toast-success{
+    background-color: rgb(64, 185, 64);
+}
+.toast-error{
+    background-color: rgb(231, 73, 73);
+}
+.fade-slide-enter-active,
+.fade-slide-leave-active {
+    transition: all 0.6s ease;
+} 
+.fade-slide-enter-from, .fade-slide-leave-to {
+  opacity: 0;
+  transform: translate(-50%, -40px);
 }
 
-/* Màu sắc */
-.notification.success {
-  background-color: #e6ffed;
-  color: #2e7d32;
-  border: 1px solid #2e7d32;
-}
-
-.notification.error {
-  background-color: #ffebee;
-  color: #c62828;
-  border: 1px solid #c62828;
-}
-
-.notification i {
-  margin-right: 8px;
-  font-size: 16px;
-}
-
-/* 🎬 Hiệu ứng trượt vào - trượt ra */
-@keyframes slideInOut {
-  0% {
-    transform: translateX(120%);
-    opacity: 0;
-  }
-  15% {
-    transform: translateX(0);
-    opacity: 1;
-  }
-  85% {
-    transform: translateX(0);
-    opacity: 1;
-  }
-  100% {
-    transform: translateX(120%);
-    opacity: 0;
-  }
+@media(max-width : 768px){
+    .toast{
+        padding: 10px 15px;
+        font-size: 12px;
+        max-width: 80%;
+    }
 }
 </style>

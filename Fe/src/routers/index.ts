@@ -9,6 +9,7 @@ import Home from '../pages/Home.vue';
 import DealHot from '../pages/DealHot.vue';
 import AddToCart from '../components/AddToCart.vue';
 import Voucher from '../components/Voucher.vue';
+import OrderSuccess from '../pages/OrderSuccess.vue';
 
 const routes = [
   { path: '/', redirect: '/home' },
@@ -21,8 +22,9 @@ const routes = [
   { path: '/categoryGender', name: 'category-gender', component: CategoryGender },
   { path: '/product/:id', name: 'product-detail', component: ProductDetail },
   { path: '/dealHot', name: 'DealHot', component: DealHot },
-  { path: '/addToCart', name: 'Add', component: AddToCart },
+  { path: '/addToCart', name: 'AddToCart', component: AddToCart },
   { path: '/selectVoucher', name: 'SelectVoucher', component: Voucher },
+  { path: '/orderSuccess', name: 'OrderSuccess', component: OrderSuccess },
 ];
 const router = createRouter({ history: createWebHistory(import.meta.env.BASE_URL), routes });
 

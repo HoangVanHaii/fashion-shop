@@ -84,7 +84,8 @@ CREATE TABLE shop_visits
     shop_id INT NOT NULL,
     ip_address NVARCHAR(50) NOT NULL,
     visit_date DATE NOT NULL,
-    visit_count INT DEFAULT 1
+    visit_count INT DEFAULT 1,
+    FOREIGN KEY (shop_id) REFERENCES shops(id)
 );
 GO
 CREATE TABLE seller_requests

@@ -1,5 +1,5 @@
 import { defineStore } from "pinia";
-import { getProductByCategory, searchByCategoryGender, getProductById } from '../services/product'
+import { getProductByCategory, searchByCategoryGender, getProductByName, getProductById, getProductBestSeller, getProductLatest } from '../services/product'
 import type { ProductSummary, ProductPayload } from "../interfaces/product";
 export const useProductStore = defineStore('product', () => {
     const searchByCategoryGenderStore = async (gender: string) => {
@@ -29,6 +29,34 @@ export const useProductStore = defineStore('product', () => {
             console.log("Failed to fetch product",error);
         }
     }
+    const getProductBestSellerStore = async () => {
+        try {
+            const result = await getProductBestSeller(20);
+            return result as ProductSummary[];
+        } catch (err) {
+            console.log(err);
+            return [];
+        }
+    }
+    const getProductLatestStore = async () => {
+        try {
+            const result = await getProductLatest(20);
+            return result as ProductSummary[];
+        } catch (err) {
+            console.log(err);
+            return [];
+        }
+    }
+    const getProductByNameStore = async (name: string) => {
+        try {
+            const result = await getProductByName(name);
+            console.log("ssssssssssssssssss", result);
+            return result as ProductSummary[];
+        } catch (err) {
+            console.log(err);
+            return [];
+        }
+    }
 
-    return { searchByCategoryStore, searchByCategoryGenderStore, getProductByIdStore};
+    return { searchByCategoryStore, searchByCategoryGenderStore, getProductByIdStore, getProductBestSellerStore, getProductLatestStore, getProductByNameStore};
 })

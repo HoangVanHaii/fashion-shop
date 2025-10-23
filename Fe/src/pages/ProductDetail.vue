@@ -8,7 +8,7 @@ import type { ReviewOfProduct, Review } from '../interfaces/review';
 import { useProductStore } from '../stores/productStore';
 import { useReviewStore } from '../stores/reviewStore';
 import { useCartStore } from '../stores/cartStore';
-// import Notification from '../components/Notification.vue';
+import Notification from '../components/Notification.vue';
 
 const route = useRoute();
 const cart = useCartStore();
@@ -26,7 +26,8 @@ const reviewProduct = ref<ReviewOfProduct>();
 const showReview = ref<boolean>(false);
 const indexImage = ref<number>(-1);
 const showNotification = ref<boolean>(false);
-
+const copied = ref<Boolean>(false);
+const toastText = ref('');
 
 
 onMounted(async () => {
@@ -37,6 +38,10 @@ onMounted(async () => {
     listpProducts.value = await product.searchByCategoryStore(productId.value?.category_name || '');
     reviewProduct.value = await review.getReviewsByProductIdStore(id);
     filterReviews.value = reviewProduct.value?.Reviews;
+    window.scrollTo({
+        top: 0,
+        behavior: 'smooth' // hoặc 'auto' nếu muốn cuộn nhanh ngay lập tức
+      })
 })
 watch(quantity, (newVal, oldVal) => {
     const max = sizeChose.value?.stock ?? Infinity
@@ -92,13 +97,39 @@ const hanlderDecre = () => {
         indexImage.value = 3;
     }
 }
-const handleAddtoCart = async (size: ProductSize) => {
+// const handleAddToCart = async (size: ProductSize) => {
+//     await cart.addToCartStore(size.id!, quantity.value || 1);
+//     if (cart.success) {
+//         showNotification.value = true;
+//     } else if (cart.error) {
+//         alert(`Lỗi: ${cart.error}`);
+//     }
+// }
+
+const handleAddToCart = async (size: ProductSize) => {
+    showNotification.value = false;
+    toastText.value = '';
     await cart.addToCartStore(size.id!, quantity.value || 1);
     if (cart.success) {
         showNotification.value = true;
-    } else if (cart.error) {
-        alert(`Lỗi: ${cart.error}`);
+        toastText.value = "🛒 Thêm vào giỏ hàng thành công!";
     }
+    else{
+        toastText.value = "❌ Thêm vào giỏ hàng thất bại!";
+        showNotification.value = false;
+    }
+
+}
+
+
+const copiedLink = () => {
+    const path = route.fullPath;
+    const baseUrl = window.location.origin;
+    navigator.clipboard.writeText(baseUrl + path);
+    copied.value = true;
+    setTimeout(() => {
+        copied.value = false;
+    }, 1000)
 }
 // const handleOrder(size: ProductSize){
     
@@ -108,8 +139,7 @@ const handleAddtoCart = async (size: ProductSize) => {
 
 <template>
     <Header></Header>
-    <!-- <Notification text="Thêm sản phẩm vào giỏ thànhs công" :status="true" /> -->
-
+    <Notification :text="toastText" :isSuccess="showNotification" />
     <div class="container">
         <div class="breadcrumb">
             <a href="/" class="breadcrumb-item">Trang chủ</a>
@@ -176,7 +206,7 @@ const handleAddtoCart = async (size: ProductSize) => {
                     <span class="share"><i class="fa-solid fa-share"></i> Chia sẻ </span>
                 </div>
                 <div class="order-cart">
-                    <button class="cart" @click="handleAddtoCart(sizeChose!)">Thêm vào giỏ hàng</button>
+                    <button class="cart" @click="handleAddToCart(sizeChose!)">Thêm vào giỏ hàng</button>
                     <button class="order" @click="handleOrder(sizeChose)">Mua ngay</button>
                 </div>
                 <div class = share>
@@ -186,7 +216,8 @@ const handleAddtoCart = async (size: ProductSize) => {
                     <i class="fa-brands fa-instagram"></i>
                     <i class="fa-brands fa-twitter"></i>
                     <span> hoặc </span>
-                    <i class="fa-solid fa-link"></i>
+                    <i class="fa-solid fa-link" v-if="!copied" @click="copiedLink"></i>
+                    <i v-else class="fa-regular fa-copy"></i>
                 </div>
             </div>
         </div>
@@ -551,8 +582,7 @@ const handleAddtoCart = async (size: ProductSize) => {
     }
     .quantity .share{
         display: none
-    }
-
+    }x
     .fa-facebook-messenger{
         margin-left: 4px;
         color: rgb(82, 216, 250);
