@@ -8,10 +8,13 @@ export const flashSaleStore = defineStore("flashSale", () => {
     const hotDeal1 = ref<FlashSale | null>(null);
     const hotDeal2 = ref<FlashSale | null>(null);
     const error = ref<string | null>(null);
+    const loading = ref<boolean>(true);
     const totalSolds = ref<FlashSaleProductSold[]>([]);
+
     const getFlashSaleHome = async () => {
         flashSales.value = null;
         error.value = null;
+        loading.value = true;
         try {
             const data = await getFlashSale();
               
@@ -19,13 +22,14 @@ export const flashSaleStore = defineStore("flashSale", () => {
                 ...data.flash_sale,
                 Products: data.products  
             }
-
         } catch (err) {
             console.log(err);
+        } finally {
+            loading.value = false;
         }
     }
     const getFlashSaleHotDeal1NotIN = async (excludeId: string) => {
-        
+        loading.value = true;
         hotDeal1.value = null;
         error.value = null;
         try {
@@ -36,11 +40,14 @@ export const flashSaleStore = defineStore("flashSale", () => {
             }
         } catch (err) {
             console.log(err);
+        } finally {
+            loading.value = false
         }
     }
     const getFlashSaleHotDeal2NotIN = async (excludeId: string) => {
         hotDeal2.value = null;
         error.value = null;
+        loading.value = true;
         try {
             const data = await getFlashSaleNotIn(excludeId);
             hotDeal2.value =  {
@@ -49,18 +56,23 @@ export const flashSaleStore = defineStore("flashSale", () => {
             }
         } catch (err) {
             console.log(err);
+        } finally {
+            loading.value = false;
         }
     }
     const getTotalSoldFlashSaleByIdStore = async () => {
         totalSolds.value = [];
+        loading.value = true;
         try {
             const result = await getTotalSoldFlashSaleById(4);
             totalSolds.value = result.data;
         } catch (err) {
             console.log(err);
+        } finally {
+            loading.value = false;
         }
     }
-    return { error, flashSales, hotDeal1, hotDeal2, totalSolds, getFlashSaleHome, getTotalSoldFlashSaleByIdStore, getFlashSaleHotDeal1NotIN, getFlashSaleHotDeal2NotIN}
+    return { loading, error, flashSales, hotDeal1, hotDeal2, totalSolds, getFlashSaleHome, getTotalSoldFlashSaleByIdStore, getFlashSaleHotDeal1NotIN, getFlashSaleHotDeal2NotIN}
 })
 
 

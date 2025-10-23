@@ -8,35 +8,52 @@ import type { ReviewOfProduct, Review } from '../interfaces/review';
 import { useProductStore } from '../stores/productStore';
 import { useReviewStore } from '../stores/reviewStore';
 import { useCartStore } from '../stores/cartStore';
+import { useAuthStore } from '../stores/authStore';
+import type { ShopDetal } from '../interfaces/user';
+import Loading from '../components/Loading.vue';
 // import Notification from '../components/Notification.vue';
 
+const auth = useAuthStore();
 const route = useRoute();
 const cart = useCartStore();
 const router = useRouter();
 const review = useReviewStore();
 const product = useProductStore();
+const url_main = ref<string>();
 const productId = ref<ProductPayload>();
 const colorChose = ref<ProductColor>();
 const sizeChose = ref<ProductSize>();
 const quantity = ref<number>(1);
 const listpProducts = ref<ProductSummary[]>();
+const productOfShop = ref<ProductSummary[]>(); 
 const filterReviews = ref<Review[]>();
 const selectedRating = ref<number | null>(null);
 const reviewProduct = ref<ReviewOfProduct>();
 const showReview = ref<boolean>(false);
 const indexImage = ref<number>(-1);
 const showNotification = ref<boolean>(false);
+const shop = ref<ShopDetal>();
 
 
-
-onMounted(async () => {
+const loadData = async () => {
     const id: number = parseInt(route.params.id as string);
+    
     productId.value = await product.getProductByIdStore(id)
-    colorChose.value = productId.value?.colors[0];
+    colorChose.value = productId.value?.colors.find(cl => cl.is_main == true);
     sizeChose.value = colorChose.value?.sizes[0];
-    listpProducts.value = await product.searchByCategoryStore(productId.value?.category_name || '');
+    url_main.value = colorChose.value?.image_url;
+
+    let result = await product.searchByCategoryStore(productId.value?.category_name || '');
+    listpProducts.value = result.filter(p => p.id !== productId.value?.id);
     reviewProduct.value = await review.getReviewsByProductIdStore(id);
     filterReviews.value = reviewProduct.value?.Reviews;
+
+    shop.value = await auth.getShopByidStore(productId.value?.shop_id || 3);
+    let shopStore: ProductSummary[] = await product.getProductByShopStore(productId.value?.shop_id || 3);
+    productOfShop.value = shopStore.filter(p => p.id !== productId.value?.id);
+}
+onMounted(async () => {
+    await loadData();
 })
 watch(quantity, (newVal, oldVal) => {
     const max = sizeChose.value?.stock ?? Infinity
@@ -47,6 +64,14 @@ watch(quantity, (newVal, oldVal) => {
         quantity.value = max
     }
 })  
+watch(
+    () => route.params.id,
+    async (newId, oldId) => {
+        if (newId !== oldId) {
+            router.go(0);
+        }
+    }
+)
 const getUniqueSizes = () => {
     const getUniqueSizes = new Set<string>();
     productId.value?.colors.forEach(color => {
@@ -56,8 +81,7 @@ const getUniqueSizes = () => {
     })
     return [...getUniqueSizes].join(' - ');
 }
-const getStarFill = (starIndex: number): number => {
-    const rating = reviewProduct.value?.average_rating ?? 0;
+const getStarFill = (starIndex: number, rating: number): number => {
 
     if (starIndex <= Math.floor(rating)) {
         return 100;
@@ -109,14 +133,14 @@ const handleAddtoCart = async (size: ProductSize) => {
 <template>
     <Header></Header>
     <!-- <Notification text="Thêm sản phẩm vào giỏ thànhs công" :status="true" /> -->
-
-    <div class="container">
+    <Loading :loading="product.loading"/>
+    <div class="container" v-if="!product.loading">
         <div class="breadcrumb">
-            <a href="/" class="breadcrumb-item">Trang chủ</a>
+            <a href="/home" class="breadcrumb-item" >Trang chủ</a>
             <span class="separator">|</span>
-            <span class="breadcrumb-item active">{{productId?.category_name}}</span>
+            <span class="breadcrumb-item active" @click="router.push('/CategoryGender?gender=Nam')">{{productId?.category_name}}</span>
             <span class="separator">|</span>
-            <span class="breadcrumb-item active">{{productId?.name}}</span>
+            <span class="breadcrumb-item active" id="product-name">{{productId?.name}}</span>
         </div>
 
         <div class="product-information">
@@ -138,8 +162,8 @@ const handleAddtoCart = async (size: ProductSize) => {
                 <span>Mã sản phẩm: <strong>19088{{ productId?.id }}</strong></span>
                 <div class="price">
                     <span class="txt">Giá:</span>
-                    <span class="old-price">{{ formatPrice(sizeChose?.price || 0) }}</span>
-                    <span class="new-price">{{ formatPrice(sizeChose?.flash_sale_price || sizeChose?.price!-30000) }}</span>
+                    <span class="old-price" v-if="sizeChose?.flash_sale_price">{{ formatPrice(sizeChose?.price ) }}</span>
+                    <span class="new-price">{{ formatPrice(sizeChose?.flash_sale_price || sizeChose?.price || 0) }}</span>
                 </div>
                 <div class="size">
                     <span class="txt">Kích thước: </span>
@@ -190,8 +214,86 @@ const handleAddtoCart = async (size: ProductSize) => {
                 </div>
             </div>
         </div>
-        <div class="shop">
-                      
+        
+        <div class="product" id="product-shop">
+            <div class="shop">
+            <div class="logo">
+                <img :src="getImage(shop?.logo || '/upload/user/default-avatar.png')" alt="" class="img">
+            </div>
+            <div class="shop-infor">
+                <span class="title">{{ shop?.shop_name }}</span>
+                <span>{{ shop?.description }}</span>
+                <button>Xem shop</button>
+            </div>
+            <div class="shop-rating">
+                <span class="txt">Xếp hạng</span>
+                <div class="other-infor">
+                    <div class="rating-star">
+                        <span class="star-wrapper" v-for="n in 5" :key="n">
+                        <i class="fa-solid fa-star base-star"></i>
+                        <i
+                            class="fa-solid fa-star overlay-star"
+                            :style="{ width: getStarFill(n, shop?.rating ?? 0) + '%' }"
+                        ></i>
+                        </span>
+                    </div>
+                </div>
+            </div>
+            <div class="visit-shop">
+                <span>Số lượt truy cập</span>
+                <div style="color: red; font-size: 18px;">{{ shop?.visit_count }}</div>
+            </div>
+        </div>
+            <div class="title"><h3>Ghé thăm sản phẩm của <strong style="color: red;"> {{ shop?.shop_name }}</strong></h3></div>
+            <div class="other-product">
+                <div
+                    v-for="(product, index) in productOfShop?.slice(0,5)"
+                    :key="index"
+                    class="product-item"
+                    @click="router.push({
+                        name: 'product-detail',
+                        params: { id: product.id }
+                    })"
+                >
+                    <div class="product-image">
+                        <img :src="getImage(`${product.thumbnail}`)" alt="productImage">
+                    </div>
+                    <div class="promo-description">
+                        
+                        <div class="product-logo-color">
+                            <span class="logo">NAVA</span>
+                            <div class="list-color">
+                                <div
+                                    v-for="(value, index) in product.images"
+                                    :key="index"
+                                    class="item-image"
+                                >
+                                    <img :src="getImage(`${value}`)" alt="anhproduct">
+                                </div>
+                                
+                            </div>
+                        </div>
+                        <div class="product-info">
+                            <div class="product-name">  
+                                <p>{{ product.name }}</p>
+                            </div>
+                            <div class="product-bottom">
+                                <div class="product-prices">
+                                    <span class="price-new" >{{ formatPrice(product.min_price) }}</span>
+                                    <span v-if="product.flash_price" class="price-old">{{ formatPrice(product.flash_price) }}</span>
+                                </div>
+                                <div class="product-action">
+                                    <button><i class="fa-solid fa-cart-shopping"></i></button>
+                                    <button><i class="fa-solid fa-heart"></i></button>
+                                </div>
+                            </div>
+                            
+                        </div>
+
+                    </div>
+                </div>
+                <button class="btn-see-more-product"><i class="fa-solid fa-arrow-right"></i></button>
+            </div>
         </div>
         <div class="product-detail">
             <div class="description-product">
@@ -248,7 +350,7 @@ const handleAddtoCart = async (size: ProductSize) => {
                     <i class="fa-solid fa-star base-star"></i>
                     <i
                         class="fa-solid fa-star overlay-star"
-                        :style="{ width: getStarFill(n) + '%' }"
+                        :style="{ width: getStarFill(n, reviewProduct?.average_rating ?? 0) + '%' }"
                     ></i>
                     </span>
                 </div>
@@ -352,9 +454,10 @@ const handleAddtoCart = async (size: ProductSize) => {
         display: none;
     }
     .breadcrumb-item {
-        color: #666;
+        color: #a0a0a0;
         text-decoration: none;
         transition: color 0.3s;
+        
     }
 
     .breadcrumb-item:hover {
@@ -362,8 +465,13 @@ const handleAddtoCart = async (size: ProductSize) => {
     }
 
     .breadcrumb-item.active {
-        color: #333;
+        color: #a1a1a1;
         font-weight: 500;
+    }.breadcrumb-item.active:hover {
+        cursor: pointer;
+    }
+    #product-name{
+        color: black
     }
     .product-information{
         background-color: white;
@@ -807,11 +915,13 @@ const handleAddtoCart = async (size: ProductSize) => {
         margin: 0 auto;
         margin-bottom: 50px;
         align-items: center;
-        width: 94%;
+        width: 92%;
         background-color: white;
         margin-top: 10px;
     }
-
+    #product-shop{
+        background-color: rgb(255, 247, 247);
+    }
     .title{
         width: 90%;
         display: flex;
@@ -977,6 +1087,75 @@ const handleAddtoCart = async (size: ProductSize) => {
         font-size: 18px;
         max-width: 500px;
     }
+    .shop {
+        padding: 5px;
+        background-color: rgb(255, 237, 237);
+        width: 91%;
+        height: 80px;
+        margin: 0 auto;
+        margin-bottom: 10px;
+        margin-top: 10px;
+        padding: 5px;
+        display: flex;
+        flex-direction: row;
+        gap: 20px;
+    }
+    .shop-infor .title {
+        font-weight: 600;
+        font-size: 20px;
+        margin-right: 7px;
+    }
+    .shop-infor button {
+        border-radius: 5px;
+        border: 1px solid rgb(173, 173, 173);
+        background-color: white;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+    .shop-infor button:hover{
+        cursor: pointer;
+        transform: translateY(-0.2px);
+    }
+    .shop .logo {
+        border-right: 1px solid rgb(148, 148, 148);
+        padding-right: 10px;
+    }
+    .shop .logo .img{
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+    }
+    .shop .shop-infor{
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: end;
+        /* margin: 10px; */
+        gap: 5px;
+        border-right: 1px solid rgb(148, 148, 148);
+        padding-right: 10px;
+        height: 80px;
+    }
+    .shop-rating{
+        display: flex;
+        flex-direction: row;
+        gap: 15px;
+        height: 80px;
+        border-right: 1px solid rgb(148, 148, 148);
+        justify-content: center;
+        align-items: center;
+        padding-right: 10px;
+    }
+    .visit-shop{
+         display: flex;
+        flex-direction: row;
+        gap: 15px;
+        height: 80px;
+        border-right: 1px solid rgb(148, 148, 148);
+        justify-content: center;
+        align-items: center;
+        padding-right: 10px;
+    }
+
     @media (min-width: 1024px) and (max-width: 1279px) { 
         .main{
             height: 80%;
@@ -1095,6 +1274,15 @@ const handleAddtoCart = async (size: ProductSize) => {
         
     }
     @media screen and (max-width: 768px) {
+        .visit-shop{
+            display: none;
+        }
+        .shop-infor .title{
+            font-size: 16px;
+        }
+        .shop-rating .txt {
+            display: none;
+        }
         .detail-image{
             display: none;
         }

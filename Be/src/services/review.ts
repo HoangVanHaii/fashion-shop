@@ -86,7 +86,6 @@ export const getReviewsByProductId = async (product_id: number): Promise<ReviewO
         });
         const total_reviews = Object.values(reviewsMap).length;
         const average_rating = Object.values(reviewsMap).reduce((acc, row) => acc + row.rating, 0) / total_reviews;
-        console.log(reviewsMap);
         const reviewOfProduct: ReviewOfProduct = { total_reviews, average_rating, Reviews: Object.values(reviewsMap) };
         
         return reviewOfProduct;

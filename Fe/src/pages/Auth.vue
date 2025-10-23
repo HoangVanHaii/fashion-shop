@@ -65,10 +65,11 @@
     }
     const handleLogin = async() => {
         await auth.loginStore(email.value, password.value);
+        alert(auth.user);
         if(auth.success) {
             router.push('/')
         }
-        console.log(auth.error);
+        // console.log(auth.error);
     }
     
 </script>

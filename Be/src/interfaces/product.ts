@@ -15,7 +15,7 @@ export interface ProductColor {
     product_id?: number,
     color: string,
     image_url: string;
-    is_main?: boolean,
+    is_main: boolean,
     sizes: ProductSize[];
     images: string[];
 

@@ -31,6 +31,7 @@ export interface OrderItemDetail {
     quantity: number;
     price: number;
     image_url: string;
+    flash_price: number;
 }
 export interface OderPayLoad {
     order: Order;
@@ -38,10 +39,11 @@ export interface OderPayLoad {
 }
 export interface GetOrder {
     order_id: number;
-    status: "pending" | "confirm" | "shipped" | "completed" | "cancelled";
+    status: "pending" | "confirmed" | "shipped" | "completed" | "cancelled";
     created_at: Date;
     updatedAt?: Date;
     items: OrderItemDetail[];
+    shop_name?: string;
     total: number;
     payment_method?: 'cod' | 'credit_card' | 'paypal' | 'momo' | 'vnpay';
     shipping_name?: string;

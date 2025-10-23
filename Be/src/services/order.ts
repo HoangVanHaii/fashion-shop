@@ -24,12 +24,14 @@ const baseQuery = `SELECT
                     pay.method,
                     o.shipping_address,
                     o.shipping_name,
-                    o.shipping_phone
+                    o.shipping_phone,
+                    fsi.flash_sale_price
                 FROM orders o
                     INNER JOIN order_items oi ON oi.order_id = o.id
                     INNER JOIN product_sizes ps ON oi.size_id = ps.id
                     INNER JOIN product_colors pc ON ps.color_id = pc.id
                     INNER JOIN products p ON pc.product_id = p.id
+                    LEFT JOIN flash_sale_items fsi ON fsi.size_id = ps.id
                     INNER JOIN payments pay ON o.id = pay.order_id`; 
 
 const transformationOrder = (result: any[], orderMaps: Record<number, GetOrder>) => {
@@ -57,7 +59,8 @@ const transformationOrder = (result: any[], orderMaps: Record<number, GetOrder>)
                 size: row.size,
                 quantity: row.quantity,
                 price: row.price,
-                image_url: row.image_url
+                image_url: row.image_url,
+                flash_price: row.flash_sale_price       
             })
         })
 } 

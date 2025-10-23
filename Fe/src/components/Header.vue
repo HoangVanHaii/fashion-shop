@@ -32,7 +32,7 @@ const goToCart = () => {
 };
 
 const goToProfile = () => {
-    router.push('/profile');
+    router.push('/profile/orderOfme');
 };
 </script>
 
