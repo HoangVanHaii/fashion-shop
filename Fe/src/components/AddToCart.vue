@@ -1,14 +1,78 @@
 <script setup lang="ts">
 import { getImage } from '../utils/getImage';
-import type { ProductSummary } from '../interfaces/product';
+import type { ProductColor, ProductSize, ProductPayload } from '../interfaces/product';
 import { formatPrice } from '../utils/formatPrice';
-import { ref } from 'vue';
+import { onMounted, watch, ref } from 'vue';
+import { useRouter } from 'vue-router';
+import { useCartStore } from '../stores/cartStore';
+import Notification from './Notification.vue';
+const router = useRouter();
 const emit = defineEmits(['close']);
 const handleClose = () => {
     emit('close')
 }
+const colorChose = ref<ProductColor>();
+const sizeChose = ref<ProductSize>();
+const image_main = ref<string>();
+const ind = ref<number>(-1);
 const quantity = ref(1);
-const props = defineProps(['product'])
+const cart = useCartStore();
+const showNotification = ref<boolean>(false);
+
+onMounted(async () => {
+    colorChose.value = props.product.colors.find(color => color.is_main);
+    if (!colorChose.value) {
+        colorChose.value = props.product.colors[0];
+    }
+    sizeChose.value = colorChose.value?.sizes[0];
+    image_main.value = colorChose.value?.image_url;
+})
+const preImage = () => {
+    ind.value = ind.value - 1;
+    if (ind.value === -1) {
+        image_main.value = colorChose.value?.image_url
+        return;
+    }
+    if (ind.value < -1) {
+        ind.value = 2;
+    }
+    image_main.value = colorChose.value?.images[ind.value];
+}
+const nextImage = () => {
+    ind.value = ind.value + 1;
+    if (ind.value === 3) {
+        ind.value = -1;
+        image_main.value = colorChose.value?.image_url
+        return;
+    }
+    image_main.value = colorChose.value?.images[ind.value];
+}
+const handleFormatQuantity = () => {
+    if (quantity.value < 1) {
+        quantity.value = 1;
+    }
+}
+const toastText = ref('');
+const handleAddToCart = async (size: ProductSize) => {
+    showNotification.value = false;
+    toastText.value = '';
+    await cart.addToCartStore(size.id!, quantity.value || 1);
+    if (cart.success) {
+        showNotification.value = true;
+        toastText.value = "🛒 Thêm vào giỏ hàng thành công!";
+        setTimeout(() => {
+            handleClose();
+        }, 2100);
+    }
+    else{
+        toastText.value = "❌ Thêm vào giỏ hàng thất bại!";
+        showNotification.value = false;
+    }
+
+}
+
+
+const props = defineProps < { product: ProductPayload }>();
 </script>
 
 <template>
@@ -17,17 +81,17 @@ const props = defineProps(['product'])
         <div class="container" @click.stop>
             <div class="product-image">
                 <div class="main-image">
-                    <button class="btn btn-prev" @click=""><</button>
-                    <button class="btn btn-close" @click=""><i class="fa-solid fa-xmark"></i></button>
-                    <img :src="getImage('/uploads/products/ao-blazer-nu-den-main.jpg')" alt="">
-                    <button class="btn btn-next" @click="">></button>
+                    <button class="btn btn-prev" @click="preImage()"><</button>
+                    <button class="btn btn-close" @click="handleClose"><i class="fa-solid fa-xmark"></i></button>
+                    <img :src="getImage(`${image_main}`)" alt="">
+                    <button class="btn btn-next" @click="nextImage()">></button>
                 </div>
                 <div class="item-images">
-                    <div class="image">
-                        <img :src="getImage('/uploads/products/ao-blazer-nu-den-main.jpg')" alt="">
+                    <div class="image" @click="image_main = colorChose?.image_url, ind = -1" >
+                        <img :src="getImage(`${colorChose?.image_url}`)" >
                     </div>
-                    <div class="image" v-for="value in props.product.images">
-                        <img :src="getImage(value)" alt="">
+                    <div class="image" v-for="(img, index) in colorChose?.images" @click="image_main = img, ind = index">
+                        <img :src="getImage(img)" alt="">
                     </div>
                 </div>
             </div>
@@ -38,23 +102,17 @@ const props = defineProps(['product'])
                 </div>
                 <div class="product-prices">
                     <span>Giá:</span>
-                    <span class="new-price" v-if="product.flash_price">{{ formatPrice(product.max_price)}}</span>
-                    <span class="old-price">{{ product.flash_price ? formatPrice(product.flash_price!) : product.min_price }}</span>
+                    <span class="new-price">{{ sizeChose?.flash_sale_price ? formatPrice(sizeChose.flash_sale_price) : formatPrice(sizeChose?.price || 0 )}}</span>
+                    <span class="old-price" v-if="sizeChose?.flash_sale_price" >{{ formatPrice(sizeChose?.price)}}</span>
                 </div>
                 <div class="product-sizes">
                     <span class="text-size">Kích thước: </span>
                     <div class="list-size">
-                        <!-- <div v-for="value in source" class="size">
-        
-                        </div> -->
-                        <div class="size">X</div>
-                        <div class="size">M</div>
-                        <div class="size">L</div>
-                        <div class="size">XL</div>
-                        <div class="size">M</div>
-                        <div class="size">S</div>
-                       
-                        <!-- <div <div class="size">XS</div> class="size">XXL</div> -->
+                        <div v-for="size in colorChose?.sizes" class="size" 
+                        :class="{ 'active-size': size === sizeChose }" 
+                        @click="sizeChose=size">
+                            {{ size.size }}
+                        </div>
                     </div>
                 </div>
                 <div class="product-colors">
@@ -64,28 +122,29 @@ const props = defineProps(['product'])
                     </div>
                     <div class="list-color">
 
-                        <div class="color"></div>
-                        <div class="color"></div>
-                        <div class="color"></div>
-                        <div class="color"></div>
-                        <div class="color"></div>
-                        <!-- <div v-for="value in source" class="color">
-    
-                        </div> -->
+                        <div v-for="color in props.product.colors" 
+                            class="color"
+                            :class="{ 'active-color': color === colorChose }" 
+                            @click="colorChose=color, sizeChose=colorChose?.sizes[0], image_main = colorChose?.image_url, quantity = 1"
+                        >
+                            <img :src="getImage(color.image_url)" alt="">
+                        </div>
                     </div>
                     <div class="product-quantity">
                         <span>Số lượng: </span>
                         <div class="btn-quantity">
                             <button class="dec" @click="quantity = Math.max(quantity - 1, 1)">-</button>
-                            <input v-model="quantity" type="number"/>
-                            <button class="dec" @click="quantity = Math.min(quantity + 1, product.stock!)">+</button>
+                            <input v-model="quantity" type="number" @keyup.enter="handleFormatQuantity"/>
+                            <button class="dec" @click="quantity = Math.min(quantity + 1, sizeChose?.stock!)">+</button>
                         </div>
                     </div>
                 </div>
                 <div class="btn-bottom">
                     <div class="btn-addtocart">
-                        <button>Thêm vào giỏ hàng</button>
+                        <button @click="handleAddToCart(sizeChose!)" >Thêm vào giỏ hàng</button>
                     </div>
+                    <Notification :text="toastText" :isSuccess="showNotification" />
+
                     <div class = share>
                         <span class="share-with"><i class="fa-solid fa-share"></i> Chia sẻ tới: </span>
                         <i class="fa-brands fa-facebook-messenger"></i>
@@ -93,7 +152,16 @@ const props = defineProps(['product'])
                         <i class="fa-brands fa-instagram"></i>
                         <i class="fa-brands fa-twitter"></i>
                     </div>
-                    <button class="btn-detail">Xem chi tiết sản phẩm >></button>
+                    <button class="btn-detail" 
+                        @click="
+                            router.push({
+                            name: 'product-detail',
+                            params: { id: product.id },
+                            })
+                        "
+                    >    
+                        Xem chi tiết sản phẩm >>
+                    </button>
                 </div>
             </div>
         </div>
@@ -123,6 +191,7 @@ const props = defineProps(['product'])
     padding: 10px;
     background-color: white;
     display: flex;
+    transform: translateY(30px);
     flex-direction: row;
 }
 .product-image{
@@ -141,7 +210,7 @@ const props = defineProps(['product'])
     width: 95%;
     /* background-color: red; */
     height: 77%;
-    border: solid 1px;
+    border: solid 1px #e9e7e7;
     display: flex;
     justify-content: center;
     align-items: center;
@@ -186,11 +255,14 @@ const props = defineProps(['product'])
     flex-direction: row;
     justify-content: space-between;
     align-items: center;
-    border-top: 1px solid;
+    border-top: 1px solid #ccc;
+
 }
 .image{
     width: 65px;
     height: 65px;
+    cursor: pointer;
+    
 }
 .image img{
     width: 100%;
@@ -221,7 +293,7 @@ const props = defineProps(['product'])
     height: 7%;
     display: flex;
     flex-direction: row;
-    justify-content: center;
+    /* justify-content: center; */
     gap: 20px;
     align-items: center;
     /* background-color: red; */
@@ -268,7 +340,14 @@ const props = defineProps(['product'])
     display: flex;
     justify-content: center;
     align-items: center;
+    cursor: pointer;
 }
+.active-size{
+        border: 1px solid rgb(45, 235, 45);
+        box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.4);
+
+    }
+
 .product-colors{
     display: flex;
     flex-direction: column;
@@ -302,8 +381,19 @@ const props = defineProps(['product'])
     /* background-color: red; */
     border: 1px solid;
     border-radius: 4px;
-
+    cursor: pointer;
 }
+.color img{
+    width: 100%;
+    height: 100%;
+    border-radius: 3px;
+}
+.active-color{
+    
+    border: 1px solid rgb(45, 235, 45);
+    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.4);
+
+}  
 .product-quantity{
     display: flex;
     flex-direction: row;
@@ -375,6 +465,7 @@ input:focus {
     color: white;
     background-color: red;
     border: none;
+    cursor: pointer;
 }
 .share{
     display: flex;
@@ -404,6 +495,7 @@ input:focus {
     background-color: transparent;
     border: none;
     text-decoration: underline;
+    cursor: pointer;
 }
 @media(max-width : 768px){
     .container{

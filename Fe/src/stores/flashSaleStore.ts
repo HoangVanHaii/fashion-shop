@@ -1,9 +1,10 @@
-import { type FlashSale, type FlashSaleProductSold } from "../interfaces/flashSale";
 import {getFlashSale, getTotalSoldFlashSaleById, getFlashSaleNotIn } from "../services/flashSale";
-import { ref } from "vue";
 import { defineStore } from "pinia";
+import type { FlashSale, FlashSaleProductSold } from "../interfaces/flashSale";
+import { ref } from "vue";
 
 export const flashSaleStore = defineStore("flashSale", () => {
+
     const flashSales = ref<FlashSale | null>(null);
     const hotDeal1 = ref<FlashSale | null>(null);
     const hotDeal2 = ref<FlashSale | null>(null);
@@ -18,7 +19,7 @@ export const flashSaleStore = defineStore("flashSale", () => {
         try {
             const data = await getFlashSale();
               
-            flashSales.value =  {
+            return {
                 ...data.flash_sale,
                 Products: data.products  
             }
@@ -34,7 +35,7 @@ export const flashSaleStore = defineStore("flashSale", () => {
         error.value = null;
         try {
             const data = await getFlashSaleNotIn(excludeId);
-            hotDeal1.value =  {
+            return  {
                 ...data.flash_sale,
                 Products: data.products
             }
@@ -50,7 +51,7 @@ export const flashSaleStore = defineStore("flashSale", () => {
         loading.value = true;
         try {
             const data = await getFlashSaleNotIn(excludeId);
-            hotDeal2.value =  {
+            return {
                 ...data.flash_sale,
                 Products: data.products
             }
@@ -65,7 +66,7 @@ export const flashSaleStore = defineStore("flashSale", () => {
         loading.value = true;
         try {
             const result = await getTotalSoldFlashSaleById(4);
-            totalSolds.value = result.data;
+            return result.data;
         } catch (err) {
             console.log(err);
         } finally {
