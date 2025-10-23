@@ -8,6 +8,7 @@ import hotDeal1Image from "../assets/hotDeals/hotDeal1.jpg"
 import hotDeal2Image from "../assets/hotDeals/hotDeal2.jpg"
 import { flashSaleStore } from "../stores/flashSale";
 import type { ProductSummary } from "../interfaces/product";
+import Loading from "../components/Loading.vue";
 
 const flashSale1 = ref<FlashSale | null>(null);
 const flashSale2 = ref<FlashSale | null>(null);
@@ -68,6 +69,7 @@ const btnShowMoreHotDeal2 = () => {
 </script>
 <template>
     <Header/>
+    <Loading  :loading="useFlashSale.loading"/>
     <div class="container-deals">
         <div class="deal-item" v-if="flashSale1">
             <h3>{{ flashSale1?.title }}</h3>

@@ -33,7 +33,6 @@ onMounted(async () => {
         if (Array.isArray(queryName)) {
             selectedCategories.value = queryName.map(n => n.toString().trim()).filter(Boolean);
         } else {
-            // support comma-separated names as well as single name
             selectedCategories.value = queryName
                 .split(',')
                 .map(n => n.trim())
@@ -136,6 +135,11 @@ const toggleCategory = () => {
 
 <template>
     <Header></Header>
+    <div class="product-page">
+        <div v-if="product.loading" class="loading-overlay">
+            <div class="spinner"></div>
+        </div>
+    </div>
     <div class="filter-section">
         <div class="breadcrumb">
             <a href="/" class="breadcrumb-item">Trang chủ</a>
@@ -186,7 +190,7 @@ const toggleCategory = () => {
         </div>
         
     </div>
-    <div class="container">
+    <div class="container" v-if="!product.loading">
         <div class="category" v-show="showcategory">
             <div class="category-header">
                 <h3>Danh mục</h3>
