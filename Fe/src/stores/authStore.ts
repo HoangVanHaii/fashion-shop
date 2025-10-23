@@ -1,11 +1,11 @@
 import { defineStore } from "pinia";
 import { ref } from "vue";
 import { registerSendOTP } from "../services/user";
-import { verifyRegister, loginUser, getUserById } from "../services/user";
+import { verifyRegister, loginUser, getUserById, getShopByid, getShopName } from "../services/user";
 import type { User } from "../interfaces/user";
 
 export const useAuthStore = defineStore('auth', () => {
-    const loading = ref(false)
+    const loading = ref<boolean>(false)
     const error = ref<string | null>(null)
     const success = ref<string | null>(null)
     const OTP = ref<string | null>(null);
@@ -70,10 +70,13 @@ export const useAuthStore = defineStore('auth', () => {
 
         try {
             const data = await loginUser(email, password);
-            user.value = data.user;
+
+            user.value = data.data.user;
             localStorage.setItem("accessToken", data.data.accessToken);
             localStorage.setItem("refreshToken", data.data.refreshToken);
+            localStorage.setItem("user_id", data.data.user.id);
             isLogin.value = true;
+
             success.value = "Đăng nhập thành công";
         } catch (err: any) {
             const status = err.response?.status || 500;
@@ -99,6 +102,15 @@ export const useAuthStore = defineStore('auth', () => {
             loading.value = false;
         }
     };
+    const getShopNameStore = async (product_id: number) => {
+        try {
+            const shopName = await getShopName(product_id);
+            console.log(shopName.data.shoName);
+            return shopName.data.shopName;
+        } catch (error) {
+            console.log(`Failed to fetch product shop name`);
+        }
+    }
     const getUserByIdStore = async (id: number) => {
         try {
             const data = await getUserById(id);
@@ -107,14 +119,28 @@ export const useAuthStore = defineStore('auth', () => {
             console.error("Failed to get user by ID:", error);
         }
     }
+
+    const getShopByidStore = async (id: number) => {
+        try {
+            const data = await getShopByid(id);
+            console.log(data);
+            return data.data;
+        } catch (error) {
+            console.error("Failed to get user by ID:", error);
+        }
+    }
+
     return {
         OTP,
         loading,
+        user,
         error,
         success,
         registerSendOtpStore,
         verifyRegisterStore,
         loginStore,
         getUserByIdStore,
+        getShopByidStore,
+        getShopNameStore
     }
 })

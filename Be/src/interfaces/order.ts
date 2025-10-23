@@ -30,6 +30,7 @@ export interface OrderItemDetail{
     size: string;
     quantity: number;
     price: number;
+    flash_price: number;
     image_url: string;
 }
 export interface OderPayLoad {

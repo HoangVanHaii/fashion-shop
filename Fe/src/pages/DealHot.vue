@@ -11,9 +11,9 @@ import type { ProductPayload, ProductSummary } from "../interfaces/product";
 import { useProductStore } from "../stores/productStore";
 import AddToCart from "../components/AddToCart.vue";
 import { useRouter } from "vue-router";
+import Loading from "../components/Loading.vue";
 
 const router = useRouter();
-
 const flashSale1 = ref<FlashSale | null>(null);
 const flashSale2 = ref<FlashSale | null>(null);
 // const
@@ -82,179 +82,183 @@ const btnShowMoreHotDeal2 = () => {
 };
 </script>
 <template>
-  <Header />
-  <div class="breadcrumb">
-      <a href="/" class="breadcrumb-item">Trang chủ</a>
-      <span class="separator">|</span>
-     <span class="breadcrumb-item active">Ưu đãi cực hót</span>
-  </div>
-  <div class="container-deals">
-    <div class="deal-item" v-if="flashSale1">
-      <h3>{{ flashSale1?.title }}</h3>
-      <div class="deal-content">
-        <div class="deal-hot-image">
-          <img :src="hotDeal1Image" alt="" />
-        </div>
-        <div class="deal-product">
-          <div
-            v-for="product in displayedProductHotDeal1"
-            class="deal-item-product"
-              @click="
-                router.push({
-                name: 'product-detail',
-                params: { id: product.id },
-              })"
+
+    <Header />
+    <Loading  :loading="useFlashSale.loading"/>
+    <div class="breadcrumb">
+        <a href="/" class="breadcrumb-item">Trang chủ</a>
+        <span class="separator">|</span>
+        <span class="breadcrumb-item active">Ưu đãi cực hót</span>
+    </div>
+    <div class="container-deals">
+        <div class="deal-item" v-if="flashSale1">
+            <h3>{{ flashSale1?.title }}</h3>
+            <div class="deal-content">
+                <div class="deal-hot-image">
+                    <img :src="hotDeal1Image" alt="" />
+                </div>
+                <div class="deal-product">
+                    <div
+                        v-for="product in displayedProductHotDeal1"
+                        class="deal-item-product"
+                        @click="
+                            router.push({
+                            name: 'product-detail',
+                            params: { id: product.id },
+                        })"
               
-          >
-            <div class="deal-image">
-              <div
-                class="container-percent"
-                v-if="
-                  getDiscountPercent(product.min_price, product.flash_price) > 0
+                    >
+                        <div class="deal-image">
+                            <div
+                                class="container-percent"
+                                v-if="
+                                getDiscountPercent(product.min_price, product.flash_price) > 0
+                                "
+                            >
+                                <span class="text-percent"
+                                    >{{
+                                        getDiscountPercent(product.min_price, product.flash_price)
+                                    }}%
+                                </span>
+                            </div>
+                            <img :src="getImage(product.thumbnail!)" alt="" />
+                        </div>
+                        <div class="deal-description">
+                            <div class="deal-logo-color">
+                                <span class="deal-logo">NAVA</span>
+                                <div class="deal-colors">
+                                    <div
+                                        v-for="(img, ind) in product?.images.slice(0, 6)"
+                                        :key="ind"
+                                        class="deal-item-image"
+                                    >
+                                        <img :src="getImage(img)" alt="" />
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="deal-info">
+                                <div class="deal-name">
+                                    <p>{{ product.name }}</p>
+                                </div>
+                                <div class="deal-bottom">
+                                    <div class="deal-prices">
+                                        <span class="deal-price-new">{{
+                                            formatPrice(product.flash_price!)
+                                            }}
+                                        </span>
+                                        <span class="deal-price-old">{{
+                                            formatPrice(product.max_price)
+                                            }}
+                                        </span>
+                                    </div>
+                                    <div class="deal-action" @click.stop>
+                                        <button @click="handleCart(product.id)"><i class="fa-solid fa-cart-shopping"></i></button>
+                                        <button><i class="fa-solid fa-heart"></i></button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <button class="deal-btn" @click="btnShowMoreHotDeal1">
+                {{ showMoreHotDeal1 ? "Thu gọn" : "Xem thêm sản phẩm" }}
+                <i
+                :class="
+                    showMoreHotDeal1
+                    ? 'fa-solid fa-angle-up'
+                    : 'fa-solid fa-arrow-right'
                 "
-              >
-                <span class="text-percent"
-                  >{{
-                    getDiscountPercent(product.min_price, product.flash_price)
-                  }}%</span
-                >
-              </div>
-              <img :src="getImage(product.thumbnail!)" alt="" />
-            </div>
-            <div class="deal-description">
-              <div class="deal-logo-color">
-                <span class="deal-logo">NAVA</span>
-                <div class="deal-colors">
-                  <div
-                    v-for="(img, ind) in product?.images.slice(0, 6)"
-                    :key="ind"
-                    class="deal-item-image"
-                  >
-                    <img :src="getImage(img)" alt="" />
-                  </div>
-                </div>
-              </div>
-              <div class="deal-info">
-                <div class="deal-name">
-                  <p>{{ product.name }}</p>
-                </div>
-                <div class="deal-bottom">
-                  <div class="deal-prices">
-                    <span class="deal-price-new">{{
-                      formatPrice(product.flash_price!)
-                    }}</span>
-                    <span class="deal-price-old">{{
-                      formatPrice(product.max_price)
-                    }}</span>
-                  </div>
-                  <div class="deal-action" @click.stop>
-                    <button @click="handleCart(product.id)"><i class="fa-solid fa-cart-shopping"></i></button>
-                    <button><i class="fa-solid fa-heart"></i></button>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
+                ></i>
+            </button>
         </div>
-      </div>
-      <button class="deal-btn" @click="btnShowMoreHotDeal1">
-        {{ showMoreHotDeal1 ? "Thu gọn" : "Xem thêm sản phẩm" }}
-        <i
-          :class="
-            showMoreHotDeal1
-              ? 'fa-solid fa-angle-up'
-              : 'fa-solid fa-arrow-right'
-          "
-        ></i>
-      </button>
-    </div>
-    <div class="deal-item" v-if="flashSale2">
-      <h3>{{ flashSale2?.title }}</h3>
-      <div class="deal-content deal2">
-        <div class="deal-hot-image">
-          <img :src="hotDeal2Image" alt="" />
-        </div>
-        <div class="deal-product">
-          <div
-            v-for="product in displayedProductHotDeal2"
-            class="deal-item-product"
-            @click="
-                router.push({
-                name: 'product-detail',
-                params: { id: product.id },
-              })"
-          >
-            <div class="deal-image">
-              <div
-                class="container-percent"
-                v-if="
-                  getDiscountPercent(product.min_price, product.flash_price) > 0
+        <div class="deal-item" v-if="flashSale2">
+            <h3>{{ flashSale2?.title }}</h3>
+                <div class="deal-content deal2">
+                    <div class="deal-hot-image">
+                        <img :src="hotDeal2Image" alt="" />
+                    </div>
+                    <div class="deal-product">
+                        <div
+                            v-for="product in displayedProductHotDeal2"
+                            class="deal-item-product"
+                            @click="
+                                router.push({
+                                name: 'product-detail',
+                                params: { id: product.id },
+                            })"
+                        >
+                        <div class="deal-image">
+                            <div
+                                class="container-percent"
+                                v-if="
+                                getDiscountPercent(product.min_price, product.flash_price) > 0
+                                "
+                            >
+                                <span class="text-percent"
+                                    >{{
+                                        getDiscountPercent(product.min_price, product.flash_price)
+                                    }}%
+                                </span >
+                            </div>
+                            <img :src="getImage(product.thumbnail!)" alt="" />
+                        </div>
+                        <div class="deal-description">
+                            <div class="deal-logo-color">
+                                <span class="deal-logo">NAVA</span>
+                                <div class="deal-colors">
+                                    <div
+                                        v-for="(img, ind) in product?.images.slice(0, 6)"
+                                        :key="ind"
+                                        class="deal-item-image"
+                                    >
+                                        <img :src="getImage(img)" alt="" />
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="deal-info">
+                                <div class="deal-name">
+                                    <p>{{ product.name }}</p>
+                                </div>
+                                <div class="deal-bottom">
+                                    <div class="deal-prices">
+                                        <span class="deal-price-new">{{
+                                        formatPrice(product.flash_price!)
+                                        }}</span>
+                                        <span class="deal-price-old">{{
+                                        formatPrice(product.max_price)
+                                        }}</span>
+                                    </div>
+                                    <div class="deal-action" @click.stop>
+                                        <button @click="handleCart(product.id)"><i class="fa-solid fa-cart-shopping"></i></button>
+                                        <button><i class="fa-solid fa-heart"></i></button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <button class="deal-btn" @click="btnShowMoreHotDeal2">
+                {{ showMoreHotDeal2 ? "Thu gọn" : "Xem thêm sản phẩm" }}
+                <i
+                :class="
+                    showMoreHotDeal2
+                    ? 'fa-solid fa-angle-up'
+                    : 'fa-solid fa-arrow-right'
                 "
-              >
-                <span class="text-percent"
-                  >{{
-                    getDiscountPercent(product.min_price, product.flash_price)
-                  }}%</span
-                >
-              </div>
-              <img :src="getImage(product.thumbnail!)" alt="" />
-            </div>
-            <div class="deal-description">
-              <div class="deal-logo-color">
-                <span class="deal-logo">NAVA</span>
-                <div class="deal-colors">
-                  <div
-                    v-for="(img, ind) in product?.images.slice(0, 6)"
-                    :key="ind"
-                    class="deal-item-image"
-                  >
-                    <img :src="getImage(img)" alt="" />
-                  </div>
-                </div>
-              </div>
-              <div class="deal-info">
-                <div class="deal-name">
-                  <p>{{ product.name }}</p>
-                </div>
-                <div class="deal-bottom">
-                  <div class="deal-prices">
-                    <span class="deal-price-new">{{
-                      formatPrice(product.flash_price!)
-                    }}</span>
-                    <span class="deal-price-old">{{
-                      formatPrice(product.max_price)
-                    }}</span>
-                  </div>
-                  <div class="deal-action" @click.stop>
-                    <button @click="handleCart(product.id)"><i class="fa-solid fa-cart-shopping"></i></button>
-                    <button><i class="fa-solid fa-heart"></i></button>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
+                ></i>
+            </button>
         </div>
-      </div>
-      <button class="deal-btn" @click="btnShowMoreHotDeal2">
-        {{ showMoreHotDeal2 ? "Thu gọn" : "Xem thêm sản phẩm" }}
-        <i
-          :class="
-            showMoreHotDeal2
-              ? 'fa-solid fa-angle-up'
-              : 'fa-solid fa-arrow-right'
-          "
-        ></i>
-      </button>
+        <div v-if="!flashSale1 && !flashSale2">
+            <h4>Hiện không có Ưu đãi hót nào</h4>
+        </div>
+        <AddToCart
+            v-if="showFormAdd && productDetail"
+            :product="productDetail"
+            @close="showFormAdd = false"
+        />
     </div>
-    <div v-if="!flashSale1 && !flashSale2">
-      <h4>Hiện không có Ưu đãi hót nào</h4>
-    </div>
-    <AddToCart
-      v-if="showFormAdd && productDetail"
-      :product="productDetail"
-      @close="showFormAdd = false"
-    />
-  </div>
 </template>
 
 <style scoped>

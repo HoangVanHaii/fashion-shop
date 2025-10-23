@@ -43,4 +43,12 @@ export const getUserById = async (id: number) => {
     const response = await axios.get(`http://localhost:3000/api/admin/${id}`);
     return response.data;
 }
+export const getShopByid = async (id: number) => {
+    const response = await axios.get(`http://localhost:3000/api/user/shop/${id}`)
+    return response.data;
+}
+export const getShopName = async (product_id: number) => {
+    const response = await axios.get(`http://localhost:3000/api/user/shop/nameByProduct/${product_id}`)
+    return response.data;
+}
 

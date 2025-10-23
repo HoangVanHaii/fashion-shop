@@ -7,6 +7,7 @@ const baseQuery = `
                 p.id,
                 p.name,
                 p.description,
+                p.shop_id,
                 c.category_name,
                 c.gender,
                 sp.id AS shop_id,
@@ -25,7 +26,7 @@ const baseQuery = `
             LEFT JOIN flash_sales fs ON fs.id = fsi.flash_sale_id AND fs.status = 'active' 
             LEFT JOIN order_items oi ON oi.size_id = s.id
             GROUP BY 
-                p.id, p.name, p.description, c.category_name, c.gender, sp.id, p.status, i.image_url, fsi.flash_sale_price  `;
+                p.id, p.name, p.description, p.shop_id, c.category_name, c.gender, sp.id, p.status, i.image_url, fsi.flash_sale_price  `;
 
 export const getAllProducts = async (): Promise<ProductSummary[]> => {
     try {
@@ -157,6 +158,7 @@ export const getProductById = async (id: number): Promise<ProductPayload> => {
                         s.price,
                         cl.id AS color_id,
                         cl.image_url,
+                        cl.is_main,
                         cl.color,
                         cl.is_main,
                         fsi.flash_sale_price,
@@ -198,7 +200,8 @@ export const getProductById = async (id: number): Promise<ProductPayload> => {
                     image_url: row.image_url,
                     is_main: row.is_main,
                     sizes: [],
-                    images: []
+                    images: [],
+                    is_main: row.is_main
                 }
                 product.colors.push(color);
             }
@@ -538,8 +541,11 @@ export const getProductByShop = async (shop_id: number): Promise<ProductSummary[
         const product = await pool.request()
             .input('shop_id', shop_id)
             .query(query);
-        return product.recordset as ProductSummary[];
+        const productMap = new Map<number, ProductSummary>();
+        makeProductSumary(productMap, product.recordset);
+        return Array.from(productMap.values());
     } catch (error) {
+        console.log(error);
         throw new AppError('Failed to fetch products by shop', 500, false);
     }
 }
