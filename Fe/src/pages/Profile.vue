@@ -15,7 +15,7 @@ import NavbarProfile from '../components/NavbarProfile.vue';
             :show-register-seller="false" 
             :show-reset-password="false" 
             :show-voucher="false" 
-        />
+        />-->
   </div>
 </template>
 

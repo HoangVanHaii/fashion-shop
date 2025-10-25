@@ -1,11 +1,13 @@
 <script setup lang="ts">
 import Header from '../components/Header.vue';
-import type { ProductSummary } from '../interfaces/product';
+import type { ProductSummary, ProductPayload } from '../interfaces/product';
 import { ref, onMounted, computed, onBeforeUnmount } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useProductStore } from '../stores/productStore';
 import { useCategoryStore } from '../stores/categoryStore';
 import { getImage, formatPrice } from '../utils/format'
+import AddToCart from "../components/AddToCart.vue";
+
 
 const route = useRoute();
 const router = useRouter();
@@ -16,7 +18,9 @@ const productGender = ref<ProductSummary[]>([])
 const listCategory = ref<string[]>([])
 const selectedSort = ref('name-asc');
 const showSortDropdown = ref(false);
-const selectedCategories = ref<string[]>([])
+const selectedCategories = ref<string[]>([]);
+const showFormAdd = ref(false);
+
 const sortOptions = [
     { label: 'Tên A → Z', value: 'name-asc' },
     { label: 'Tên Z → A', value: 'name-desc' },
@@ -43,6 +47,7 @@ onMounted(async () => {
     window.addEventListener('scroll', handleScroll);
     window.addEventListener('resize', handleResize);
 })
+
 const handleScroll = () => {
     if (window.innerWidth > 768) {
         showcategory.value = true;
@@ -130,11 +135,23 @@ const clearAllFilters = () => {
 const toggleCategory = () => {
     showcategory.value = !showcategory.value;
 };
+const productDetail = ref<ProductPayload>();
+const handleCart = async (id: number) => {
+  productDetail.value = await product.getProductByIdStore(id);
+  if (productDetail) {
+    showFormAdd.value = true;
+  }
+};
 
 </script>
 
 <template>
     <Header></Header>
+    <AddToCart
+        v-if="showFormAdd && productDetail"
+        :product="productDetail"
+        @close="showFormAdd = false"
+    />
     <div class="product-page">
         <div v-if="product.loading" class="loading-overlay">
             <div class="spinner"></div>
@@ -244,13 +261,13 @@ const toggleCategory = () => {
                         </div>
                         <div class="product-bottom">
                             <div class="product-prices">
-                                <span class="price-new" >{{ formatPrice(product.min_price) }}</span>
-                                <span v-if="product.flash_price" class="price-old">{{ formatPrice(product.flash_price) }}</span>
+                                <span class="price-new" >{{ formatPrice(product.flash_price || product.min_price) }}</span>
+                                <span v-if="product.flash_price" class="price-old">{{ formatPrice(product.min_price) }}</span>
                             </div>
-                            <div class="product-action">
-                                <button><i class="fa-solid fa-cart-shopping"></i></button>
+                            <div class="product-action" @click.stop>
+                                <button @click="handleCart(product.id)"><i class="fa-solid fa-cart-shopping"></i></button>
                                 <button><i class="fa-solid fa-heart"></i></button>
-                            </div>
+                            </div> 
                         </div>
                         
                     </div>

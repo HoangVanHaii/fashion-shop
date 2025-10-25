@@ -5,10 +5,12 @@
     import { useAuthStore } from '../stores/authStore';
     import VerifyOTP from '../components/VerifyOTP.vue';
     import Header from '../components/Header.vue';
+    import Notification from '../components/Notification.vue';
+
     const auth = useAuthStore();
     const route = useRoute();
     const router = useRouter();
-
+    
     const showVerify = ref(false);
     const name = ref<string>('');
     const email = ref<string>('');
@@ -17,17 +19,30 @@
     const dateOfBirth = ref<string>('');
 
     const isShaking = ref(false);
+    const showNotification = ref<boolean>(false);
+    const toastText = ref('');
     const nameInput = ref<HTMLInputElement | null>(null);
     const emailInput = ref<HTMLInputElement | null>(null);
     const phoneInput = ref<HTMLInputElement | null>(null);
     const passwordInput = ref<HTMLInputElement | null>(null);
     const dobInput = ref<HTMLInputElement | null>(null);
+    const showPassword = ref(false)
+
 
     const openRegister = () => {
+        email.value = '';
+        password.value = '';
+        dateOfBirth.value = ''
+        phone.value = '';
         router.push('/auth/register')
     }
     const openLogin = () => {
+        name.value = '';
+        password.value = '';    
         router.push('/auth/login')
+    }
+    const togglePassword = () => {
+    showPassword.value = !showPassword.value
     }
     const handleRegister = async () => {
         if (!name.value) {
@@ -60,8 +75,7 @@
             dobInput.value?.focus();
             return;
         }
-        auth.loading = true;
-        console.log(auth.loading);
+        showNotification.value = false;
         await auth.registerSendOtpStore(name.value, email.value, phone.value, password.value, dateOfBirth.value)
         if(auth.error){
             auth.loading = false;
@@ -70,8 +84,8 @@
         }
         if(auth.success){
             showVerify.value = true;
+            showNotification.value = true;
         }
-                console.log(auth.loading);
 
         auth.loading = false;
     }
@@ -88,25 +102,31 @@
             passwordInput.value?.focus();
             return;
         }
+        showNotification.value = false;
+        toastText.value = '';
         await auth.loginStore(email.value, password.value);
         if (auth.error) {
             triggerShake();
         }
         if(auth.success) {
-            router.push('/')
+            showNotification.value = true;
+            toastText.value = "✅ Đăng nhập thành công!";
+            setTimeout(() => {
+                router.push('/')
+            }, 1500);
         }
-        // console.log(auth.error);
     }
     const triggerShake = () => {
         isShaking.value = true;
         setTimeout(() => {
             isShaking.value = false;
-        }, 400); // Thời gian trùng với animation: 0.4s
+        }, 400); 
     };
     
 </script>
 <template>
      <Header />
+     <Notification :text="toastText" :isSuccess="showNotification" />
     <div class="container">
         <div class="slogan">
             <img :src="logo" alt="">
@@ -124,7 +144,11 @@
                 <input ref="dobInput" v-model="dateOfBirth" type="date" class="date-of-birth" placeholder="dd/MM/yyy">
                 <input ref="emailInput" v-model="email" type="text" class="email" placeholder="Email">
                 <input ref="phoneInput" v-model="phone" type="text" class="phone-number" placeholder="Số điện thoại">
-                <input ref="passwordInput" v-model="password" type="text" class="passwod" placeholder="Mật khẩu">
+                <!-- <input ref="passwordInput" v-model="password" type="password" class="password" placeholder="Mật khẩu"> -->
+                <div class="password-wrapper">
+                    <input :type="showPassword ? 'text' : 'password'" v-model="password" placeholder="Mật khẩu">
+                    <i @click="togglePassword" class="fa" :class="showPassword ? 'fa-eye-slash' : 'fa-eye'"></i>
+                </div>
                 <button 
                     class="register" 
                     @click="handleRegister"
@@ -164,7 +188,11 @@
             </div>
             <div class="content">
                 <input v-model="email" type="text" class="email" placeholder="Email">
-                <input v-model="password" type="text" class="password" placeholder="Mật khẩu">
+                <!-- <input v-model="password" type="password" class="password" placeholder="Mật khẩu"> -->
+                <div class="password-wrapper">
+                    <input :type="showPassword ? 'text' : 'password'" v-model="password" placeholder="Mật khẩu">
+                    <i @click="togglePassword" class="fa" :class="showPassword ? 'fa-eye-slash' : 'fa-eye'"></i>
+                </div>
                 <div class="forgetPass">
                     <span id="forgetPass">Quên mật khẩu?</span>
                 </div>
@@ -393,6 +421,27 @@ button:hover{
 .forgetPass:hover{
     cursor: pointer;
 }
+.password-wrapper {
+    position: relative;
+    width: 90%;
+}
+.password-wrapper input {
+    height: 25px;
+    width: 100%;
+    border-radius: 5px;
+    border: 1px solid rgb(107, 107, 107);
+    transition: all 0.3s ease;
+}
+.password-wrapper i {
+    position: absolute;
+    right: -21px;
+    top: 50%;
+    transform: translateY(-50%);
+    cursor: pointer;
+    color: #888;
+    font-size: 13px;
+}
+
 @media screen and (max-width: 1024px) and (min-width: 768px) {
     .slogan {
         width: 40%;

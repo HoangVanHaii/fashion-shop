@@ -150,14 +150,10 @@ const btnShowMoreHotDeal2 = () => {
                                 </div>
                                 <div class="deal-bottom">
                                     <div class="deal-prices">
-                                        <span class="deal-price-new">{{
-                                            formatPrice(product.flash_price!)
-                                            }}
-                                        </span>
-                                        <span class="deal-price-old">{{
-                                            formatPrice(product.max_price)
-                                            }}
-                                        </span>
+                                        <div class="deal-prices">
+                                        <span class="deal-price-new">{{ product.flash_price ? formatPrice(product.flash_price!) : product.min_price }}</span>
+                                        <span class="deal-price-old" v-if="product.flash_price"> {{ formatPrice(product.max_price) }}</span>
+                                    </div>
                                     </div>
                                     <div class="deal-action" @click.stop>
                                         <button @click="handleCart(product.id)"><i class="fa-solid fa-cart-shopping"></i></button>
@@ -233,12 +229,8 @@ const btnShowMoreHotDeal2 = () => {
                                 </div>
                                 <div class="deal-bottom">
                                     <div class="deal-prices">
-                                        <span class="deal-price-new">{{
-                                        formatPrice(product.flash_price!)
-                                        }}</span>
-                                        <span class="deal-price-old">{{
-                                        formatPrice(product.max_price)
-                                        }}</span>
+                                        <span class="deal-price-new">{{ product.flash_price ? formatPrice(product.flash_price!) : product.min_price }}</span>
+                                        <span class="deal-price-old" v-if="product.flash_price"> {{ formatPrice(product.max_price) }}</span>
                                     </div>
                                     <div class="deal-action" @click.stop>
                                         <button @click="handleCart(product.id)"><i class="fa-solid fa-cart-shopping"></i></button>

@@ -784,9 +784,6 @@ const baseQuery = `
                 fsi.id AS flash_sale_item_id,
                 p.name,
                 p.description,
-                c.category_name,
-                c.gender,
-                sp.id AS shop_id,
                 p.status,
                 i.image_url,
                 MIN(fsi.flash_sale_price) AS flash_sale_price,
@@ -797,10 +794,9 @@ const baseQuery = `
             INNER JOIN categories c ON p.category_id = c.category_id
             INNER JOIN product_colors i ON i.product_id = p.id
             INNER JOIN product_sizes s ON s.color_id = i.id
-            INNER JOIN shops sp ON p.shop_id = sp.id
             LEFT JOIN flash_sale_items fsi ON fsi.size_id = s.id AND fsi.status = 'active'
             LEFT JOIN flash_sales fs ON fs.id = fsi.flash_sale_id AND fs.status = 'active' 
             WHERE fs.id = @flash_sale_id
             GROUP BY 
-                p.id, fsi.id, p.name, p.description, c.category_name, c.gender, sp.id, p.status, i.image_url, fsi.flash_sale_price, fsi.stock
+                p.id, fsi.id, p.name, p.description, p.status, i.image_url, fsi.flash_sale_price, fsi.stock
             `;

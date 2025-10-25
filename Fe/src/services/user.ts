@@ -51,4 +51,3 @@ export const getShopName = async (product_id: number) => {
     const response = await api.get(`/user/shop/nameByProduct/${product_id}`)
     return response.data;
 }
-

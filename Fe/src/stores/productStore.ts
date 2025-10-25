@@ -1,5 +1,5 @@
 import { defineStore } from "pinia";
-import { getProductByCategory, searchByCategoryGender, getProductByName, getProductById, getProductBestSeller, getProductLatest, getProductByShop } from '../services/product'
+import { getProductByCategory, searchByCategoryGender, getProductByName, getProductById, getProductBestSeller, getProductLatest, getProductByShop, getAllProductActive } from '../services/product'
 import { ref } from "vue";
 import type { ProductSummary, ProductPayload } from "../interfaces/product";
 export const useProductStore = defineStore('product', () => {
@@ -39,7 +39,7 @@ export const useProductStore = defineStore('product', () => {
     }
     const getProductBestSellerStore = async () => {
         try {
-            const result = await getProductBestSeller(20);
+            const result = await getProductBestSeller(40);
             return result as ProductSummary[];
         } catch (err) {
             console.log(err);
@@ -48,7 +48,7 @@ export const useProductStore = defineStore('product', () => {
     }
     const getProductLatestStore = async () => {
         try {
-            const result = await getProductLatest(20);
+            const result = await getProductLatest(40);
             return result as ProductSummary[];
         } catch (err) {
             console.log(err);
@@ -72,7 +72,15 @@ export const useProductStore = defineStore('product', () => {
             console.log(err);
         }
     }
+    const getAllProductActiveStore = async () => {
+        try {
+            const result = await getAllProductActive();
+            return result
+        } catch (err) {
+            console.log(err);
+        }
+    }
 
 
-    return { searchByCategoryStore, searchByCategoryGenderStore, getProductByIdStore, getProductBestSellerStore, getProductLatestStore, getProductByNameStore, getProductByShopStore, loading};
+    return { searchByCategoryStore, getAllProductActiveStore, searchByCategoryGenderStore, getProductByIdStore, getProductBestSellerStore, getProductLatestStore, getProductByNameStore, getProductByShopStore, loading};
 })
