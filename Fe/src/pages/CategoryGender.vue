@@ -5,7 +5,7 @@ import { ref, onMounted, computed, onBeforeUnmount } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useProductStore } from '../stores/productStore';
 import { useCategoryStore } from '../stores/categoryStore';
-import { getImage, formatPrice } from '../utils/getImage'
+import { getImage, formatPrice } from '../utils/format'
 
 const route = useRoute();
 const router = useRouter();

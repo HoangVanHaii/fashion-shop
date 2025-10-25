@@ -16,6 +16,7 @@
     const password = ref<string>('');
     const dateOfBirth = ref<string>('');
 
+    const isShaking = ref(false);
     const nameInput = ref<HTMLInputElement | null>(null);
     const emailInput = ref<HTMLInputElement | null>(null);
     const phoneInput = ref<HTMLInputElement | null>(null);
@@ -31,21 +32,31 @@
     const handleRegister = async () => {
         if (!name.value) {
             nameInput.value?.focus();
+            auth.error = "Tên không được bỏ trống";
+            triggerShake()
             return;
         }
         if (!email.value) {
+            auth.error = "Email không được bỏ trống";
+            triggerShake()
             emailInput.value?.focus();
             return;
         }
         if (!phone.value) {
+            auth.error = "Số điện không được bỏ trống";
+            triggerShake()
             phoneInput.value?.focus();
             return;
         }
         if (!password.value) {
+            auth.error = "Mật khẩu không được bỏ trống";
+            triggerShake()
             passwordInput.value?.focus();
             return;
         }
         if (!dateOfBirth.value) {
+            auth.error = "Ngày sinh không được bỏ trống";
+            triggerShake()
             dobInput.value?.focus();
             return;
         }
@@ -54,6 +65,7 @@
         await auth.registerSendOtpStore(name.value, email.value, phone.value, password.value, dateOfBirth.value)
         if(auth.error){
             auth.loading = false;
+            triggerShake();
             return;
         }
         if(auth.success){
@@ -63,14 +75,34 @@
 
         auth.loading = false;
     }
-    const handleLogin = async() => {
+    const handleLogin = async () => {
+        if (!email.value) {
+            auth.error = "Email không được bỏ trống";
+            triggerShake()
+            emailInput.value?.focus();
+            return;
+        }
+        if (!password.value) {
+            auth.error = "Mật khẩu không được bỏ trống";
+            triggerShake()
+            passwordInput.value?.focus();
+            return;
+        }
         await auth.loginStore(email.value, password.value);
-        alert(auth.user);
+        if (auth.error) {
+            triggerShake();
+        }
         if(auth.success) {
             router.push('/')
         }
         // console.log(auth.error);
     }
+    const triggerShake = () => {
+        isShaking.value = true;
+        setTimeout(() => {
+            isShaking.value = false;
+        }, 400); // Thời gian trùng với animation: 0.4s
+    };
     
 </script>
 <template>
@@ -81,7 +113,7 @@
             <p class="welcome">Chào mừng bạn đến với Nava </p>
             <p class="shopping"> Thiên đường mua sắm</p>
         </div>
-        <div class="form-register" v-if="route.name=='register-sendOTP'"  @submit.prevent="handleRegister">
+        <div class="form-register" v-if="route.name=='register-sendOTP'"  @submit.prevent="handleRegister" >
             <div class="title">
                 <span id="login" @click="openLogin()">Đăng nhập</span>
                 <span id="space">|</span>
@@ -100,7 +132,16 @@
                     :class="{ 'loading-button': auth.loading }"
                 >
                     {{ auth.loading ? 'Đang đăng ký' : 'Đăng ký' }}
-                </button>            </div>
+                </button>            
+            </div>
+            <p
+                    v-if="auth.error"
+                    style="color: red;"
+                    :class="{ shake: isShaking }"
+                    class="error-text"
+                >
+                {{ auth.error }}
+                </p>
             <span id="or">————— Hoặc —————</span>
              <div class="other-register">
                 <button class="facebook"><i class="fa-brands fa-facebook"></i> Facebook</button>
@@ -112,7 +153,7 @@
                 <div class="policy-clause">
                     <span id="clause">Điều khoản dịch vụ </span> <span>&</span> <span id="policy"> Chính sách bảo mật</span>
                 </div>
-                <p style="color: red;">{{ auth.error }}</p>
+                
             </div>
         </div>
          <div class="form-login" v-if="route.path=='/auth/login'">
@@ -142,7 +183,11 @@
                 <button class="google"><i class="fa-brands fa-google"></i> Google</button>
                 
             </div>
-            <p style="color: red;">{{ auth.error }}</p>
+            <p 
+                :class="{ shake: isShaking }" 
+                style="color: red; transition: all 0.2s;">
+                {{ auth.error }}
+            </p>
         </div>
     </div>
     <div v-if="showVerify" class="modal-overlay" @click="showVerify = false">
@@ -211,6 +256,19 @@ img{
     transform: translateX(250px);
     animation: slideIn 1s ease-out forwards;
 
+}
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  20%, 60% { transform: translateX(-6px); }
+  40%, 80% { transform: translateX(6px); }
+}
+
+.shake {
+  animation: shake 0.4s ease;
+}
+
+.shake {
+animation: shake 0.4s ease;
 }
 @keyframes slideIn {
     to {

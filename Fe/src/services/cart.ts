@@ -1,9 +1,9 @@
-import axios from "axios";
+import api from "./api";
 
 export const getCartCount = async () => {
     const token = localStorage.getItem('accessToken');
 
-    const response = await axios.get('http://localhost:3000/api/cart/getCountCart', {
+    const response = await api.get('/cart/getCountCart', {
         headers: {
             Authorization: `Bearer ${token}`
         }
@@ -15,7 +15,7 @@ export const getCartCount = async () => {
 export const addToCart = async (size_id: number, quantity: number) => {
     const token = localStorage.getItem('accessToken');
 
-    const response = await axios.post('http://localhost:3000/api/cart/addToCart', {
+    const response = await api.post('/cart/addToCart', {
         size_id,
         quantity
     }, {

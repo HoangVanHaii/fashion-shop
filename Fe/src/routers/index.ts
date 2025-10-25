@@ -13,6 +13,8 @@ import OrderSuccess from '../pages/OrderSuccess.vue';
 import Order from '../pages/Order.vue';
 import NavbarProfile from '../components/NavbarProfile.vue';
 import Profile from '../pages/Profile.vue';
+import OrderDetail from '../pages/OrderDetail.vue';
+import Favourite from '../pages/Favourite.vue';
 
 const routes = [
   { path: '/', redirect: '/home' },
@@ -31,6 +33,8 @@ const routes = [
   { path: '/profile/orderOfme', name: 'order-of-me', component: Order },
   { path: '/navbarProfile', name: 'nav-bar', component: NavbarProfile },
   { path: '/profile/me', name: 'profile', component: Profile },
+  { path: '/profile/orderOfme/:id', name: 'order-detail', component: OrderDetail },
+  { path: '/profile/favouriteOfme', name: 'favourite', component: Favourite },
 ];
 const router = createRouter({ history: createWebHistory(import.meta.env.BASE_URL), routes });
 

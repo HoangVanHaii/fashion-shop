@@ -3,34 +3,23 @@ import Header from '../components/Header.vue';
 import NavbarProfile from '../components/NavbarProfile.vue';
 import Loading from '../components/Loading.vue';
 import { ref, onMounted } from 'vue';
-import { useAuthStore } from '../stores/authStore';
-import { getImage } from '../utils/format';
 import { useOrderStore } from '../stores/orderStore';
-import { formatPrice } from '../utils/formatPrice';
+import { useRoute } from 'vue-router';
+import { formatDateTime, formatPrice, getImage } from '../utils/format';
 import { useRouter } from 'vue-router';
-import type { GetOrder } from '../interfaces/order';
 import Notification from '../components/Notification.vue';
 
-const router = useRouter();
-const order = useOrderStore()
-const auth = useAuthStore();
-const listShopName = ref<string[]>([]);
-// const loadOrder = ref<GetOrder[]>([])
-const textToast = ref<string>('');
 const showNotification = ref<boolean>(false);
+const textToast = ref<string>('');
+const router = useRouter();
+const route = useRoute();
+const order = useOrderStore()
+
 
 onMounted(async () => {
     handleResize();
-    const orders = await order.getOrderOfMeStore();
-    if (orders) {
-        for (let i = 0; i < orders.length; i++) {
-            const o = orders[i];
-            const productId = o.items[0]?.product_id;
-            const shopName = await auth.getShopNameStore(productId || 4);
-            listShopName.value.push(shopName);
-        }
-        // loadOrder.value = orders; 
-    }
+    const id = parseInt(route.params.id as string);
+    await order.getOrderByIdStore(id);   
     window.addEventListener('resize', handleResize);
 })
 const handleResize = () => {
@@ -45,11 +34,6 @@ const handleHideNavbar = () => {
         showNavbar.value = false;
     }
 };
-
-
-const handleRefresh = () => {
-    router.go(0);
-}
 const handleCancelled = async (order_id: number) => {
     showNotification.value = true;
     await order.cancelledOrderStore(order_id);
@@ -65,14 +49,16 @@ const showNavbar = ref<boolean>(true);
     <Header></Header>
     <Notification :text="textToast" :isSuccess="showNotification"/>
     <Loading  :loading="order.loading" />
-    <div class="breadcrumb">
+    <div class="breadcrumb" v-if="!order.loading">
         <a href="/home" class="breadcrumb-item" >Trang chủ</a>
         <span class="separator">|</span>
         <span class="breadcrumb-item active" >Hồ sơ</span>
         <span class="separator">|</span>
-        <span class="breadcrumb-item active" id="product-name">Đơn hàng</span>
+        <span class="breadcrumb-item active" >Đơn hàng</span>
+        <span class="separator">|</span>
+        <span class="breadcrumb-item active" id="product-name">Chi tiết đơn</span>
     </div>
-    <div class="container" @click="handleHideNavbar" >
+    <div class="container" @click="handleHideNavbar" v-if="!order.loading">
         <NavbarProfile 
             v-model:show-menu="showNavbar"
             :show-detail="false" 
@@ -86,84 +72,94 @@ const showNavbar = ref<boolean>(true);
             :show-voucher="false" 
         />
         <div class="order">
-            <div class="status">        
-                <span
-                   v-for="status in [
-                        'Tất cả',
-                        'Chờ xác nhận',
-                        'Chờ lấy hàng',
-                        'Đang giao hàng',
-                        'Hoàn thành',
-                        'Đã hủy',
-                    ]"
-                    :key="status"
-                    :class="{ active: order.selectedStatus === status }"
-                    @click="order.selectedStatus = status"
-                >
-                    {{ status }}
-                </span>
-            </div>
-            <div class="search">
-                <input v-model="order.searchText" type="text" placeholder="Nhập tên sản phẩm để tìm kiếm">
-                <button><i class="fa-solid fa-magnifying-glass"></i></button>
-            </div>
-            <div class="list-order">
-                <div class="none-order" v-if="order.filteredOrder?.length == 0">
-                    <div class="img">
-                        <img :src="getImage('/uploads/reviews/none-order.jpg')" alt="">
-                    </div>
-                    <div class="refresh-now">
-                        <span >Không tìm thấy đơn hàng nào</span>
-                        <span @click="handleRefresh"><i class="fa-solid fa-rotate-right"></i> Vui lòng tải lại</span>
-                    </div>
+            <div class="infor-address">
+                <div class="progress-bar-container">
+                    <div class="progress-bar-animated"></div>
                 </div>
-                <div class="card-order" v-for="(order, index) in order.filteredOrder" :key="index">
+                <div class="address">
+                    <span class="title-ad"><i class="fa-solid fa-location-dot"></i> Địa chỉ nhận hàng</span>
+                    <div class="shipping-name">
+                        <span>{{ order.orderDetail?.shipping_name }} | {{ '  ' }}</span>
+                        <span class="phone">{{ order.orderDetail?.shipping_phone }}</span>
+                    </div>
+                    <span class="name-address">{{ order.orderDetail?.shipping_address }}</span>
+                </div>
+            </div>
+            <div class="list-order" >
+                <div class="card-order">
                     <div class="header-shop">
                         <div class="header-left">
                             <i class="fa-solid fa-store"></i>
-                            <span>{{ listShopName[index] }}</span>
-                            <button @click="router.push({name:'shop',params: {id: order.shop_id} })">Xem shop</button>
+                            <span>{{order.orderDetail?.shop_name }}</span>
+                            <button @click="router.push({name: 'shop', params: {id: order.orderDetail?.shop_id}})">Xem shop</button>
                         </div>
                         <div class="status-order">
-                            <div class="completed" v-if="order.status == 'completed'">
+                            <div class="completed" v-if="order.orderDetail?.status == 'completed'">
                                 <i class="fa-solid fa-truck-fast"></i>
                                 <span class="success">Giao hàng thành công |{{ ' ' }}</span>
                                 <span>Hoàn thành</span>
                             </div>
-                            <span class="pending" v-if="order.status == 'pending'">Chờ xác nhận</span>
-                            <span class="confirmed" v-if="order.status == 'confirmed'">Chờ lấy hàng</span>
-                            <span class="shipped" v-if="order.status == 'shipped'">Đang giao</span>
-                            <span class="cancelled" v-if="order.status == 'cancelled'">Đã hủy</span>
+                            <span class="pending" v-if="order.orderDetail?.status == 'pending'">Chờ xác nhận</span>
+                            <span class="confirmed" v-if="order.orderDetail?.status == 'confirmed'">Chờ lấy hàng</span>
+                            <span class="shipped" v-if="order.orderDetail?.status == 'shipped'">Đang giao</span>
+                            <span class="cancelled" v-if="order.orderDetail?.status == 'cancelled'">Đã hủy</span>
                         </div>
                     </div>
-                    <div class="product">
+                    <div class="product" v-for="product in order.orderDetail?.items">
                         <div class="detail-product">
                             <div class="detail-left">
-                                <img :src="getImage(order.items[0]?.image_url || '' )" alt="" @click="router.push({name: 'product-detail', params: {id: order.items[0]?.product_id}})">
+                                <img :src="getImage(product.image_url || '' )" alt="" @click="router.push({name: 'product-detail', params: {id: product.product_id}})">
                                 <div class="infor-product">
-                                    <span class="name">{{ order.items[0]?.product_name }}</span>
-                                    <span>Phân loại hàng: {{ order.items[0]?.color }}, {{ order.items[0]?.size }}</span>
-                                    <span>x{{ order.items[0]?.quantity }}</span>
+                                    <span class="name">{{ product.product_name }}</span>
+                                    <span>Phân loại hàng: {{ product.color }}, {{ product.size }}</span>
+                                    <span>x{{ product.quantity }}</span>
                                 </div>
                             </div>
                             <div class="detail-right">
+                                <button v-if="order.orderDetail?.status == 'completed'">Đánh giá</button>
                                 <div class="price">
-                                    <span  class="old" v-if="order.items[0]?.flash_price">{{ formatPrice(order.items[0]?.price) }}</span>
-                                    <span>{{ formatPrice(order.items[0]?.flash_price || order.items[0]?.price!) }}</span>
+                                    <span  class="old" v-if="product.flash_price">{{ formatPrice(product.price) }}</span>
+                                    <span>{{ formatPrice(product.flash_price || product.price!) }}</span>
                                 </div>
-                                <button v-if="order.status == 'completed'" @click="router.push({name: 'shop', params: {id: order?.shop_id}})" >Đánh giá</button>
                             </div>
                         </div>
                     </div>
                     <div class="total-price">
-                        <div class="last-total">
-                            <span>Thành tiền: </span>
-                            <span class="last-price">{{ formatPrice(order.total) }}</span>
+                        <div class="infor-price">
+                            <div class="first-total">
+                                <span>Tổng tiền hàng: </span>
+                                <span>{{ formatPrice((order.orderDetail?.total || 0) + (order.orderDetail?.discount_value || 0)) }}</span>
+                            </div>
+                            <div class="voucher-total">
+                                <span>Giảm giá Voucher: </span>
+                                <span>-{{ formatPrice(order.orderDetail?.discount_value || 0) }}</span>
+                            </div>
+                            <div class="last-total">
+                                <span>Thành tiền: </span>
+                                <span class="last-price">{{ formatPrice(order.orderDetail?.total || 0) }}</span>
+                            </div>
                         </div>
+                        <hr>
+                        <div class="create-date">
+                            <span><i class="fa-regular fa-calendar"></i> Ngày mua hàng:</span>
+                            <span> {{ formatDateTime(order.orderDetail?.created_at) }}</span>
+                        </div>
+                        <hr>
+                        <div class="payment-method">
+                            <span><i class="fa-solid fa-money-check-dollar"></i> Phương thức thành toán: </span>
+                            <span v-if="order.orderDetail?.payment_method == 'cod'"> Thanh toán khi nhận hàng</span>
+                            <span v-if="order.orderDetail?.payment_method == 'vnpay'"> VNPay</span>
+                        </div>
+                        <hr>
+                        <!-- <hr v-if="order.orderDetail?.status == 'pending' && order.orderDetail.payment_method == 'cod'"> -->
+                        <div class="request-payment">
+                            <span><i class="fa-solid fa-bell"></i>Vui lòng thanh toán <span style="color: red;">{{ formatPrice(order.orderDetail?.total || 0) }} </span> khi nhận hàng</span>
+                        </div>
+                        <hr>
                         <div class="btn">
-                            <button class="see-order-detail" @click="router.push({name: 'order-detail', params: {id: order.order_id }})" >Xem chi tiết</button>
-                            <button class="re-order" v-if="order.status === 'completed' || order.status == 'cancelled'">Mua lại</button>     
-                            <button class="re-order" v-if="order.status === 'pending'" @click="handleCancelled(order.order_id)">Hủy đơn hàng</button>     
+                            <button class="see-order-detail" @click="router.push({name:'order-of-me'})">Trở lại</button>
+                            <button class="re-order" v-if="order.orderDetail?.status === 'completed' || order.orderDetail?.status == 'cancelled'">Mua lại</button>     
+                            <button class="re-order" v-if="order.orderDetail?.status === 'pending'" @click="handleCancelled(order.orderDetail.order_id)">Hủy đơn hàng</button>     
                         </div>
                     </div>
                 </div>
@@ -215,7 +211,6 @@ const showNavbar = ref<boolean>(true);
         scrollbar-width: none;
         height: 74vh;
     }  
-    
     .order{
         width: 75%;
         overflow-y: auto;
@@ -229,70 +224,86 @@ const showNavbar = ref<boolean>(true);
         align-items: center;
         padding-top: 10px;
         height: 100%;
-    }   
-    .order::-webkit-scrollbar {
-            display: none;
-        }
-    .search{
-        width: 80%;
-        background-color: #f7f7f7;
-        padding: 7px;
-        border-radius: 10px;
-        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-    }            
-    .search input{
-        font-size: 15px;
-        border: none;
-        outline: none;
+    } 
+    .infor-address {
         width: 85%;
-        padding: 5px;
-        background:none;
+        display: flex;
+        flex-direction: column;
+        background-color: #dfdfdf;
+        box-shadow: 0 4px 5px rgba(0, 0, 0, 0.1);
+
+    }
+    .progress-bar-container {
+        width: 100%;
+        /* padding: 5px 0; */
+        overflow: hidden;
+    }
+
+    .progress-bar-animated {
+        width: 200%;
+        height: 5px;
+        border-radius: 3px;
+        background: repeating-linear-gradient(
+            150deg,
+            #2563eb 0px,
+            #2563eb 30px,
+            #f0f0f0 30px,
+            #f0f0f0 40px,
+            #dc2626 40px,
+            #dc2626 70px,
+            #f0f0f0 70px,
+            #f0f0f0 80px
+        );
+        animation: moveGradient 15s linear infinite;
+    }
+
+    @keyframes moveGradient {
+        0% {
+            transform: translateX(0);
+        }
+        100% {
+            transform: translateX(-50%);
+        }
+    }
+    .address{
+        margin-top: 10px;
+        /* margin-right: 10px; */
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+        padding-bottom: 13px;
+    }
+    .address span{
+        margin-left: 45px;
+        font-size: 18px;
+    }
+    .shipping-name .phone{
+        margin-left: 2px;
+        color: #6b6b6b;
+        font-size: 16px;
+    }
+    .address .title-ad, .fa-location-dot {
+        color: red ;
+        font-size: 19px;
         margin-left: 10px;
     }
-    .search button{
-        width: 5%;
-        height: 85%;
-        border: none;
-        background-color:#ff6b35;
-        margin-right: 6px;
-        border-radius: 6px;
-        color: white;
-        font-size: 17px;
-    }
-    .status {
-        display: flex;
-        /* gap: 15px; */
-        width: 80%;
-        justify-content: space-between;
-    }
-
-    .status span {
-        cursor: pointer;
-        color: #333;
-        transition: color 0.2s, font-weight 0.2s;
-    }
-
-    .status span.active {
-        color: red;
-        /* font-weight: 600; */
-        text-decoration: underline;
+    .name-address{
+        margin-top: 3px;
+        font-size: 14px !important;
+        color: #474747;
     }
     .list-order{
         display: flex;
         flex-direction: column;
-        gap: 25px;
-        width: 81.5%;
+        gap: 10px;
+        width: 85%;
         height: auto;
-        /* box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); */
-
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
     }
     .card-order{
         display: flex;
         flex-direction: column;
-        gap: 10px;
+        /* gap: 10px; */
         width: 100%;
         background-color: #f5f5f5;
         box-shadow: 0 4px 4px rgba(0, 0, 0, 0.4);
@@ -302,7 +313,7 @@ const showNavbar = ref<boolean>(true);
         flex-direction: row;
         justify-content: space-between;
         padding-bottom: 10px;
-        margin: 10px;
+        margin: 10px; 
         border-bottom: 1px solid rgb(184, 184, 184);
     }
     .header-left i{
@@ -349,15 +360,19 @@ const showNavbar = ref<boolean>(true);
         color: red;
     }
     .product{
-        width: 100%;
+        width: 90%;
         display: flex;
         flex-direction: column;
-        margin: 10px
+        border-bottom: 0.5px solid rgb(163, 163, 163);
+        padding-bottom: 5px;
+        margin: 0 auto;
+        padding-top: 5px;
+        /* background-color: red; */
     }
     .detail-product{
         display: flex;
         flex-direction: row;
-
+        justify-content: space-between;
     }
     .detail-left {
         width: 60%;
@@ -383,7 +398,7 @@ const showNavbar = ref<boolean>(true);
         color: #000000;
     }
     .detail-right{
-        width: 35%;
+        /* width: 35%; */
         display: flex;
         flex-direction: row;
         justify-content: space-between;
@@ -409,28 +424,78 @@ const showNavbar = ref<boolean>(true);
         background-color: white;
         color: rgb(3, 149, 175);
         border: 0.5px solid rgb(0, 119, 255);
+        margin-right: 20px;
     }
     .total-price{
         padding: 10px;
-        background-color: #dadada;
+        background-color: rgb(231, 231, 231);
         display: flex;
         flex-direction: column;
         align-items:flex-end;
-        width: 97.5%;
+        width: 97.7%;
+        gap: 4px;
     }
-    .last-total{
-        font-size: 20px;
-        margin-right: 5px;
+    .infor-price{
+        width: 30%;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        gap: 5px;
+        margin-right: 37px;
+    }
+    .payment-method {
+        margin: -5px 0;
+        margin-right: 40px;
+        display: flex;
+        gap: 20px;
+        
+        /* margin: 0 auto; */
+    }
+    .fa-money-check-dollar{
+        color: rgb(211, 211, 7);
+    }
+    .first-total, .voucher-total, .last-total{
+        display: flex;
+        flex-direction: row;
+        gap: 40px;
+    }
+    hr{
+        width: 90%;
+        border: 0.1px solid rgb(220, 220, 220);
+        
+        color: red;
+    }
+    .first-total, .voucher-total, .last-total{
+        display: flex;
+        justify-content: space-between;
+        margin-right: 4px;
     }
     .last-price{
-        width: 100%;
+        font-size: 20px;
         color: red;
+    }
+    .request-payment{
+        display: flex;
+        flex-direction: row;
+        gap: 40px;
+        margin: -5px 0;
+        margin-right: 40px;
+    }
+    .create-date{
+        margin: -5px 0;
+        display: flex;
+        flex-direction: row;
+        gap: 40px;
+        margin-right: 40px;;
     }
     .btn{
         display: flex;
         flex-direction: row;
         justify-content: end;
         width: 29%;
+    }
+    .fa-bell{
+        color: yellowgreen;
     }
     .btn button{
         background:none;
@@ -461,53 +526,6 @@ const showNavbar = ref<boolean>(true);
         background-color: #dfdfdf;
         cursor: pointer;
         box-shadow: 0 4px 5px rgba(0, 0, 0, 0.1);
-    }
-    .none-order{
-        width: 100%;
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-        align-items: center;
-    }
-    
-    .none-order .img{
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        width: 40%;
-    }
-    .none-order .img img{
-         width: 60%;
-    }
-    .refresh-now{
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-        align-items: center;
-        gap:5px;
-    }
-    .refresh-now .refresh, .fa-rotate-right{
-        color: blue;
-    }
-    .refresh-now .refresh:hover{
-        box-shadow: 0 4px 5px rgba(0, 0, 0, 0.1);
-        cursor: pointer;
-    }
-    .fa-rotate-right:hover{
-        box-shadow: 0 4px 5px rgba(0, 0, 0, 0.1);
-        cursor: pointer;
-    }
-    .refresh-now .purchase-now{
-        background-color: red;
-        color: white;     
-        border:none;
-        border-radius: 5px;
-        width: 40%;
-        height: 30px;
-    }
-    .refresh-now .purchase-now:hover{
-        cursor: pointer;
-        transform: translateY(-1px);
     }
     @media(max-width: 1024px){
         .container{

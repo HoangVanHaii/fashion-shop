@@ -10,7 +10,7 @@ import flashSale from "../assets/homes/flash-sale.jpg";
 import PoLo from "../assets/homes/PoLoTrangHome.jpg";
 import DoDa from "../assets/homes/DoDaTrangHome.jpg";
 import Header from "../components/Header.vue";
-import { getImage } from "../utils/getImage";
+import { getImage } from "../utils/format";
 import { formatPrice } from "../utils/formatPrice";
 import type { Voucher } from "../interfaces/voucher";
 import type { ProductSummary, ProductPayload } from "../interfaces/product";
@@ -21,7 +21,11 @@ import { useProductStore } from "../stores/productStore";
 import { voucherStore } from "../stores/voucherStore";
 import { flashSaleStore } from "../stores/flashSaleStore";
 import AddToCart from "../components/AddToCart.vue";
+import { useFavouriteStore } from "../stores/favourite";
 import { useRouter } from "vue-router";
+import { useVoucherStore } from "../stores/userVoucher";
+
+const favourite = useFavouriteStore();
 const router = useRouter();
 
 const banners = [bannerImage1, bannerImage2, bannerImage3];
@@ -43,6 +47,7 @@ const showMoreBestSeller = ref(false);
 const showMoreNewArrivals = ref(false);
 const showFormAdd = ref(false);
 const copiedList = ref<boolean[]>([])
+const voucher = useVoucherStore();
 
 
 const textTmp = `Tối giản nhưng không đơn điệu – Dòng sản phẩm Polo của 
@@ -92,25 +97,27 @@ const handleCart = async (id: number) => {
 };
 
 onMounted(async () => {
-  vouchers.value = await useVoucher.getTop4VoucherGlobal();
-  flashSaleHomes.value = await useFlashSale.getFlashSaleHome();
-  localStorage.setItem(
-    "excludeIdHome",
-    flashSaleHomes.value?.id ? flashSaleHomes.value.id.toString() : ""
-  );
+    vouchers.value = await useVoucher.getTop4VoucherGlobal();
+    flashSaleHomes.value = await useFlashSale.getFlashSaleHome();
+    localStorage.setItem(
+        "excludeIdHome",
+        flashSaleHomes.value?.id ? flashSaleHomes.value.id.toString() : ""
+    );
 
-  totalSolds.value = await useFlashSale.getTotalSoldFlashSaleByIdStore();
+    totalSolds.value = await useFlashSale.getTotalSoldFlashSaleByIdStore();
 
     productBestSeller.value = await useProduct.getProductBestSellerStore();
 
-  productLatests.value = await useProduct.getProductLatestStore();
-    
-  setTime();
-  countdown = setInterval(setTime, 1000);
+    productLatests.value = await useProduct.getProductLatestStore();
 
-  timer = setInterval(() => {
-    currentIndex.value = (currentIndex.value + 1) % banners.length;
-  }, 4000);
+    await favourite.getFavouriteOfMeStore();
+        
+    setTime();
+    countdown = setInterval(setTime, 1000);
+
+    timer = setInterval(() => {
+        currentIndex.value = (currentIndex.value + 1) % banners.length;
+    }, 4000);
 });
 const prevImage = () => {
   currentIndex.value = (currentIndex.value - 1 + banners.length) % banners.length;
@@ -160,18 +167,27 @@ const getSold = (productId: number) => {
     }
     return 0;
 };
-const copyText = (text: string, index: number) => {
+const copyText = async (text: string, index: number, voucher_id: number) => {
     navigator.clipboard.writeText(text);    
     copiedList.value[index] = true
-
+    
     setTimeout(() => {
         copiedList.value[index] = false
     }, 1000)
+    await voucher.saveVoucherStore(voucher_id);
 }
 onBeforeUnmount(() => {
   clearInterval(timer);
   clearInterval(countdown);
 });
+
+const toggleFavourite = async (id: number) => {
+    if (favourite.isFavourite(id)) {
+        await favourite.deleteFavouriteStore(id);
+    } else {
+        await favourite.addFavouriteStore(id);
+    }
+};
 </script>
 <template>
   <Header />
@@ -214,7 +230,7 @@ onBeforeUnmount(() => {
               </div>
             </div>
             <div class="btn-voucher">
-              <button @click="copyText(voucher.code, index)">{{copiedList[index] ? 'Đã sao chép' :  'Sao chép'}}</button>
+              <button @click="copyText(voucher.code, index, voucher.id!)">{{copiedList[index] ? 'Đã sao chép' :  'Sao chép'}}</button>
               <p class="condition">Điều kiện</p>
             </div>
           </div>
@@ -294,7 +310,10 @@ onBeforeUnmount(() => {
                   <button @click="handleCart(product.id)">
                     <i class="fa-solid fa-cart-shopping"></i>
                   </button>
-                  <button><i class="fa-solid fa-heart"></i></button>
+                   <button @click.stop="toggleFavourite(product.id)">
+                        <i v-if="favourite.isFavourite(product.id)" class="fa-solid fa-heart"></i>
+                        <i v-if="!favourite.isFavourite(product.id)" class="fa-regular fa-heart"></i>
+                    </button>
                 </div>
               </div>
               <div class="product-sold">
@@ -376,7 +395,10 @@ onBeforeUnmount(() => {
                     <button @click="handleCart(product.id)">
                       <i class="fa-solid fa-cart-shopping"></i>
                     </button>
-                    <button><i class="fa-solid fa-heart"></i></button>
+                     <button @click.stop="toggleFavourite(product.id)">
+                        <i v-if="favourite.isFavourite(product.id)" class="fa-solid fa-heart"></i>
+                        <i v-if="!favourite.isFavourite(product.id)" class="fa-regular fa-heart"></i>
+                    </button>
                   </div>
                 </div>
               </div>
@@ -446,7 +468,10 @@ onBeforeUnmount(() => {
                     <button @click="handleCart(product.id)">
                       <i class="fa-solid fa-cart-shopping"></i>
                     </button>
-                    <button><i class="fa-solid fa-heart"></i></button>
+                     <button @click.stop="toggleFavourite(product.id)">
+                        <i v-if="favourite.isFavourite(product.id)" class="fa-solid fa-heart"></i>
+                        <i v-if="!favourite.isFavourite(product.id)" class="fa-regular fa-heart"></i>
+                    </button>
                   </div>
                 </div>
               </div>
@@ -495,6 +520,25 @@ onBeforeUnmount(() => {
   </div>
 </template>
 <style scoped>
+    .product-action button:hover{
+        cursor:pointer;
+        transform: translateY(-1px);
+    }
+    .grid-action button:hover{
+        cursor:pointer;
+        transform: translateY(-1px);
+    }
+    .fa-solid.fa-heart{
+        color: red;
+    }
+    .heart-filled {
+        color: red;
+        font-weight: 900; 
+    }
+    .heart-empty {
+        color: #ccc;
+        font-weight: 400; 
+    }
 .container {
   width: 100%;
   height: 100vh;
@@ -921,8 +965,9 @@ onBeforeUnmount(() => {
 .product-action i {
   /* color: red; */
   /* border: 1px solid; */
+  color: black;
   font-size: 20px;
-  -webkit-text-stroke: 1px black; /* Viền đen */
+  /* -webkit-text-stroke: 1px black; Viền đen */
 }
 .product-action .fa-cart-shopping {
   color: black;
@@ -1030,7 +1075,7 @@ onBeforeUnmount(() => {
   display: flex;
   flex-direction: column;
   align-items: center;
-  box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.9);
+  box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.3);
 }
 .grid-item:hover {
   transform: translateY(-3px);
@@ -1142,7 +1187,8 @@ onBeforeUnmount(() => {
 }
 .grid-action i {
   font-size: 20px;
-  -webkit-text-stroke: 1px black;
+  color: black;
+  /* -webkit-text-stroke: 1px black; */
 }
 .grid-action .fa-cart-shopping {
   color: black;

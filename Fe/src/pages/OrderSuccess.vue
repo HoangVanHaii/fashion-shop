@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { useProductStore } from '../stores/productStore';
 import type { ProductSummary, ProductPayload } from '../interfaces/product';
-import { formatPrice, getImage } from '../utils/getImage';
+import { formatPrice, getImage } from '../utils/format';
 import { onMounted, computed, ref } from 'vue';
 import { useRouter } from 'vue-router';
 import Header from '../components/Header.vue';

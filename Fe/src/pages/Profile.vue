@@ -5,6 +5,7 @@ import NavbarProfile from '../components/NavbarProfile.vue';
 <template>
   <div class="container">
     <NavbarProfile 
+    :show-menu="false"
             :show-detail="true" 
             :show-address="false" 
             :show-favourite="false" 

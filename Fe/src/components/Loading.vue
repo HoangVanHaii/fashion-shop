@@ -24,7 +24,7 @@ const props = defineProps <{
         justify-content: center;
         align-items: center;
         z-index: 9999;
-        cursor: wait; 
+        /* cursor: wait;  */
     }
 
     .spinner {

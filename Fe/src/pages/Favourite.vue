@@ -3,34 +3,21 @@ import Header from '../components/Header.vue';
 import NavbarProfile from '../components/NavbarProfile.vue';
 import Loading from '../components/Loading.vue';
 import { ref, onMounted } from 'vue';
-import { useAuthStore } from '../stores/authStore';
 import { getImage } from '../utils/format';
-import { useOrderStore } from '../stores/orderStore';
 import { formatPrice } from '../utils/formatPrice';
 import { useRouter } from 'vue-router';
-import type { GetOrder } from '../interfaces/order';
+import { useFavouriteStore } from '../stores/favourite';
 import Notification from '../components/Notification.vue';
 
-const router = useRouter();
-const order = useOrderStore()
-const auth = useAuthStore();
-const listShopName = ref<string[]>([]);
-// const loadOrder = ref<GetOrder[]>([])
-const textToast = ref<string>('');
+const favourite = useFavouriteStore();
 const showNotification = ref<boolean>(false);
+const toastText = ref<string>('');
+const router = useRouter();
+
 
 onMounted(async () => {
     handleResize();
-    const orders = await order.getOrderOfMeStore();
-    if (orders) {
-        for (let i = 0; i < orders.length; i++) {
-            const o = orders[i];
-            const productId = o.items[0]?.product_id;
-            const shopName = await auth.getShopNameStore(productId || 4);
-            listShopName.value.push(shopName);
-        }
-        // loadOrder.value = orders; 
-    }
+    await favourite.getFavouriteOfMeStore();
     window.addEventListener('resize', handleResize);
 })
 const handleResize = () => {
@@ -46,25 +33,29 @@ const handleHideNavbar = () => {
     }
 };
 
-
 const handleRefresh = () => {
     router.go(0);
 }
-const handleCancelled = async (order_id: number) => {
-    showNotification.value = true;
-    await order.cancelledOrderStore(order_id);
-    if (order.error) {
-        textToast.value = "❌ Không thể hủy đơn hàng";
-    } else {
-        textToast.value = "✅ Hủy đơn hàng thành công";
+
+const handleDelete = async (id: number) => {
+    showNotification.value = false;
+    toastText.value = '';
+    await favourite.deleteFavouriteStore(id);
+    if (!favourite.error) {
+        showNotification.value = true;
+        toastText.value = "✅ Xóa khỏi mục yêu thích thành công!";
     }
-};
+    else{
+        toastText.value = "❌ Xóa khỏi mục yêu thích thật bại thất bại!";
+        showNotification.value = false;
+    }
+}
 const showNavbar = ref<boolean>(true);
 </script>    
 <template>
     <Header></Header>
-    <Notification :text="textToast" :isSuccess="showNotification"/>
-    <Loading  :loading="order.loading" />
+    <Notification :text="toastText" :isSuccess="showNotification" />
+    <Loading  :loading="favourite.loading" />
     <div class="breadcrumb">
         <a href="/home" class="breadcrumb-item" >Trang chủ</a>
         <span class="separator">|</span>
@@ -77,93 +68,60 @@ const showNavbar = ref<boolean>(true);
             v-model:show-menu="showNavbar"
             :show-detail="false" 
             :show-address="false" 
-            :show-favourite="false" 
+            :show-favourite="true" 
             :show-notification="false" 
-            :show-order="true" 
+            :show-order="false" 
             :show-profile="false" 
             :show-register-seller="false" 
             :show-reset-password="false" 
             :show-voucher="false" 
         />
         <div class="order">
-            <div class="status">        
-                <span
-                   v-for="status in [
-                        'Tất cả',
-                        'Chờ xác nhận',
-                        'Chờ lấy hàng',
-                        'Đang giao hàng',
-                        'Hoàn thành',
-                        'Đã hủy',
-                    ]"
-                    :key="status"
-                    :class="{ active: order.selectedStatus === status }"
-                    @click="order.selectedStatus = status"
-                >
-                    {{ status }}
-                </span>
-            </div>
             <div class="search">
-                <input v-model="order.searchText" type="text" placeholder="Nhập tên sản phẩm để tìm kiếm">
+                <input v-model="favourite.searchText" type="text" placeholder="Nhập tên sản phẩm để tìm kiếm">
                 <button><i class="fa-solid fa-magnifying-glass"></i></button>
             </div>
             <div class="list-order">
-                <div class="none-order" v-if="order.filteredOrder?.length == 0">
+                <div class="none-order" v-if="favourite.searchFilteredFavourite?.length == 0">
                     <div class="img">
                         <img :src="getImage('/uploads/reviews/none-order.jpg')" alt="">
                     </div>
                     <div class="refresh-now">
-                        <span >Không tìm thấy đơn hàng nào</span>
-                        <span @click="handleRefresh"><i class="fa-solid fa-rotate-right"></i> Vui lòng tải lại</span>
+                        <span v-if="favourite.searchFilteredFavourite?.length != 0">Không tìm thấy sản phẩm yêu thích nào</span>
+                        <span v-if="favourite.listFavourite?.length == 0">Mục này còn trống, xem sản phẩm thôi nào</span>
+                        <button v-if="favourite.listFavourite?.length == 0 " class="purchase-now" @click="router.push({name: 'Home'})">Xem ngay</button>
+                        <span v-if="favourite.listFavourite?.length != 0" class="refresh" @click="handleRefresh"><i class="fa-solid fa-rotate-right"></i> Vui lòng tải lại</span>
                     </div>
                 </div>
-                <div class="card-order" v-for="(order, index) in order.filteredOrder" :key="index">
+                <div class="card-order" v-for="favour in favourite.searchFilteredFavourite">
                     <div class="header-shop">
                         <div class="header-left">
                             <i class="fa-solid fa-store"></i>
-                            <span>{{ listShopName[index] }}</span>
-                            <button @click="router.push({name:'shop',params: {id: order.shop_id} })">Xem shop</button>
+                            <span>{{favour.shop_name }}</span>
                         </div>
-                        <div class="status-order">
-                            <div class="completed" v-if="order.status == 'completed'">
-                                <i class="fa-solid fa-truck-fast"></i>
-                                <span class="success">Giao hàng thành công |{{ ' ' }}</span>
-                                <span>Hoàn thành</span>
-                            </div>
-                            <span class="pending" v-if="order.status == 'pending'">Chờ xác nhận</span>
-                            <span class="confirmed" v-if="order.status == 'confirmed'">Chờ lấy hàng</span>
-                            <span class="shipped" v-if="order.status == 'shipped'">Đang giao</span>
-                            <span class="cancelled" v-if="order.status == 'cancelled'">Đã hủy</span>
+                        <div class="see-shop">
+                            <button>Xem shop</button>
                         </div>
                     </div>
                     <div class="product">
-                        <div class="detail-product">
+                        <div class="detail-product" v-for="product in favour.products">
                             <div class="detail-left">
-                                <img :src="getImage(order.items[0]?.image_url || '' )" alt="" @click="router.push({name: 'product-detail', params: {id: order.items[0]?.product_id}})">
+                                <img :src="getImage(product.image_url || '' )" alt="" @click="router.push({name: 'product-detail', params: {id: product?.product_id}})">
                                 <div class="infor-product">
-                                    <span class="name">{{ order.items[0]?.product_name }}</span>
-                                    <span>Phân loại hàng: {{ order.items[0]?.color }}, {{ order.items[0]?.size }}</span>
-                                    <span>x{{ order.items[0]?.quantity }}</span>
+                                    <span class="name">{{ product.product_name }}</span>
+                                    <span>Phân loại hàng: {{ product?.color }}, {{ product?.size }}</span>
                                 </div>
                             </div>
                             <div class="detail-right">
                                 <div class="price">
-                                    <span  class="old" v-if="order.items[0]?.flash_price">{{ formatPrice(order.items[0]?.price) }}</span>
-                                    <span>{{ formatPrice(order.items[0]?.flash_price || order.items[0]?.price!) }}</span>
+                                    <span  class="old" v-if="product?.flash_price">{{ formatPrice(product?.price) }}</span>
+                                    <span>{{ formatPrice(product?.flash_price || product?.price!) }}</span>
                                 </div>
-                                <button v-if="order.status == 'completed'" @click="router.push({name: 'shop', params: {id: order?.shop_id}})" >Đánh giá</button>
                             </div>
-                        </div>
-                    </div>
-                    <div class="total-price">
-                        <div class="last-total">
-                            <span>Thành tiền: </span>
-                            <span class="last-price">{{ formatPrice(order.total) }}</span>
-                        </div>
-                        <div class="btn">
-                            <button class="see-order-detail" @click="router.push({name: 'order-detail', params: {id: order.order_id }})" >Xem chi tiết</button>
-                            <button class="re-order" v-if="order.status === 'completed' || order.status == 'cancelled'">Mua lại</button>     
-                            <button class="re-order" v-if="order.status === 'pending'" @click="handleCancelled(order.order_id)">Hủy đơn hàng</button>     
+                            <div class="btn">
+                                <button class="see-detail" @click="router.push({name: 'product-detail', params: {id: product.product_id}})">Xem chi tiết</button>
+                                <button @click="handleDelete(product.product_id)">Loại bỏ</button>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -217,18 +175,18 @@ const showNavbar = ref<boolean>(true);
     }  
     
     .order{
-        width: 75%;
-        overflow-y: auto;
-        /* scrollbar-width: thin; */
-        background-color: white;
-        border-top-left-radius: 10px;
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-        display: flex;
-        flex-direction: column;
-        gap:10px;
-        align-items: center;
-        padding-top: 10px;
-        height: 100%;
+            width: 75%;
+            overflow-y: auto;
+            /* scrollbar-width: thin; */
+            background-color: white;
+            border-top-left-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            display: flex;
+            flex-direction: column;
+            gap:10px;
+            align-items: center;
+            padding-top: 10px;
+            height: 100%;
     }   
     .order::-webkit-scrollbar {
             display: none;
@@ -262,37 +220,18 @@ const showNavbar = ref<boolean>(true);
         color: white;
         font-size: 17px;
     }
-    .status {
-        display: flex;
-        /* gap: 15px; */
-        width: 80%;
-        justify-content: space-between;
-    }
-
-    .status span {
-        cursor: pointer;
-        color: #333;
-        transition: color 0.2s, font-weight 0.2s;
-    }
-
-    .status span.active {
-        color: red;
-        /* font-weight: 600; */
-        text-decoration: underline;
-    }
     .list-order{
         display: flex;
         flex-direction: column;
-        gap: 25px;
+        gap: 20px;
         width: 81.5%;
         height: auto;
         /* box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); */
-
     }
     .card-order{
         display: flex;
         flex-direction: column;
-        gap: 10px;
+        gap: 5px;
         width: 100%;
         background-color: #f5f5f5;
         box-shadow: 0 4px 4px rgba(0, 0, 0, 0.4);
@@ -302,7 +241,7 @@ const showNavbar = ref<boolean>(true);
         flex-direction: row;
         justify-content: space-between;
         padding-bottom: 10px;
-        margin: 10px;
+        margin: 10px 20px;
         border-bottom: 1px solid rgb(184, 184, 184);
     }
     .header-left i{
@@ -325,42 +264,31 @@ const showNavbar = ref<boolean>(true);
         cursor: pointer;
         box-shadow: 0 4px 5px rgba(0, 0, 0, 0.1);
     }
-    .status-order {
-        display: flex;
-        flex-direction: row;
-        justify-content: end;
-    }
-    .status-order .completed span {
-        color: red;
-    }
-    .status-order .completed .success, i{
-        color: green;
-    }
-    .pending {
-        color: blue;
-    }
-    .confirmed {
-        color: rgb(226, 226, 3);
-    }
-    .shipped {
-        color: green;
-    }
-    .cancelled {
-        color: red;
+    .see-shop button{
+        background-color: white;
+        border-radius: 3px;
+        border: 1px solid rgb(0, 191, 255);
+        color: rgb(0, 191, 255);
+        height: 30px;
+        width: 100%;
     }
     .product{
         width: 100%;
         display: flex;
         flex-direction: column;
-        margin: 10px
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 15px;
     }
     .detail-product{
         display: flex;
         flex-direction: row;
-
+        width: 90%;
+        border-bottom: 1px solid rgb(151, 151, 151);
+        padding-bottom: 10px;
     }
     .detail-left {
-        width: 60%;
+        width: 50%;
         display: flex;
         flex-direction: row;
     }
@@ -368,6 +296,36 @@ const showNavbar = ref<boolean>(true);
         border: 0.5px solid rgb(141, 141, 141);
         width: 20%;
     }
+    .detail-right{
+        width: 12%;
+        display: flex;
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: center;
+        color: red;
+        font-size: 20px;
+    }
+    .btn{
+        display: flex;
+        flex-direction: row;
+        justify-content: end;
+        align-items: center;
+        width: 39%;
+    }
+    .btn button{
+        border: 0.5px solid rgb(191, 191, 191);
+        border-radius: 4px;
+        color: rgb(113, 113, 113);
+        box-shadow: 0 4px 5px rgba(0, 0, 0, 0.1);
+    }
+    .btn .see-detail{
+        border: 0.5px solid rgb(210, 0, 0);
+        color: rgb(222, 0, 0);
+    }
+    button:hover{
+        transform: translateY(-1.5px);
+        cursor: pointer;
+    } 
     .infor-product{
         display: flex;
         flex-direction: column;
@@ -381,15 +339,6 @@ const showNavbar = ref<boolean>(true);
         font-weight: 400;
         font-size: 18px;
         color: #000000;
-    }
-    .detail-right{
-        width: 35%;
-        display: flex;
-        flex-direction: row;
-        justify-content: space-between;
-        align-items: center;
-        color: red;
-        font-size: 20px;
     }
     .price{
         display: flex;
@@ -410,57 +359,11 @@ const showNavbar = ref<boolean>(true);
         color: rgb(3, 149, 175);
         border: 0.5px solid rgb(0, 119, 255);
     }
-    .total-price{
-        padding: 10px;
-        background-color: #dadada;
-        display: flex;
-        flex-direction: column;
-        align-items:flex-end;
-        width: 97.5%;
-    }
-    .last-total{
-        font-size: 20px;
-        margin-right: 5px;
-    }
-    .last-price{
-        width: 100%;
-        color: red;
-    }
-    .btn{
-        display: flex;
-        flex-direction: row;
-        justify-content: end;
-        width: 29%;
-    }
     .btn button{
         background:none;
         margin: 4px;
         width: 45%;
         height: 30px;
-    }
-    .re-order{
-        background-color: red !important;
-        color: white;
-        border: 0.5px solid rgb(218, 16, 16)
-    }
-    .re-order:hover{
-        background-color: rgb(240, 1, 1) !important;
-        cursor: pointer;
-        box-shadow: 0 4px 5px rgba(228, 55, 55, 0.1);
-    }
-    .test{
-        width: 100%;
-        height: 400px;
-        background-color: red;
-    }
-    .see-order-detail{
-        color: blue;
-        border: 0.5px solid rgb(16, 36, 218)
-    }
-    .see-order-detail:hover{
-        background-color: #dfdfdf;
-        cursor: pointer;
-        box-shadow: 0 4px 5px rgba(0, 0, 0, 0.1);
     }
     .none-order{
         width: 100%;
@@ -514,13 +417,10 @@ const showNavbar = ref<boolean>(true);
             border-radius: 0px;;
         }
         .order{
-                        border-radius: 0px;;
-
+            border-radius: 0px;;
             width: 75%;
         }
-        .status{
-            width: 85%;
-        }
+        
         .list-order{
             width: 85%;
         }
@@ -542,37 +442,16 @@ const showNavbar = ref<boolean>(true);
         .list-order{
             margin-top: 40px;
         }
-
-        .status {
-            width: 95%; 
-             min-height: 40px;
-            font-size: 20px;
-            white-space: nowrap;     
-            overflow-x: auto; 
-            display: flex;     
-            gap: 20px;
-        }
-
-        .status span{
-            text-decoration: none !important;   
-        }
         .search button{
             width: 30px;
         }
-        .status::-webkit-scrollbar {
-            display: none;
-        }
+
         .search{
             width: 95%;
         }
         .list-order{
             width: 95%;
-        }
-        .total-price{
-            width: 94%;
-            margin: 0 auto;
-        }
-        .btn{
+        }        .btn{
             width: 60%;
 
         }
