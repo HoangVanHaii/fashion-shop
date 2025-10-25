@@ -91,7 +91,14 @@ const makeProductSumary = (productMap: Map<number, ProductSummary> ,records: any
                 thumbnail: image_url
             });
         }
-
+        else {
+            const product = productMap.get(id)!;
+            if (flash_sale_price) {
+                if (!product.flash_price || product.flash_price < flash_sale_price) {
+                    product.flash_price = flash_sale_price;
+                }
+            }
+        }
         const product = productMap.get(id)!;
         if (image_url && !product.images.includes(image_url)) {
             product.images.push(image_url);
@@ -100,8 +107,22 @@ const makeProductSumary = (productMap: Map<number, ProductSummary> ,records: any
 }
 export const getProductsActive = async (): Promise<ProductSummary[]> => {
     try {
-        const query = `${baseQuery}
-            HAVING p.status = 'active'`;
+        const query = `            
+            SELECT  
+                p.id,
+                p.name,
+                i.image_url,
+                fsi.flash_sale_price,
+                MIN(s.price) AS min_price,   
+                MAX(s.price) AS max_price
+            FROM products p
+            INNER JOIN product_colors i ON i.product_id = p.id
+            INNER JOIN product_sizes s ON s.color_id = i.id
+            LEFT JOIN flash_sale_items fsi ON fsi.size_id = s.id AND fsi.status = 'active'
+            LEFT JOIN flash_sales fs ON fs.id = fsi.flash_sale_id AND fs.status = 'active' 
+            WHERE p.status = 'active'
+            GROUP BY
+                p.id, p.name, i.image_url, fsi.flash_sale_price`;
         const pool = await connectionDB();
         const result = await pool.request().query(query);
         const records = result.recordset;
@@ -160,7 +181,6 @@ export const getProductById = async (id: number): Promise<ProductPayload> => {
                         cl.image_url,
                         cl.is_main,
                         cl.color,
-                        cl.is_main,
                         fsi.flash_sale_price,
                         ci.id as detail_image_id,
                         ci.image_url as detail_image
@@ -198,10 +218,9 @@ export const getProductById = async (id: number): Promise<ProductPayload> => {
                     product_id: row.product_id,
                     color: row.color,
                     image_url: row.image_url,
-                    is_main: row.is_main,
                     sizes: [],
                     images: [],
-                    is_main: row.is_main
+                    is_main: row.is_main === 1 ? true : false
                 }
                 product.colors.push(color);
             }

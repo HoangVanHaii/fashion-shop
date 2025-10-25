@@ -714,7 +714,8 @@ export const getShopDetailById = async (shop_id: number, ip_address: string): Pr
             description: shop.description || "",
             address: shop.address || "",
             rating: avg_rating,
-            visit_count: total_visits
+            visit_count: total_visits,
+            created_at: shop.created_at
         }
         return shopDetal;
     } catch (err) {

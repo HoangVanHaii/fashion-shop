@@ -79,20 +79,20 @@ export const getFlashSaleById = async (req: Request, res: Response, next: NextFu
 export const getFlashSaleHome = async (req: Request, res: Response, next: NextFunction) => {
     try {
         
-        const cacheKey = `FlashSaleHome`;
-        const cachedData = await redisClient.get(cacheKey);
-        if (cachedData) {
-            console.log("Cache hit FlashSaleHome")
-            const data = JSON.parse(cachedData);
-            return res.status(200).json({
-                success: true,
-                message: 'Get flash sale (from cache) successfully',
-                ...data
-            });
-        }
+        // const cacheKey = `FlashSaleHome`;
+        // const cachedData = await redisClient.get(cacheKey);
+        // if (cachedData) {
+        //     console.log("Cache hit FlashSaleHome")
+        //     const data = JSON.parse(cachedData);
+        //     return res.status(200).json({
+        //         success: true,
+        //         message: 'Get flash sale (from cache) successfully',
+        //         ...data
+        //     });
+        // }
         const { flash_sale, products } = await FlashSaleService.getFlashSaleHome();
         const dataToCache = { flash_sale, products };
-        await redisClient.setEx(cacheKey, 600, JSON.stringify(dataToCache));
+        // await redisClient.setEx(cacheKey, 600, JSON.stringify(dataToCache));
 
         return res.status(200).json({
             success: true,
