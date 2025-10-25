@@ -51,4 +51,3 @@ export const getShopName = async (product_id: number) => {
     const response = await axios.get(`http://localhost:3000/api/user/shop/nameByProduct/${product_id}`)
     return response.data;
 }
-

@@ -118,7 +118,7 @@ const props = defineProps < { product: ProductPayload }>();
                 <div class="product-colors">
                     <div class="text-color">
                         <span>Màu sắc: </span>
-                        <span class="text">Trắng</span>
+                        <span class="text">{{ colorChose?.color }}</span>
                     </div>
                     <div class="list-color">
 
@@ -141,7 +141,7 @@ const props = defineProps < { product: ProductPayload }>();
                 </div>
                 <div class="btn-bottom">
                     <div class="btn-addtocart">
-                        <button @click="handleAddToCart(sizeChose!)" >Thêm vào giỏ hàng</button>
+                        <button @click="handleAddToCart(sizeChose!)" :class="(sizeChose?.stock! ) <= 0 ? 'stock' : ''" >Thêm vào giỏ hàng</button>
                     </div>
                     <Notification :text="toastText" :isSuccess="showNotification" />
 
@@ -181,6 +181,7 @@ const props = defineProps < { product: ProductPayload }>();
     display: flex;
     justify-content: center;
     align-items: center;
+    z-index: 9999;
 }
 
 .container{
@@ -226,6 +227,7 @@ const props = defineProps < { product: ProductPayload }>();
     color: black;
     z-index: 10;
     cursor: pointer;
+    border: 0.3px solid #333;
 }
 .btn-close{
     display: none;
@@ -453,9 +455,13 @@ input:focus {
 }
 .btn-addtocart{
     width: 100%;
-    /* background-color: rgb(101, 178, 197); */
     display: flex;
     justify-content: center;
+    cursor: pointer;
+}
+.btn-addtocart .stock{
+    background-color: #878282;
+    pointer-events: none;
 }
 .btn-addtocart button{
     font-size: 13px;

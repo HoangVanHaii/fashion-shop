@@ -41,6 +41,9 @@ const loadData = async () => {
     
     productId.value = await product.getProductByIdStore(id)
     colorChose.value = productId.value?.colors.find(cl => cl.is_main == true);
+    if (!colorChose.value) {
+        colorChose.value = productId.value?.colors[0];
+    }
     sizeChose.value = colorChose.value?.sizes[0];
     url_main.value = colorChose.value?.image_url;
 
@@ -161,7 +164,7 @@ const copiedLink = () => {
     <Header></Header>
     <Notification :text="toastText" :isSuccess="showNotification" />
     <Loading :loading="product.loading"/>
-    <div class="container">
+    <div class="container" v-if="!product.loading">
         <div class="breadcrumb">
             <a href="/home" class="breadcrumb-item" >Trang chủ</a>
             <span class="separator">|</span>
@@ -251,7 +254,7 @@ const copiedLink = () => {
             <div class="shop-infor">
                 <span class="title">{{ shop?.shop_name }}</span>
                 <span>{{ shop?.description }}</span>
-                <button>Xem shop</button>
+                <button @click="router.push(`/shop/${shop?.id}`)">Xem shop</button>
             </div>
             <div class="shop-rating">
                 <span class="txt">Xếp hạng</span>

@@ -4,7 +4,7 @@ import NavbarProfile from '../components/NavbarProfile.vue';
 
 <template>
   <div class="container">
-    <NavbarProfile 
+    <!-- <NavbarProfile 
             :show-detail="true" 
             :show-address="false" 
             :show-favourite="false" 
@@ -14,7 +14,7 @@ import NavbarProfile from '../components/NavbarProfile.vue';
             :show-register-seller="false" 
             :show-reset-password="false" 
             :show-voucher="false" 
-        />
+        />-->
   </div>
 </template>
 

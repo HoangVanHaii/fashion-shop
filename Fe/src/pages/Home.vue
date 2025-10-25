@@ -42,8 +42,7 @@ const showAll = ref(false);
 const showMoreBestSeller = ref(false);
 const showMoreNewArrivals = ref(false);
 const showFormAdd = ref(false);
-const copiedList = ref<boolean[]>([])
-
+const copiedList = ref<boolean[]>([]);
 
 const textTmp = `Tối giản nhưng không đơn điệu – Dòng sản phẩm Polo của 
     Giovanni Outlet chinh phục quý ông bởi sự tinh tế trong từng chi tiết.
@@ -794,7 +793,7 @@ onBeforeUnmount(() => {
   height: 350px;
   background-color: rgb(242, 242, 242);
   /* margin: 10px 0; */
-  border-radius: 2px;
+  border-radius: 4px;
   display: flex;
   /* padding: 2px; */
   flex-direction: column;
@@ -812,13 +811,13 @@ onBeforeUnmount(() => {
   /* margin: 2px 0; */
   width: 100%;
   height: 53%;
-  border-radius: 2px;
+  border-radius: 5px;
   border-bottom: 0.1px solid rgb(228, 227, 227);
 }
 .promo-product .product-image img {
   width: 100%;
   height: 100%;
-  border-radius: 2px;
+  border-radius: 5px;
 }
 .promo-description {
   margin-top: 2px;
