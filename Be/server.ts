@@ -21,6 +21,7 @@ import "./src/cron/flashSaleCron";
 import paymentRouter from './src/routers/vnpay'
 import voucherRouter from './src/routers/voucher'
 import { Request, Response } from "express";
+import userVoucherRouter from './src/routers/userVoucher'
 
 import { errorHandler } from "./src/middlewares/errorHandler";
 
@@ -48,6 +49,7 @@ app.use("/api/review", reviewRouter);
 app.use("/api/flashSale", flashSaleRouter);
 app.use('/api/payments', paymentRouter);
 app.use('/api/voucher', voucherRouter);
+app.use('/api/userVoucher', userVoucherRouter);
 
 app.use(errorHandler);
 

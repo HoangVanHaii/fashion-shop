@@ -6,6 +6,9 @@ import { Order, OrderItem } from '../interfaces/order'
 import { Request, Response, NextFunction } from 'express';
 import { validateVoucher, getVoucherIdByCode } from '../services/voucher';
 import { AppError } from '../utils/appError';
+import redisClient from '../config/redisClient'
+const ORDER_CACHE_KEY = (order_id: number) => `order:${order_id}`;
+
 
 const makeOrderItem = async (orderItems: any, voucherCode: any): Promise<any> => {
     const orderItemsData: OrderItem[] = [];
@@ -85,15 +88,16 @@ export const createOrder = async (req: Request, res: Response, next: NextFunctio
         }
 
         if (methodPayment === 'vnpay') {
-                if( total < 5000){
-                    throw new AppError("Minimum order amount for VNPAY is 5000", 400);
-                }
-                const paymentUrl = await paymentUntils.buildPaymentUrl(
-                    listOrderId.slice(0, -1),
-                    totalAmount
-                );
-                return res.status(201).json({ paymentUrl });
+            if( total < 5000){
+                throw new AppError("Minimum order amount for VNPAY is 5000", 400);
             }
+            const paymentUrl = await paymentUntils.buildPaymentUrl(
+                listOrderId.slice(0, -1),
+                totalAmount
+            );
+            return res.status(201).json({ paymentUrl });
+        }
+        await redisClient.del(`getOrderOfme:${user_id}`);
         return res.status(201).json({ message: 'Order created successfully (COD)' });
     } catch (error: any) {
         next(error);
@@ -102,32 +106,24 @@ export const createOrder = async (req: Request, res: Response, next: NextFunctio
 export const getOrderOfme = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const user_id = req.user!.id;
-        let status = req.query.status as string;
-        if(status && !["pending", "confirmed", "shipped", "completed", "cancelled"].includes(status)){
-            throw new AppError("Invalid status value", 400);
+        const cacheKey = `getOrderOfme:${user_id}`;
+        const cachedOrder = await redisClient.get(cacheKey);
+
+        if (cachedOrder) {
+            console.log("✅ Cache hit:", cacheKey);
+            return res.status(200).json(JSON.parse(cachedOrder));
         }
-        if(!status){
-            status = "'pending', 'confirmed', 'shipped', 'completed', 'cancelled'";
-        }
-        else status = `'${status}'`;
-        const orders = await orderService.getOrderOfme(user_id, status)
+
+        const orders = await orderService.getOrderOfme(user_id)
+        console.log('miss -> save new data')
+        await redisClient.setEx(cacheKey, 3600, JSON.stringify(orders));
+
         res.status(200).json(orders);
     } catch (error) {
         next(error);
     }
 }
-export const getOrderById = async (req: Request, res: Response, next: NextFunction) => {
-    try {
-        const order_id: number = parseInt(req.params.id);
-        const order = await orderService.getOrderById(order_id);
-        if (order == null) {
-            return res.status(201).json({ message: "Order not found" });
-        }
-        res.status(200).json(order);
-    } catch (error) {
-        next(error);
-    }
-}
+
 export const updateAdressOrder = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const { order_id, address_id } = req.body;
@@ -140,6 +136,7 @@ export const updateAdressOrder = async (req: Request, res: Response, next: NextF
             throw new AppError(`Address id ${address_id} does not exist`, 404);
         }
         await orderService.updateAdressOrder(order_id, address);
+        await redisClient.del(ORDER_CACHE_KEY(order_id));
         res.status(200).json({
             success: true,
             mesage: `Update shipping address for ${order_id} successfully`
@@ -149,16 +146,39 @@ export const updateAdressOrder = async (req: Request, res: Response, next: NextF
     }
 }
 
+export const getOrderById = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const order_id: number = parseInt(req.params.id);
+        const cacheKey = ORDER_CACHE_KEY(order_id);
+
+        const cachedOrder = await redisClient.get(cacheKey);
+        if (cachedOrder) {
+            console.log("✅ Cache hit:", cacheKey);
+            return res.status(200).json(JSON.parse(cachedOrder));
+        }
+        const order = await orderService.getOrderById(order_id);
+        if (!order) {
+            throw new AppError(`Order id ${order_id} not found`, 404);
+        }
+        await redisClient.setEx(cacheKey, 3600, JSON.stringify(order));
+
+        res.status(200).json(order);
+    } catch (error) {
+        next(error);
+    }
+};
 export const cancelOrderByUser = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const { order_id } = req.body;
-        const order = await orderService.getOrderById(order_id);
+        const order = await orderService.existOrder(order_id);
         if (!order) {
             throw new AppError(`Order id ${order_id} does not exist`, 404);
         }
         if (order.status !== 'pending') {
             throw new AppError(`Order has status ${order.status}, can't cancel`, 400);
         }
+        await redisClient.del(ORDER_CACHE_KEY(order_id));
+        await redisClient.del(`getOrderOfme:${req.user!.id}`)
         await orderService.updateStatusOrder(order_id, 'cancelled');
         res.status(200).json({ message: `Order ${order_id} has been cancelled.` });
     } catch (error) {

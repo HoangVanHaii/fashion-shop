@@ -48,4 +48,6 @@ export interface GetOrder {
     shipping_name?: string;
     shipping_address?: string;
     shipping_phone?: string;
+    discount_value?: number;
+    shop_id?: number;
 }
