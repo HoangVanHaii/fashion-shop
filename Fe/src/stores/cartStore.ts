@@ -30,11 +30,12 @@ export const useCartStore = defineStore('cart', () => {
             loading.value = false;
             cartCount.value += 1;
             return res;
-        } catch (err) {
+        } catch (err: any) {
+            const message = err.response.data.message;
+            if (message == "your cart count is full size") {
+                error.value = "❌ Sản phẩm này đã đầy trong giỏ hàng rồi"
+            }
             loading.value = false;
-            error.value = "Failed to add to cart";
-            console.error("Failed to add to cart:", err);
-            // throw error;
         }
     }
     return { getCartCountStore , addToCartStore, success, error, loading, cartCount};

@@ -1,6 +1,6 @@
-import axios from "axios";
+import api from "./api";
 
 export const getCategoryName = async (gender: string) => {
-    const response = await axios.get(`http://localhost:3000/api/category/categoryName?gender=${gender}`);
+    const response = await api.get(`/category/categoryName?gender=${gender}`);
     return response.data;
 };

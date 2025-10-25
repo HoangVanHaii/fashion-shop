@@ -1,14 +1,14 @@
-import axios from "axios";
+import api from "./api";
 
 export const getFlashSale = async () => {
-    const result = await axios.get(`http://localhost:3000/api/flashSale/newFlashSale`);
+    const result = await api.get(`/flashSale/newFlashSale`);
     return result.data;
 }
 export const getTotalSoldFlashSaleById = async (id: number) => {
-    const result = await axios.get(`http://localhost:3000/api/flashSale/totalSold/${id}`);
+    const result = await api.get(`/flashSale/totalSold/${id}`);
     return result.data;
 }
 export const getFlashSaleNotIn = async (excludeId: string) => {
-    const result = await axios.get(`http://localhost:3000/api/flashSale/activeNotIn/?excludeIds=${excludeId}`);
+    const result = await api.get(`/flashSale/activeNotIn/?excludeIds=${excludeId}`);
     return result.data;
 }

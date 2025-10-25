@@ -25,6 +25,32 @@ const baseQuery = `SELECT
                     o.shipping_address,
                     o.shipping_name,
                     o.shipping_phone,
+                    o.discount_value,
+                    fsi.flash_sale_price
+                FROM orders o
+                    INNER JOIN order_items oi ON oi.order_id = o.id
+                    INNER JOIN product_sizes ps ON oi.size_id = ps.id
+                    INNER JOIN product_colors pc ON ps.color_id = pc.id
+                    INNER JOIN products p ON pc.product_id = p.id
+                    LEFT JOIN flash_sale_items fsi ON fsi.size_id = ps.id
+                    INNER JOIN payments pay ON o.id = pay.order_id`; 
+const baseQueryTmp = `SELECT 
+                    o.id AS order_id,
+                    p.name AS product_name,
+                    p.id AS product_id,
+                    pc.color,
+                    pc.image_url,
+                    ps.size,
+                    oi.quantity,
+                    oi.price,
+                    o.status,
+                    o.created_at,
+                    o.total,
+                    pay.method,
+                    o.shipping_address,
+                    o.shipping_name,
+                    o.shipping_phone,
+                    o.discount_value,
                     fsi.flash_sale_price
                 FROM orders o
                     INNER JOIN order_items oi ON oi.order_id = o.id
@@ -43,10 +69,12 @@ const transformationOrder = (result: any[], orderMaps: Record<number, GetOrder>)
                     created_at: row.created_at,
                     items: [],
                     total: row.total,
-                    payment_method: row.payment_method,
+                    payment_method: row.method,
                     shipping_address: row.shipping_address,
                     shipping_name: row.shipping_name,
-                    shipping_phone: row.shipping_phone
+                    shipping_phone: row.shipping_phone,
+                    discount_value: row.discount_value,
+                    shop_id: row.shop_id
                 }
             }
             orderMaps[row.order_id].items.push({
@@ -64,28 +92,67 @@ const transformationOrder = (result: any[], orderMaps: Record<number, GetOrder>)
             })
         })
 } 
-export const getOrderOfme = async(user_id: number, status: string) : Promise<GetOrder[]> => {
-    const query = `${baseQuery}
-                WHERE o.user_id = @user_id AND o.status IN (${status})
-                ORDER BY o.created_at DESC`;
+export const getOrderOfme = async (user_id: number): Promise<GetOrder[]> => {
+    const query = `SELECT 
+                    o.id AS order_id,
+                    p.name AS product_name,
+                    p.id AS product_id,
+                    pc.color,
+                    pc.image_url,
+                    ps.size,
+                    oi.quantity,
+                    oi.price,
+                    o.status,
+                    o.created_at,
+                    o.total,
+                    fsi.flash_sale_price,
+                    p.shop_id
+                FROM orders o
+                    INNER JOIN order_items oi ON oi.order_id = o.id
+                    INNER JOIN product_sizes ps ON oi.size_id = ps.id
+                    INNER JOIN product_colors pc ON ps.color_id = pc.id
+                    INNER JOIN products p ON pc.product_id = p.id
+                    LEFT JOIN flash_sale_items fsi ON fsi.size_id = ps.id
+                WHERE o.user_id = @user_id 
+                ORDER BY o.id DESC`;
     try {
         const pool = await connectionDB();
         const result = await pool.request()
             .input('user_id', user_id)
-            // .input('status', status)
             .query(query);
 
-        const orderMaps :Record<number, GetOrder> = {};
+        const orderMaps: Record<number, GetOrder> = {};
         transformationOrder(result.recordset, orderMaps);
-        
-        return Object.values(orderMaps);
+        return Object.values(orderMaps).reverse();
     } catch (error) {
         console.log(error);
         throw new AppError('Failed to fetching order', 500, false);
     }
 }
+export const existOrder = async (
+    order_id: number
+): Promise<{ id: number; status: string } | null> => {
+    try {
+        const pool = await connectionDB();
+        const query = 'SELECT id, status FROM orders WHERE id = @order_id';
+        const result = await pool
+            .request()
+            .input('order_id', order_id)
+            .query(query);
+
+        if (result.recordset.length === 0) {
+            return null; 
+        }
+        const found = result.recordset[0];
+        return { id: Number(found.id), status: found.status };
+    } catch (error) {
+        console.error("Error checking existOrder:", error);
+        return null;
+    }
+};
+
 export const getOrderById = async (order_id: number) : Promise<GetOrder |null> => {
-    const query = `${baseQuery}
+    const query = `${baseQueryTmp}
                     WHERE o.id = @order_id`;
     try {
         const pool = await connectionDB();

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { getImage } from '../utils/getImage';
+import { getImage } from '../utils/format';
 import type { ProductColor, ProductSize, ProductPayload } from '../interfaces/product';
 import { formatPrice } from '../utils/formatPrice';
 import { onMounted, watch, ref } from 'vue';

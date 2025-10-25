@@ -12,7 +12,7 @@ export interface FavouriteItem {
     color?: string;
     size?: string;
 }
-export interface FavouriteSummary{
+export interface FavouriteSummary {
     user_id: number;
     shop_id: number;
     shop_name: string;

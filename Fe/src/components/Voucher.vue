@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, onMounted, ref, watch } from "vue";
 import { voucherStore } from "../stores/voucherStore";
-import { formatDateTime, formatPrice, getImage } from "../utils/getImage";
+import { formatDateTime, formatPrice, getImage } from "../utils/format";
 const useVoucher = voucherStore();
 import type { Voucher } from "../interfaces/voucher";
 const vouhers = ref<Voucher[]>([]);
@@ -39,7 +39,7 @@ const handleSearchVoucher = async () => {
         <div class="search">
           <span>Mã voucher</span>
           <div class="acctions">
-            <input type="text" v-model="textSearch" placeholder="nhập mã voucher" />
+            <input type="text" v-model="textSearch" placeholder="Nhập mã voucher" />
             <button :disabled="!isValid" @click="handleSearchVoucher">Áp dụng</button>
           </div>
         </div>
@@ -150,6 +150,8 @@ const handleSearchVoucher = async () => {
   background-color: #f4f2f2;
 }
 .search .acctions {
+  padding-top: 6px;
+  padding-bottom: 6px;
   display: flex;
   gap: 5px;
 }
@@ -258,6 +260,12 @@ const handleSearchVoucher = async () => {
 .select input {
   width: 20px;
   height: 20px;
+}
+input{
+  padding: 3px;
+  border: none;
+  border: 0.3px solid rgb(145, 145, 145);
+  outline: none;
 }
 .btn {
   bottom: 10px;

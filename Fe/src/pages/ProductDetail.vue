@@ -2,7 +2,7 @@
 import { ref, onMounted, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import Header from '../components/Header.vue';
-import { getImage, formatPrice, formatDateTime } from '../utils/getImage';
+import { getImage, formatPrice, formatDateTime } from '../utils/format';
 import type { ProductPayload, ProductColor, ProductSize, ProductSummary } from '../interfaces/product';
 import type { ReviewOfProduct, Review } from '../interfaces/review';
 import { useProductStore } from '../stores/productStore';
@@ -12,7 +12,9 @@ import Notification from '../components/Notification.vue';
 import { useAuthStore } from '../stores/authStore';
 import type { ShopDetal } from '../interfaces/user';
 import Loading from '../components/Loading.vue';
+import { useFavouriteStore } from '../stores/favourite';
 
+const favourite = useFavouriteStore();
 const auth = useAuthStore();
 const route = useRoute();
 const cart = useCartStore();
@@ -58,6 +60,7 @@ const loadData = async () => {
 }
 onMounted(async () => {
     await loadData();
+    favourite.getFavouriteOfMeStore();
 })
 watch(quantity, (newVal, oldVal) => {
     const max = sizeChose.value?.stock ?? Infinity
@@ -137,14 +140,19 @@ const handleAddToCart = async (size: ProductSize) => {
         showNotification.value = true;
         toastText.value = "🛒 Thêm vào giỏ hàng thành công!";
     }
-    else{
-        toastText.value = "❌ Thêm vào giỏ hàng thất bại!";
+    else {
+        toastText.value = cart.error || "❌ Thêm vào giỏ hàng thất bại!"
         showNotification.value = false;
     }
 
 }
-
-
+const toggleFavourite = async (id: number) => {
+    if (favourite.isFavourite(id)) {
+        await favourite.deleteFavouriteStore(id);
+    } else {
+        await favourite.addFavouriteStore(id);
+    }
+};
 const copiedLink = () => {
     const path = route.fullPath;
     const baseUrl = window.location.origin;
@@ -227,11 +235,12 @@ const copiedLink = () => {
                         <input v-model="quantity" type="number"/>
                         <button class="dec" @click="quantity = Math.min(quantity + 1, sizeChose?.stock!)">+</button>
                     </div>
+                    <span v-if="sizeChose?.stock == 0" style="color: red;">Hết hàng!</span>
                     <span class="share"><i class="fa-solid fa-share"></i> Chia sẻ </span>
                 </div>
                 <div class="order-cart">
-                    <button class="cart" @click="handleAddToCart(sizeChose!)">Thêm vào giỏ hàng</button>
-                    <button class="order" @click="handleOrder(sizeChose)">Mua ngay</button>
+                    <button class="cart" @click="handleAddToCart(sizeChose!)" :disabled="sizeChose?.stock == 0">Thêm vào giỏ hàng</button>
+                    <button class="order" @click="handleOrder(sizeChose)" :disabled="sizeChose?.stock == 0">Mua ngay</button>
                 </div>
                 <div class = share>
                     <span class="share-with"><i class="fa-solid fa-share"></i> Chia sẻ tới: </span>
@@ -254,7 +263,7 @@ const copiedLink = () => {
             <div class="shop-infor">
                 <span class="title">{{ shop?.shop_name }}</span>
                 <span>{{ shop?.description }}</span>
-                <button @click="router.push(`/shop/${shop?.id}`)">Xem shop</button>
+                <button @click="router.push({name:'shop', params: {id: shop?.id}})">Xem shop</button>
             </div>
             <div class="shop-rating">
                 <span class="txt">Xếp hạng</span>
@@ -315,7 +324,10 @@ const copiedLink = () => {
                                 </div>
                                 <div class="product-action">
                                     <button><i class="fa-solid fa-cart-shopping"></i></button>
-                                    <button><i class="fa-solid fa-heart"></i></button>
+                                    <button @click.stop="toggleFavourite(product.id)">
+                                        <i v-if="favourite.isFavourite(product.id)" class="fa-solid fa-heart"></i>
+                                        <i v-if="!favourite.isFavourite(product.id)" class="fa-regular fa-heart"></i>
+                                    </button>
                                 </div>
                             </div>
                             
@@ -323,7 +335,7 @@ const copiedLink = () => {
 
                     </div>
                 </div>
-                <button class="btn-see-more-product"><i class="fa-solid fa-arrow-right"></i></button>
+                <button class="btn-see-more-product"><i class="fa-solid fa-arrow-right" @click="router.push({name: 'shop', params:{id: shop?.id}})"></i></button>
             </div>
         </div>
         <div class="product-detail">
@@ -401,6 +413,15 @@ const copiedLink = () => {
                     <div class="rev-img">
                         <div  v-for="(image, ind) in reviewItem.review_images" :key="ind">
                             <img :src="getImage(image.image_url)" alt="" class="img-review">
+                            <!-- <img :src="getImage(image.image_url)" alt="" class="img-review">
+                            <img :src="getImage(image.image_url)" alt="" class="img-review">
+                            <img :src="getImage(image.image_url)" alt="" class="img-review">
+                            <img :src="getImage(image.image_url)" alt="" class="img-review">
+                            <img :src="getImage(image.image_url)" alt="" class="img-review">
+                            <img :src="getImage(image.image_url)" alt="" class="img-review">
+                            <img :src="getImage(image.image_url)" alt="" class="img-review">
+                            <img :src="getImage(image.image_url)" alt="" class="img-review"> -->
+
                         </div>
                     </div>
                 </div>
@@ -449,7 +470,10 @@ const copiedLink = () => {
                                 </div>
                                 <div class="product-action">
                                     <button><i class="fa-solid fa-cart-shopping"></i></button>
-                                    <button><i class="fa-solid fa-heart"></i></button>
+                                    <button @click.stop="toggleFavourite(product.id)">
+                                        <i v-if="favourite.isFavourite(product.id)" class="fa-solid fa-heart"></i>
+                                        <i v-if="!favourite.isFavourite(product.id)" class="fa-regular fa-heart"></i>
+                                    </button>
                                 </div>
                             </div>
                             
@@ -457,12 +481,27 @@ const copiedLink = () => {
 
                     </div>
                 </div>
-                <button class="btn-see-more-product"><i class="fa-solid fa-arrow-right"></i></button>
+                <button class="btn-see-more-product"><i class="fa-solid fa-arrow-right" @click="router.push('/CategoryGender?gender=Nữ')"></i></button>
             </div>
         </div>
     </div>
 </template>
 <style scoped>
+    .product-action button:hover{
+        cursor:pointer;
+        transform: translateY(-1px);
+    }
+    .fa-solid.fa-heart{
+        color: red;
+    }
+    .heart-filled {
+        color: red;
+        font-weight: 900; 
+    }
+    .heart-empty {
+        color: #ccc;
+        font-weight: 400; 
+    }
     .container{
         display: flex;
         flex-direction: column;
@@ -784,9 +823,12 @@ const copiedLink = () => {
         border-radius: 8px;
         background:none;
         text-decoration: underline;
-        border: none;
         color: blue;
         margin-top: 10px;
+        border: 0.2px solid rgb(122, 122, 122);
+    }
+    .btn-see-more {
+        background-color: #fae7e7;
     }
     .btn-close{
         border: 1px solid rgb(189, 189, 189);
@@ -932,7 +974,8 @@ const copiedLink = () => {
         /* color: red; */
         /* border: 1px solid; */
         font-size: 20px;
-        -webkit-text-stroke: 1px black; /* Viền đen */
+        color: black;
+        /* -webkit-text-stroke: 1px black; */
     }
     .product-action .fa-cart-shopping{
         color: black;
@@ -1091,7 +1134,7 @@ const copiedLink = () => {
         border-right: 1px solid rgb(163, 29, 29);
     }
     .img{
-        width: 100%;
+        width: 50px;
         height: 50px;
     }
     .content{
@@ -1185,7 +1228,26 @@ const copiedLink = () => {
         align-items: center;
         padding-right: 10px;
     }
-
+    .cart:disabled {
+        background-color: #ccc;
+        cursor: not-allowed;
+        opacity: 0.7;
+    }
+    .cart:disabled :hover{
+        cursor: default;
+        transform: translateY(0px);
+        background-color: rgb(189, 189, 189);
+    }
+    .order:disabled {
+        background-color: #f18f8f;
+        cursor: not-allowed;
+        opacity: 0.7;
+    }
+    .order:disabled :hover{
+        cursor: default;
+        transform: translateY(0px);
+        background-color: rgb(189, 189, 189);
+    }
     @media (min-width: 1024px) and (max-width: 1279px) { 
         .main{
             height: 80%;
@@ -1293,12 +1355,12 @@ const copiedLink = () => {
             margin-top: 10px;
         }
         .image-user{
-            width: 4%;
+            width: 40px;
             height: auto;
             border-right: 1px solid rgb(163, 29, 29);
         }
         .image-user  .img{
-            width: 100%;
+            width: 40px;
             height: 40px;
         }
         
@@ -1439,11 +1501,12 @@ const copiedLink = () => {
         }
         .image-user{
             width: 45px;
+            
             height: auto;
         }
         .image-user  .img{
-            width: 100%;
-            height: 25px;
+            width: 40px;
+            height: 40px;
         }
         .title h3{  
             font-size: 20px;

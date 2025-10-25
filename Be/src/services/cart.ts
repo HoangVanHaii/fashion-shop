@@ -79,7 +79,7 @@ export const addToCart = async(user_id: number, cart_item: CartItem):Promise<voi
         else {
             const newQuantity = itemResult.recordset[0].quantity + cart_item.quantity;
             if (newQuantity > stock) {
-                throw new AppError(`Not enough stock. Available: ${stock}`, 400);
+                throw new AppError(`your cart count is full size`, 400);
             }
             await transaction
                 .request()

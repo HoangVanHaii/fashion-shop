@@ -2,7 +2,7 @@
 import Header from "../components/Header.vue";
 import { ref, onMounted, computed } from "vue";
 import type { FlashSale } from "../interfaces/flashSale";
-import { getImage } from "../utils/getImage";
+import { getImage } from "../utils/format";
 import { formatPrice } from "../utils/formatPrice";
 import hotDeal1Image from "../assets/hotDeals/hotDeal1.jpg";
 import hotDeal2Image from "../assets/hotDeals/hotDeal2.jpg";
@@ -12,7 +12,9 @@ import { useProductStore } from "../stores/productStore";
 import AddToCart from "../components/AddToCart.vue";
 import { useRouter } from "vue-router";
 import Loading from "../components/Loading.vue";
+import { useFavouriteStore } from "../stores/favourite";
 
+const favourite = useFavouriteStore();
 const router = useRouter();
 const flashSale1 = ref<FlashSale | null>(null);
 const flashSale2 = ref<FlashSale | null>(null);
@@ -25,60 +27,66 @@ const showMoreHotDeal1 = ref(false);
 const showMoreHotDeal2 = ref(false);
 
 onMounted(async () => {
-  let excludeIds = localStorage.getItem("excludeIdHome") || "";
-  localStorage.removeItem("excludeIds");
-  const ids = excludeIds ? excludeIds.split(",") : [];
+    let excludeIds = localStorage.getItem("excludeIdHome") || "";
+    localStorage.removeItem("excludeIds");
+    const ids = excludeIds ? excludeIds.split(",") : [];
 
-  flashSale1.value = await useFlashSale.getFlashSaleHotDeal1NotIN(excludeIds);
+    flashSale1.value = await useFlashSale.getFlashSaleHotDeal1NotIN(excludeIds);
+    await favourite.getFavouriteOfMeStore();
 
+    if (flashSale1.value && flashSale1.value.id) {
+        const id = flashSale1.value.id.toString();
 
-  if (flashSale1.value && flashSale1.value.id) {
-    const id = flashSale1.value.id.toString();
-
-    if (!ids.includes(id)) {
-      ids.push(id);
-      excludeIds = ids.join(",");
-      localStorage.setItem("excludeIds", ids.join(","));
+        if (!ids.includes(id)) {
+        ids.push(id);
+        excludeIds = ids.join(",");
+        localStorage.setItem("excludeIds", ids.join(","));
+        }
     }
-  }
-  flashSale2.value =  await useFlashSale.getFlashSaleHotDeal2NotIN(excludeIds);
+    flashSale2.value =  await useFlashSale.getFlashSaleHotDeal2NotIN(excludeIds);
 });
 const productDetail = ref<ProductPayload>();
 const handleCart = async (id: number) => {
-
-  productDetail.value = await useProduct.getProductByIdStore(id);
-  if (productDetail) {
-    showFormAdd.value = true;
-  }
+    productDetail.value = await useProduct.getProductByIdStore(id);
+    if (productDetail) {
+        showFormAdd.value = true;
+    }
+};
+const toggleFavourite = async (id: number) => {
+    if (favourite.isFavourite(id)) {
+        await favourite.deleteFavouriteStore(id);
+    } else {
+        await favourite.addFavouriteStore(id);
+    }
 };
 
 const getDiscountPercent = (
-  originalPrice: number,
-  flashPrice?: number
+    originalPrice: number,
+    flashPrice?: number
 ): number => {
-  if (!flashPrice || flashPrice >= originalPrice) return 0;
-  const percent = ((originalPrice - flashPrice) / originalPrice) * 100;
-  return Math.round(percent);
+    if (!flashPrice || flashPrice >= originalPrice) return 0;
+    const percent = ((originalPrice - flashPrice) / originalPrice) * 100;
+    return Math.round(percent);
 };
 
 const displayedProductHotDeal1 = computed<ProductSummary[]>(() => {
-  if (!flashSale1.value) return [];
-  return showMoreHotDeal1.value
-    ? flashSale1.value.Products
-    : flashSale1.value.Products.slice(0, 6);
+    if (!flashSale1.value) return [];
+    return showMoreHotDeal1.value
+        ? flashSale1.value.Products
+        : flashSale1.value.Products.slice(0, 6);
 });
 const displayedProductHotDeal2 = computed<ProductSummary[]>(() => {
-  if (!flashSale2.value) return [];
-  return showMoreHotDeal2.value
-    ? flashSale2.value.Products
-    : flashSale2.value.Products.slice(0, 6);
+    if (!flashSale2.value) return [];
+    return showMoreHotDeal2.value
+        ? flashSale2.value.Products
+        : flashSale2.value.Products.slice(0, 6);
 });
 
 const btnShowMoreHotDeal1 = () => {
-  showMoreHotDeal1.value = !showMoreHotDeal1.value;
+    showMoreHotDeal1.value = !showMoreHotDeal1.value;
 };
 const btnShowMoreHotDeal2 = () => {
-  showMoreHotDeal2.value = !showMoreHotDeal2.value;
+    showMoreHotDeal2.value = !showMoreHotDeal2.value;
 };
 </script>
 <template>
@@ -149,7 +157,10 @@ const btnShowMoreHotDeal2 = () => {
                                     </div>
                                     <div class="deal-action" @click.stop>
                                         <button @click="handleCart(product.id)"><i class="fa-solid fa-cart-shopping"></i></button>
-                                        <button><i class="fa-solid fa-heart"></i></button>
+                                         <button @click.stop="toggleFavourite(product.id)">
+                                            <i v-if="favourite.isFavourite(product.id)" class="fa-solid fa-heart"></i>
+                                            <i v-if="!favourite.isFavourite(product.id)" class="fa-regular fa-heart"></i>
+                                        </button>
                                     </div>
                                 </div>
                             </div>
@@ -466,8 +477,28 @@ const btnShowMoreHotDeal2 = () => {
 }
 .deal-action i {
   font-size: 20px;
-  -webkit-text-stroke: 1px black;
+  color: black;
+  /* -webkit-text-stroke: 1px black; */
 }
+.deal-action button:hover{
+        cursor:pointer;
+        transform: translateY(-1px);
+    }
+    .deal-action button:hover{
+        cursor:pointer;
+        transform: translateY(-1px);
+    }
+    .fa-solid.fa-heart{
+        color: red;
+    }
+    .heart-filled {
+        color: red;
+        font-weight: 900; 
+    }
+    .heart-empty {
+        color: #ccc;
+        font-weight: 400; 
+    }
 .deal-action .fa-cart-shopping {
   color: black;
 }

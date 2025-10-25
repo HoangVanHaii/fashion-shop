@@ -2,7 +2,7 @@
 import { ref, onMounted } from 'vue';
 import type { Ref } from 'vue'
 import { useAuthStore } from '../stores/authStore';
-import { getImage } from '../utils/getImage';
+import { getImage } from '../utils/format';
 import { useRouter } from 'vue-router';
 
 const props = defineProps<{
@@ -63,6 +63,9 @@ const goToAccount = () => {
 }
 const goToFavourite = () => {
     reset(showDetail, showOrder, showVoucher, showRegisterSeller, showNotification, showFavourite, showProfile, showAddress, showResetPassword);
+    router.push({
+        name:'favourite'
+    })
 }
 const goToVoucher = () => {
     reset(showDetail, showFavourite, showOrder, showRegisterSeller, showNotification, showVoucher, showProfile, showAddress, showResetPassword);
@@ -104,9 +107,7 @@ const handleShow = () => {
     <div class="menu" v-if="props.showMenu">
         <div class="profile">
             <div class="infor">
-                <!-- <div class="image"> -->
-                    <img :src="getImage(auth.user?.avatar!)" alt="">
-                <!-- </div> -->
+                <img :src="getImage(auth.user?.avatar!)" alt="">
             </div>
             <div class="user-name">
                 <span class="title">{{ auth.user?.name }}</span>
