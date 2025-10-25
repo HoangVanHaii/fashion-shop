@@ -75,6 +75,7 @@ export const useAuthStore = defineStore('auth', () => {
             localStorage.setItem("accessToken", data.data.accessToken);
             localStorage.setItem("refreshToken", data.data.refreshToken);
             localStorage.setItem("user_id", data.data.user.id);
+            localStorage.setItem("avatar", data.data.user.avatar)
             isLogin.value = true;
 
             success.value = "Đăng nhập thành công";

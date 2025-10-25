@@ -57,6 +57,7 @@ export interface ShopDetal{
     address: string;
     rating: number;
     visit_count: number;
+    created_at?: Date;
 }
 export interface ShopToDoSummary {
     shop_id: number;

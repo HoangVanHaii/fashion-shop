@@ -28,3 +28,7 @@ export const getProductByShop = async (id: number) => {
     const result = await axios.get(`http://localhost:3000/api/product/searchByShop?shop_id=${id}`);
     return result.data;
 }
+export const getAllProductActive = async () => {
+    const result = await axios.get(`http://localhost:3000/api/product/actives`);
+    return result.data;
+}

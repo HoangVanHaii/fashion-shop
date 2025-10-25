@@ -25,11 +25,11 @@ watch(() => props.text, (newVal) => {
 <style scoped>
 .toast{
     position: fixed;
-    top: 35px;
+    top: 15px;
     left: 50%;
     transform: translateX(-50%);
     color: white;
-    padding: 20px 30px;
+    padding: 10px 20px;
     border-radius: 6px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
     z-index: 9999;
