@@ -1,5 +1,5 @@
 import type { Voucher } from "../interfaces/voucher";
-import { getTop4Voucher, getAllVoucher, getVoucherByCode, getVoucherById } from "../services/voucher";
+import { getTop4Voucher, getAllVoucher, getVoucherByCode, getAllVoucherByShopId, getVoucherById } from "../services/voucher";
 import { defineStore } from "pinia";
 
 export const voucherStore = defineStore("voucher", () => {
@@ -39,7 +39,16 @@ export const voucherStore = defineStore("voucher", () => {
             return null;
         }
     }
-    return { getTop4VoucherGlobal, getAllVoucherStore, getVoucherByCodeStore, getVoucherByIdStore}
+    const getAllVoucherByShopIdStore = async(id: number) => {
+        try {
+            const result = await getAllVoucherByShopId(id)
+            return result.vouchers;
+        } catch (err) {
+            console.log(err);
+            return null;
+        }
+    }
+    return { getTop4VoucherGlobal, getAllVoucherByShopIdStore, getAllVoucherStore, getVoucherByCodeStore, getVoucherByIdStore}
 })
 
 

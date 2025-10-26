@@ -11,7 +11,7 @@ import PoLo from "../assets/homes/PoLoTrangHome.jpg";
 import DoDa from "../assets/homes/DoDaTrangHome.jpg";
 import Header from "../components/Header.vue";
 import { getImage } from "../utils/format";
-import { formatPrice } from "../utils/formatPrice";
+import { formatPrice } from "../utils/format";
 import type { Voucher } from "../interfaces/voucher";
 import type { ProductSummary, ProductPayload } from "../interfaces/product";
 import type { FlashSale, FlashSaleProductSold } from "../interfaces/flashSale";
@@ -46,7 +46,7 @@ const showAll = ref(false);
 const showMoreBestSeller = ref(false);
 const showMoreNewArrivals = ref(false);
 const showFormAdd = ref(false);
-const copiedList = ref<boolean[]>([])
+const copiedList = ref<boolean[]>([]);
 const voucher = useVoucherStore();
 
 const textTmp = `Tối giản nhưng không đơn điệu – Dòng sản phẩm Polo của 
@@ -96,33 +96,35 @@ const handleCart = async (id: number) => {
 };
 
 onMounted(async () => {
-    vouchers.value = await useVoucher.getTop4VoucherGlobal();
-    flashSaleHomes.value = await useFlashSale.getFlashSaleHome();
-    localStorage.setItem(
-        "excludeIdHome",
-        flashSaleHomes.value?.id ? flashSaleHomes.value.id.toString() : ""
-    );
+  vouchers.value = await useVoucher.getTop4VoucherGlobal();
+  flashSaleHomes.value = await useFlashSale.getFlashSaleHome();
+  localStorage.setItem(
+    "excludeIdHome",
+    flashSaleHomes.value?.id ? flashSaleHomes.value.id.toString() : ""
+  );
 
-    totalSolds.value = await useFlashSale.getTotalSoldFlashSaleByIdStore();
+  totalSolds.value = await useFlashSale.getTotalSoldFlashSaleByIdStore();
 
-    productBestSeller.value = await useProduct.getProductBestSellerStore();
+  productBestSeller.value = await useProduct.getProductBestSellerStore();
 
-    productLatests.value = await useProduct.getProductLatestStore();
+  productLatests.value = await useProduct.getProductLatestStore();
 
     await favourite.getFavouriteOfMeStore();
-        
-    setTime();
-    countdown = setInterval(setTime, 1000);
 
-    timer = setInterval(() => {
-        currentIndex.value = (currentIndex.value + 1) % banners.length;
-    }, 4000);
+  setTime();
+  countdown = setInterval(setTime, 1000);
+
+  timer = setInterval(() => {
+    currentIndex.value = (currentIndex.value + 1) % banners.length;
+  }, 4000);
 });
 const prevImage = () => {
-  currentIndex.value = (currentIndex.value - 1 + banners.length) % banners.length;
+  currentIndex.value =
+    (currentIndex.value - 1 + banners.length) % banners.length;
 };
 const nextImage = () => {
-  currentIndex.value = (currentIndex.value + 1 + banners.length) % banners.length;
+  currentIndex.value =
+    (currentIndex.value + 1 + banners.length) % banners.length;
 };
 const bannerItems = [bannerItem1, bannerItem2, bannerItem3, bannerItem4];
 // const startDate = computed(() => flashSaleHomes.value?.start_date);
@@ -152,40 +154,41 @@ const setTime = () => {
   minutes.value = Math.floor((distance / (1000 * 60)) % 60);
   seconds.value = Math.floor((distance / 1000) % 60);
 };
-watch(() => flashSaleHomes.value?.end_date,
+watch(
+  () => flashSaleHomes.value?.end_date,
   () => {
     setTime();
   }
 );
 const getSold = (productId: number) => {
-    if (productId) {
-        const soldItem = totalSolds.value.find(
-          (item) => item.product_id === productId
-        );
-        return soldItem ? soldItem.total_flash_sale_sold : 0;
-    }
-    return 0;
+  if (productId) {
+    const soldItem = totalSolds.value.find(
+      (item) => item.product_id === productId
+    );
+    return soldItem ? soldItem.total_flash_sale_sold : 0;
+  }
+  return 0;
 };
 const copyText = async (text: string, index: number, voucher_id: number) => {
-    navigator.clipboard.writeText(text);    
-    copiedList.value[index] = true
-    
-    setTimeout(() => {
-        copiedList.value[index] = false
-    }, 1000)
-    await voucher.saveVoucherStore(voucher_id);
-}
+  navigator.clipboard.writeText(text);
+  copiedList.value[index] = true;
+
+  setTimeout(() => {
+    copiedList.value[index] = false;
+  }, 1000);
+  await voucher.saveVoucherStore(voucher_id);
+};
 onBeforeUnmount(() => {
   clearInterval(timer);
   clearInterval(countdown);
 });
 
 const toggleFavourite = async (id: number) => {
-    if (favourite.isFavourite(id)) {
-        await favourite.deleteFavouriteStore(id);
-    } else {
-        await favourite.addFavouriteStore(id);
-    }
+  if (favourite.isFavourite(id)) {
+    await favourite.deleteFavouriteStore(id);
+  } else {
+    await favourite.addFavouriteStore(id);
+  }
 };
 </script>
 <template>
@@ -229,7 +232,9 @@ const toggleFavourite = async (id: number) => {
               </div>
             </div>
             <div class="btn-voucher">
-              <button @click="copyText(voucher.code, index, voucher.id!)">{{copiedList[index] ? 'Đã sao chép' :  'Sao chép'}}</button>
+              <button @click="copyText(voucher.code, index, voucher.id!)">
+                {{ copiedList[index] ? "Đã sao chép" : "Sao chép" }}
+              </button>
               <p class="condition">Điều kiện</p>
             </div>
           </div>
@@ -309,10 +314,16 @@ const toggleFavourite = async (id: number) => {
                   <button @click="handleCart(product.id)">
                     <i class="fa-solid fa-cart-shopping"></i>
                   </button>
-                   <button @click.stop="toggleFavourite(product.id)">
-                        <i v-if="favourite.isFavourite(product.id)" class="fa-solid fa-heart"></i>
-                        <i v-if="!favourite.isFavourite(product.id)" class="fa-regular fa-heart"></i>
-                    </button>
+                  <button @click.stop="toggleFavourite(product.id)">
+                    <i
+                      v-if="favourite.isFavourite(product.id)"
+                      class="fa-solid fa-heart"
+                    ></i>
+                    <i
+                      v-if="!favourite.isFavourite(product.id)"
+                      class="fa-regular fa-heart"
+                    ></i>
+                  </button>
                 </div>
               </div>
               <div class="product-sold">
@@ -394,9 +405,15 @@ const toggleFavourite = async (id: number) => {
                     <button @click="handleCart(product.id)">
                       <i class="fa-solid fa-cart-shopping"></i>
                     </button>
-                     <button @click.stop="toggleFavourite(product.id)">
-                        <i v-if="favourite.isFavourite(product.id)" class="fa-solid fa-heart"></i>
-                        <i v-if="!favourite.isFavourite(product.id)" class="fa-regular fa-heart"></i>
+                    <button @click.stop="toggleFavourite(product.id)">
+                      <i
+                        v-if="favourite.isFavourite(product.id)"
+                        class="fa-solid fa-heart"
+                      ></i>
+                      <i
+                        v-if="!favourite.isFavourite(product.id)"
+                        class="fa-regular fa-heart"
+                      ></i>
                     </button>
                   </div>
                 </div>
@@ -467,9 +484,15 @@ const toggleFavourite = async (id: number) => {
                     <button @click="handleCart(product.id)">
                       <i class="fa-solid fa-cart-shopping"></i>
                     </button>
-                     <button @click.stop="toggleFavourite(product.id)">
-                        <i v-if="favourite.isFavourite(product.id)" class="fa-solid fa-heart"></i>
-                        <i v-if="!favourite.isFavourite(product.id)" class="fa-regular fa-heart"></i>
+                    <button @click.stop="toggleFavourite(product.id)">
+                      <i
+                        v-if="favourite.isFavourite(product.id)"
+                        class="fa-solid fa-heart"
+                      ></i>
+                      <i
+                        v-if="!favourite.isFavourite(product.id)"
+                        class="fa-regular fa-heart"
+                      ></i>
                     </button>
                   </div>
                 </div>
@@ -519,25 +542,25 @@ const toggleFavourite = async (id: number) => {
   </div>
 </template>
 <style scoped>
-    .product-action button:hover{
-        cursor:pointer;
-        transform: translateY(-1px);
-    }
-    .grid-action button:hover{
-        cursor:pointer;
-        transform: translateY(-1px);
-    }
-    .fa-solid.fa-heart{
-        color: red;
-    }
-    .heart-filled {
-        color: red;
-        font-weight: 900; 
-    }
-    .heart-empty {
-        color: #ccc;
-        font-weight: 400; 
-    }
+.product-action button:hover {
+  cursor: pointer;
+  transform: translateY(-1px);
+}
+.grid-action button:hover {
+  cursor: pointer;
+  transform: translateY(-1px);
+}
+.fa-solid.fa-heart {
+  color: red;
+}
+.heart-filled {
+  color: red;
+  font-weight: 900;
+}
+.heart-empty {
+  color: #ccc;
+  font-weight: 400;
+}
 .container {
   width: 100%;
   height: 100vh;
@@ -1202,7 +1225,8 @@ const toggleFavourite = async (id: number) => {
 .btn-best-seller i {
   vertical-align: middle;
 }
-.btn-new-arrival, .btn-best-seller {
+.btn-new-arrival,
+.btn-best-seller {
   padding: 5px;
   font-size: 17px;
   border-radius: 4px;
@@ -1440,7 +1464,7 @@ const toggleFavourite = async (id: number) => {
   }
 
   /**/
-  .promo-flashsale{
+  .promo-flashsale {
     width: 98%;
     /* background-color: aqua; */
   }
@@ -1448,7 +1472,7 @@ const toggleFavourite = async (id: number) => {
     height: 300px;
     /* background-color: red; */
   }
-  .promo-product.grid-mode{
+  .promo-product.grid-mode {
     column-gap: 5px;
     row-gap: 20px;
   }
@@ -1503,9 +1527,9 @@ const toggleFavourite = async (id: number) => {
     height: 35%;
     gap: 20px;
   }
-.featured-products .title{
+  .featured-products .title {
     font-size: 15px;
-}
+  }
   .product-bottom .product-prices span {
     font-size: 14px;
   }
