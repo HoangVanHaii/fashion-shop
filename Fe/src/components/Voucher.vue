@@ -6,28 +6,29 @@ const useVoucher = voucherStore();
 import type { Voucher } from "../interfaces/voucher";
 const vouhers = ref<Voucher[]>([]);
 const selectedVoucher = ref<number>();
-const voucherDetail = ref<Voucher | null>(null)
+const voucherDetail = ref<Voucher | null>(null);
 
-onMounted(async() => {
-  
+onMounted(async () => {
   vouhers.value = await useVoucher.getAllVoucherStore();
 });
 const check = ref<Boolean>(false);
 
-const textSearch = ref<string>('');
+const textSearch = ref<string>("");
 const isValid = computed(() => {
   check.value = false;
   voucherDetail.value = null;
   return textSearch.value?.length > 3;
-})
+});
 const emit = defineEmits(["close"]);
 const handleClose = () => {
   emit("close");
 };
 const handleSearchVoucher = async () => {
   check.value = true;
-  voucherDetail.value = await useVoucher.getVoucherByCodeStore(textSearch.value);
-}
+  voucherDetail.value = await useVoucher.getVoucherByCodeStore(
+    textSearch.value
+  );
+};
 </script>
 <template>
   <div class="modal" @click="handleClose">
@@ -39,41 +40,62 @@ const handleSearchVoucher = async () => {
         <div class="search">
           <span>Mã voucher</span>
           <div class="acctions">
-            <input type="text" v-model="textSearch" placeholder="Nhập mã voucher" />
-            <button :disabled="!isValid" @click="handleSearchVoucher">Áp dụng</button>
+            <input
+              type="text"
+              v-model="textSearch"
+              placeholder="Nhập mã voucher"
+            />
+            <button :disabled="!isValid" @click="handleSearchVoucher">
+              Áp dụng
+            </button>
           </div>
         </div>
-        <div v-if="voucherDetail" class="voucher" >
+        <div v-if="voucherDetail" class="voucher">
           <div class="voucher-image">
-              <img :src="getImage(voucherDetail.image_url)" alt="" />
+            <img :src="getImage(voucherDetail.image_url)" alt="" />
+          </div>
+          <div class="description">
+            <span class="des">{{ voucherDetail.description }}</span>
+            <span class="des-min"
+              >Đơn tối thiểu
+              {{ formatPrice(voucherDetail.min_order_value) }}</span
+            >
+            <div class="expiry-terms">
+              <span class="expiry"
+                ><i class="fa-solid fa-clock"></i> HSD:
+                {{ formatDateTime(voucherDetail.end_date) }}</span
+              >
+              <span class="terms">Điều kiện</span>
             </div>
-            <div class="description">
-              <span class="des">{{ voucherDetail.description }}</span>
-              <span class="des-min">Đơn tối thiểu {{ formatPrice( voucherDetail.min_order_value )}}</span>
-              <div class="expiry-terms">
-                <span class="expiry"
-                  ><i class="fa-solid fa-clock"></i> HSD:
-                  {{ formatDateTime(voucherDetail.end_date) }}</span
-                >
-                <span class="terms">Điều kiện</span>
-              </div>
-            </div>
-            <div class="select">
-              <input type="radio" :value="voucherDetail.id" name="voucher_select" v-model="selectedVoucher" />
-            </div>
+          </div>
+          <div class="select">
+            <input
+              type="radio"
+              :value="voucherDetail.id"
+              name="voucher_select"
+              v-model="selectedVoucher"
+            />
+          </div>
         </div>
         <div v-if="check && !voucherDetail" class="notification">
-            <span class="failed1">Rất tiếc, mã voucher bạn nhập không hợp lệ hoặc đã hết hạn sử dụng. Vui lòng kiểm tra lại.</span><br>
-            <span class="failed2">Xem xét các voucher tương tự có sẵn bên dưới.</span>
+          <span class="failed1"
+            >Rất tiếc, mã voucher bạn nhập không hợp lệ hoặc đã hết hạn sử dụng.
+            Vui lòng kiểm tra lại.</span
+          ><br />
+          <span class="failed2"
+            >Xem xét các voucher tương tự có sẵn bên dưới.</span
+          >
         </div>
-        <div class="list-voucher" v-if="!voucherDetail" >
+        <div class="list-voucher" v-if="!voucherDetail">
           <div v-for="voucher in vouhers" class="voucher">
             <div class="voucher-image">
               <img :src="getImage(voucher.image_url)" alt="" />
             </div>
             <div class="description">
               <span class="des">{{ voucher.description }}</span>
-              <span class="des-min">Đơn tối thiểu {{ formatPrice( voucher.min_order_value )}}</span>
+              <span class="des-min"
+                >Đơn tối thiểu {{ formatPrice(voucher.min_order_value) }}</span
+              >
               <div class="expiry-terms">
                 <span class="expiry"
                   ><i class="fa-solid fa-clock"></i> HSD:
@@ -83,7 +105,12 @@ const handleSearchVoucher = async () => {
               </div>
             </div>
             <div class="select">
-              <input type="radio" :value="voucher.id" name="voucher_select" v-model="selectedVoucher" />
+              <input
+                type="radio"
+                :value="voucher.id"
+                name="voucher_select"
+                v-model="selectedVoucher"
+              />
             </div>
           </div>
         </div>
@@ -159,7 +186,7 @@ const handleSearchVoucher = async () => {
   font-size: 17px;
   border-radius: 4px;
 }
- .acctions button:disabled {
+.acctions button:disabled {
   background-color: #ccc;
   cursor: not-allowed;
   opacity: 0.6;
@@ -175,10 +202,10 @@ const handleSearchVoucher = async () => {
   border: none;
   border-radius: 2px;
 }
-.notification .failed1{
-  color: red; 
+.notification .failed1 {
+  color: red;
 }
-.notification .failed2{
+.notification .failed2 {
   color: blue;
   font-size: 18px;
 }
@@ -192,7 +219,7 @@ const handleSearchVoucher = async () => {
   row-gap: 15px;
   overflow-y: auto;
   align-items: center;
-  scrollbar-width: none;  
+  scrollbar-width: none;
 }
 .voucher {
   width: 95%;
@@ -229,13 +256,13 @@ const handleSearchVoucher = async () => {
   /* align-items: center; */
   /* background-color: blue; */
 }
-.description .des{
+.description .des {
   display: -webkit-box;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
-.description .des-min{
+.description .des-min {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -251,7 +278,6 @@ const handleSearchVoucher = async () => {
   width: 70%;
   /* background-color: #e5e4e4; */
   font-size: 14px;
-  
 }
 .expiry-terms .terms {
   font-size: 13px;
@@ -261,7 +287,7 @@ const handleSearchVoucher = async () => {
   width: 20px;
   height: 20px;
 }
-input{
+input {
   padding: 3px;
   border: none;
   border: 0.3px solid rgb(145, 145, 145);
@@ -299,31 +325,31 @@ input{
   cursor: pointer;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 }
-@media(max-width: 768px){
-  .container{
+@media (max-width: 768px) {
+  .container {
     width: 350px;
     height: 450px;
   }
-  .title span{
+  .title span {
     font-size: 15px;
   }
-  .acctions input{
+  .acctions input {
     font-size: 12px;
     padding: 4px 0;
     text-align: start;
   }
-  .search span{
+  .search span {
     font-size: 13px;
   }
-  .description .des{
+  .description .des {
     font-size: 13px;
   }
-  .description .des-min{
+  .description .des-min {
     font-size: 12px;
   }
-  .expiry-terms .expiry, .expiry-terms .terms {
+  .expiry-terms .expiry,
+  .expiry-terms .terms {
     font-size: 11px;
-    
   }
   .select input {
     width: 14xpx;

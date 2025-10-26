@@ -10,6 +10,7 @@ const router = express.Router();
 router.get('/', voucherController.getAllVouchers);
 router.get('/getVoucherByCode/:code', voucherController.getVoucherByCode);
 router.get('/getVoucherByShopId', voucherController.getVoucherByShopId);
+router.get('/:id', voucherController.getVoucherByShopIdForUser);
 router.get('/getVoucherCodeById/:id', voucherController.getVoucherCodeById);
 router.get('/getVoucherById/:id', voucherController.getVoucherById);
 router.get('/topVoucher', voucherController.getTopVouchers);

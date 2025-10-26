@@ -57,6 +57,15 @@ export const getVoucherByShopId = async (req: Request, res: Response, next: Next
         next(err);
     }
 }
+export const getVoucherByShopIdForUser = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const id = parseInt(req.params.id);
+        const vouchers = await voucherService.getVoucherByShopId(id);
+        return res.status(200).json({ vouchers });
+    } catch (err) {
+        next(err);
+    }
+}
 export const createVoucher = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const user_id = req.user!.id;

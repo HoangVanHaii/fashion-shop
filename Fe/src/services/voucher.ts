@@ -16,3 +16,7 @@ export const getVoucherById = async (id: number) => {
     const result = await api.get(`/voucher/getVoucherById/:${id}`)
     return result.data;
 }
+export const getAllVoucherByShopId = async (id: number) => {
+    const result = await api.get(`voucher/${id}`)
+    return result.data;
+}

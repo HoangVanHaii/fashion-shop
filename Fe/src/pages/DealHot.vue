@@ -3,7 +3,7 @@ import Header from "../components/Header.vue";
 import { ref, onMounted, computed } from "vue";
 import type { FlashSale } from "../interfaces/flashSale";
 import { getImage } from "../utils/format";
-import { formatPrice } from "../utils/formatPrice";
+import { formatPrice } from "../utils/format";
 import hotDeal1Image from "../assets/hotDeals/hotDeal1.jpg";
 import hotDeal2Image from "../assets/hotDeals/hotDeal2.jpg";
 import { flashSaleStore } from "../stores/flashSaleStore";
@@ -27,270 +27,292 @@ const showMoreHotDeal1 = ref(false);
 const showMoreHotDeal2 = ref(false);
 
 onMounted(async () => {
-    let excludeIds = localStorage.getItem("excludeIdHome") || "";
-    localStorage.removeItem("excludeIds");
-    const ids = excludeIds ? excludeIds.split(",") : [];
+  let excludeIds = localStorage.getItem("excludeIdHome") || "";
+  localStorage.removeItem("excludeIds");
+  const ids = excludeIds ? excludeIds.split(",") : [];
 
-    flashSale1.value = await useFlashSale.getFlashSaleHotDeal1NotIN(excludeIds);
-    await favourite.getFavouriteOfMeStore();
+  flashSale1.value = await useFlashSale.getFlashSaleHotDeal1NotIN(excludeIds);
+  await favourite.getFavouriteOfMeStore();
 
-    if (flashSale1.value && flashSale1.value.id) {
-        const id = flashSale1.value.id.toString();
+  if (flashSale1.value && flashSale1.value.id) {
+    const id = flashSale1.value.id.toString();
 
-        if (!ids.includes(id)) {
-        ids.push(id);
-        excludeIds = ids.join(",");
-        localStorage.setItem("excludeIds", ids.join(","));
-        }
+    if (!ids.includes(id)) {
+      ids.push(id);
+      excludeIds = ids.join(",");
+      localStorage.setItem("excludeIds", ids.join(","));
     }
-    flashSale2.value =  await useFlashSale.getFlashSaleHotDeal2NotIN(excludeIds);
+  }
+  flashSale2.value = await useFlashSale.getFlashSaleHotDeal2NotIN(excludeIds);
 });
 const productDetail = ref<ProductPayload>();
 const handleCart = async (id: number) => {
-    productDetail.value = await useProduct.getProductByIdStore(id);
-    if (productDetail) {
-        showFormAdd.value = true;
-    }
+  productDetail.value = await useProduct.getProductByIdStore(id);
+  if (productDetail) {
+    showFormAdd.value = true;
+  }
 };
 const toggleFavourite = async (id: number) => {
-    if (favourite.isFavourite(id)) {
-        await favourite.deleteFavouriteStore(id);
-    } else {
-        await favourite.addFavouriteStore(id);
-    }
+  if (favourite.isFavourite(id)) {
+    await favourite.deleteFavouriteStore(id);
+  } else {
+    await favourite.addFavouriteStore(id);
+  }
 };
 
 const getDiscountPercent = (
-    originalPrice: number,
-    flashPrice?: number
+  originalPrice: number,
+  flashPrice?: number
 ): number => {
-    if (!flashPrice || flashPrice >= originalPrice) return 0;
-    const percent = ((originalPrice - flashPrice) / originalPrice) * 100;
-    return Math.round(percent);
+  if (!flashPrice || flashPrice >= originalPrice) return 0;
+  const percent = ((originalPrice - flashPrice) / originalPrice) * 100;
+  return Math.round(percent);
 };
 
 const displayedProductHotDeal1 = computed<ProductSummary[]>(() => {
-    if (!flashSale1.value) return [];
-    return showMoreHotDeal1.value
-        ? flashSale1.value.Products
-        : flashSale1.value.Products.slice(0, 6);
+  if (!flashSale1.value) return [];
+  return showMoreHotDeal1.value
+    ? flashSale1.value.Products
+    : flashSale1.value.Products.slice(0, 6);
 });
 const displayedProductHotDeal2 = computed<ProductSummary[]>(() => {
-    if (!flashSale2.value) return [];
-    return showMoreHotDeal2.value
-        ? flashSale2.value.Products
-        : flashSale2.value.Products.slice(0, 6);
+  if (!flashSale2.value) return [];
+  return showMoreHotDeal2.value
+    ? flashSale2.value.Products
+    : flashSale2.value.Products.slice(0, 6);
 });
 
 const btnShowMoreHotDeal1 = () => {
-    showMoreHotDeal1.value = !showMoreHotDeal1.value;
+  showMoreHotDeal1.value = !showMoreHotDeal1.value;
 };
 const btnShowMoreHotDeal2 = () => {
-    showMoreHotDeal2.value = !showMoreHotDeal2.value;
+  showMoreHotDeal2.value = !showMoreHotDeal2.value;
 };
 </script>
 <template>
-
-    <Header />
-    <Loading  :loading="useFlashSale.loading"/>
-    <div class="breadcrumb">
-        <a href="/" class="breadcrumb-item">Trang chủ</a>
-        <span class="separator">|</span>
-        <span class="breadcrumb-item active">Ưu đãi cực hót</span>
-    </div>
-    <div class="container-deals">
-        <div class="deal-item" v-if="flashSale1">
-            <h3>{{ flashSale1?.title }}</h3>
-            <div class="deal-content">
-                <div class="deal-hot-image">
-                    <img :src="hotDeal1Image" alt="" />
+  <Header />
+  <Loading :loading="useFlashSale.loading" />
+  <div class="breadcrumb">
+    <a href="/" class="breadcrumb-item">Trang chủ</a>
+    <span class="separator">|</span>
+    <span class="breadcrumb-item active">Ưu đãi cực hót</span>
+  </div>
+  <div class="container-deals">
+    <div class="deal-item" v-if="flashSale1">
+      <h3>{{ flashSale1?.title }}</h3>
+      <div class="deal-content">
+        <div class="deal-hot-image">
+          <img :src="hotDeal1Image" alt="" />
+        </div>
+        <div class="deal-product">
+          <div
+            v-for="product in displayedProductHotDeal1"
+            class="deal-item-product"
+            @click="
+              router.push({
+                name: 'product-detail',
+                params: { id: product.id },
+              })
+            "
+          >
+            <div class="deal-image">
+              <div
+                class="container-percent"
+                v-if="
+                  getDiscountPercent(product.min_price, product.flash_price) > 0
+                "
+              >
+                <span class="text-percent"
+                  >{{
+                    getDiscountPercent(product.min_price, product.flash_price)
+                  }}%
+                </span>
+              </div>
+              <img :src="getImage(product.thumbnail!)" alt="" />
+            </div>
+            <div class="deal-description">
+              <div class="deal-logo-color">
+                <span class="deal-logo">NAVA</span>
+                <div class="deal-colors">
+                  <div
+                    v-for="(img, ind) in product?.images.slice(0, 6)"
+                    :key="ind"
+                    class="deal-item-image"
+                  >
+                    <img :src="getImage(img)" alt="" />
+                  </div>
                 </div>
-                <div class="deal-product">
-                    <div
-                        v-for="product in displayedProductHotDeal1"
-                        class="deal-item-product"
-                        @click="
-                            router.push({
-                            name: 'product-detail',
-                            params: { id: product.id },
-                        })"
-              
+              </div>
+              <div class="deal-info">
+                <div class="deal-name">
+                  <p>{{ product.name }}</p>
+                </div>
+                <div class="deal-bottom">
+                  <div class="deal-prices">
+                    <div class="deal-prices">
+                      <span class="deal-price-new">{{
+                        product.flash_price
+                          ? formatPrice(product.flash_price!)
+                          : product.min_price
+                      }}</span>
+                      <span class="deal-price-old" v-if="product.flash_price">
+                        {{ formatPrice(product.max_price) }}</span
+                      >
+                    </div>
+                  </div>
+                  <div class="deal-action" @click.stop>
+                    <button @click="handleCart(product.id)">
+                      <i class="fa-solid fa-cart-shopping"></i>
+                    </button>
+                    <button @click.stop="toggleFavourite(product.id)">
+                      <i
+                        v-if="favourite.isFavourite(product.id)"
+                        class="fa-solid fa-heart"
+                      ></i>
+                      <i
+                        v-if="!favourite.isFavourite(product.id)"
+                        class="fa-regular fa-heart"
+                      ></i>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <button class="deal-btn" @click="btnShowMoreHotDeal1">
+        {{ showMoreHotDeal1 ? "Thu gọn" : "Xem thêm sản phẩm" }}
+        <i
+          :class="
+            showMoreHotDeal1
+              ? 'fa-solid fa-angle-up'
+              : 'fa-solid fa-arrow-right'
+          "
+        ></i>
+      </button>
+    </div>
+    <div class="deal-item" v-if="flashSale2">
+      <h3>{{ flashSale2?.title }}</h3>
+      <div class="deal-content deal2">
+        <div class="deal-hot-image">
+          <img :src="hotDeal2Image" alt="" />
+        </div>
+        <div class="deal-product">
+          <div
+            v-for="product in displayedProductHotDeal2"
+            class="deal-item-product"
+            @click="
+              router.push({
+                name: 'product-detail',
+                params: { id: product.id },
+              })
+            "
+          >
+            <div class="deal-image">
+              <div
+                class="container-percent"
+                v-if="
+                  getDiscountPercent(product.min_price, product.flash_price) > 0
+                "
+              >
+                <span class="text-percent"
+                  >{{
+                    getDiscountPercent(product.min_price, product.flash_price)
+                  }}%
+                </span>
+              </div>
+              <img :src="getImage(product.thumbnail!)" alt="" />
+            </div>
+            <div class="deal-description">
+              <div class="deal-logo-color">
+                <span class="deal-logo">NAVA</span>
+                <div class="deal-colors">
+                  <div
+                    v-for="(img, ind) in product?.images.slice(0, 6)"
+                    :key="ind"
+                    class="deal-item-image"
+                  >
+                    <img :src="getImage(img)" alt="" />
+                  </div>
+                </div>
+              </div>
+              <div class="deal-info">
+                <div class="deal-name">
+                  <p>{{ product.name }}</p>
+                </div>
+                <div class="deal-bottom">
+                  <div class="deal-prices">
+                    <span class="deal-price-new">{{
+                      product.flash_price
+                        ? formatPrice(product.flash_price!)
+                        : product.min_price
+                    }}</span>
+                    <span class="deal-price-old" v-if="product.flash_price">
+                      {{ formatPrice(product.max_price) }}</span
                     >
-                        <div class="deal-image">
-                            <div
-                                class="container-percent"
-                                v-if="
-                                getDiscountPercent(product.min_price, product.flash_price) > 0
-                                "
-                            >
-                                <span class="text-percent"
-                                    >{{
-                                        getDiscountPercent(product.min_price, product.flash_price)
-                                    }}%
-                                </span>
-                            </div>
-                            <img :src="getImage(product.thumbnail!)" alt="" />
-                        </div>
-                        <div class="deal-description">
-                            <div class="deal-logo-color">
-                                <span class="deal-logo">NAVA</span>
-                                <div class="deal-colors">
-                                    <div
-                                        v-for="(img, ind) in product?.images.slice(0, 6)"
-                                        :key="ind"
-                                        class="deal-item-image"
-                                    >
-                                        <img :src="getImage(img)" alt="" />
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="deal-info">
-                                <div class="deal-name">
-                                    <p>{{ product.name }}</p>
-                                </div>
-                                <div class="deal-bottom">
-                                    <div class="deal-prices">
-                                        <div class="deal-prices">
-                                        <span class="deal-price-new">{{ product.flash_price ? formatPrice(product.flash_price!) : product.min_price }}</span>
-                                        <span class="deal-price-old" v-if="product.flash_price"> {{ formatPrice(product.max_price) }}</span>
-                                    </div>
-                                    </div>
-                                    <div class="deal-action" @click.stop>
-                                        <button @click="handleCart(product.id)"><i class="fa-solid fa-cart-shopping"></i></button>
-                                         <button @click.stop="toggleFavourite(product.id)">
-                                            <i v-if="favourite.isFavourite(product.id)" class="fa-solid fa-heart"></i>
-                                            <i v-if="!favourite.isFavourite(product.id)" class="fa-regular fa-heart"></i>
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+                  </div>
+                  <div class="deal-action" @click.stop>
+                    <button @click="handleCart(product.id)">
+                      <i class="fa-solid fa-cart-shopping"></i>
+                    </button>
+                    <button><i class="fa-solid fa-heart"></i></button>
+                  </div>
                 </div>
+              </div>
             </div>
-            <button class="deal-btn" @click="btnShowMoreHotDeal1">
-                {{ showMoreHotDeal1 ? "Thu gọn" : "Xem thêm sản phẩm" }}
-                <i
-                :class="
-                    showMoreHotDeal1
-                    ? 'fa-solid fa-angle-up'
-                    : 'fa-solid fa-arrow-right'
-                "
-                ></i>
-            </button>
+          </div>
         </div>
-        <div class="deal-item" v-if="flashSale2">
-            <h3>{{ flashSale2?.title }}</h3>
-                <div class="deal-content deal2">
-                    <div class="deal-hot-image">
-                        <img :src="hotDeal2Image" alt="" />
-                    </div>
-                    <div class="deal-product">
-                        <div
-                            v-for="product in displayedProductHotDeal2"
-                            class="deal-item-product"
-                            @click="
-                                router.push({
-                                name: 'product-detail',
-                                params: { id: product.id },
-                            })"
-                        >
-                        <div class="deal-image">
-                            <div
-                                class="container-percent"
-                                v-if="
-                                getDiscountPercent(product.min_price, product.flash_price) > 0
-                                "
-                            >
-                                <span class="text-percent"
-                                    >{{
-                                        getDiscountPercent(product.min_price, product.flash_price)
-                                    }}%
-                                </span >
-                            </div>
-                            <img :src="getImage(product.thumbnail!)" alt="" />
-                        </div>
-                        <div class="deal-description">
-                            <div class="deal-logo-color">
-                                <span class="deal-logo">NAVA</span>
-                                <div class="deal-colors">
-                                    <div
-                                        v-for="(img, ind) in product?.images.slice(0, 6)"
-                                        :key="ind"
-                                        class="deal-item-image"
-                                    >
-                                        <img :src="getImage(img)" alt="" />
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="deal-info">
-                                <div class="deal-name">
-                                    <p>{{ product.name }}</p>
-                                </div>
-                                <div class="deal-bottom">
-                                    <div class="deal-prices">
-                                        <span class="deal-price-new">{{ product.flash_price ? formatPrice(product.flash_price!) : product.min_price }}</span>
-                                        <span class="deal-price-old" v-if="product.flash_price"> {{ formatPrice(product.max_price) }}</span>
-                                    </div>
-                                    <div class="deal-action" @click.stop>
-                                        <button @click="handleCart(product.id)"><i class="fa-solid fa-cart-shopping"></i></button>
-                                        <button><i class="fa-solid fa-heart"></i></button>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <button class="deal-btn" @click="btnShowMoreHotDeal2">
-                {{ showMoreHotDeal2 ? "Thu gọn" : "Xem thêm sản phẩm" }}
-                <i
-                :class="
-                    showMoreHotDeal2
-                    ? 'fa-solid fa-angle-up'
-                    : 'fa-solid fa-arrow-right'
-                "
-                ></i>
-            </button>
-        </div>
-        <div v-if="!flashSale1 && !flashSale2">
-            <h4>Hiện không có Ưu đãi hót nào</h4>
-        </div>
-        <AddToCart
-            v-if="showFormAdd && productDetail"
-            :product="productDetail"
-            @close="showFormAdd = false"
-        />
+      </div>
+      <button class="deal-btn" @click="btnShowMoreHotDeal2">
+        {{ showMoreHotDeal2 ? "Thu gọn" : "Xem thêm sản phẩm" }}
+        <i
+          :class="
+            showMoreHotDeal2
+              ? 'fa-solid fa-angle-up'
+              : 'fa-solid fa-arrow-right'
+          "
+        ></i>
+      </button>
     </div>
+    <div v-if="!flashSale1 && !flashSale2">
+      <h4>Hiện không có Ưu đãi hót nào</h4>
+    </div>
+    <AddToCart
+      v-if="showFormAdd && productDetail"
+      :product="productDetail"
+      @close="showFormAdd = false"
+    />
+  </div>
 </template>
 
 <style scoped>
 .breadcrumb {
-    padding: 15px 25px;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    font-size: 14px;
-    /* background-color: red; */
-    margin-left: -7px;
-    border-bottom: 1px solid #e0e0e0;
-    margin-top: 110px;
+  padding: 15px 25px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  /* background-color: red; */
+  margin-left: -7px;
+  border-bottom: 1px solid #e0e0e0;
+  margin-top: 110px;
 }
-.automatic-redirect-image{
-    display: none;
+.automatic-redirect-image {
+  display: none;
 }
 .breadcrumb-item {
-    color: #666;
-    text-decoration: none;
-    transition: color 0.3s;
+  color: #666;
+  text-decoration: none;
+  transition: color 0.3s;
 }
 .breadcrumb-item:hover {
-    color: #ff6b35;
+  color: #ff6b35;
 }
 
 .breadcrumb-item.active {
-    color: #333;
-    font-weight: 500;
+  color: #333;
+  font-weight: 500;
 }
 .container-deals {
   width: 100%;
@@ -480,25 +502,25 @@ const btnShowMoreHotDeal2 = () => {
   color: black;
   /* -webkit-text-stroke: 1px black; */
 }
-.deal-action button:hover{
-        cursor:pointer;
-        transform: translateY(-1px);
-    }
-    .deal-action button:hover{
-        cursor:pointer;
-        transform: translateY(-1px);
-    }
-    .fa-solid.fa-heart{
-        color: red;
-    }
-    .heart-filled {
-        color: red;
-        font-weight: 900; 
-    }
-    .heart-empty {
-        color: #ccc;
-        font-weight: 400; 
-    }
+.deal-action button:hover {
+  cursor: pointer;
+  transform: translateY(-1px);
+}
+.deal-action button:hover {
+  cursor: pointer;
+  transform: translateY(-1px);
+}
+.fa-solid.fa-heart {
+  color: red;
+}
+.heart-filled {
+  color: red;
+  font-weight: 900;
+}
+.heart-empty {
+  color: #ccc;
+  font-weight: 400;
+}
 .deal-action .fa-cart-shopping {
   color: black;
 }
@@ -550,7 +572,7 @@ const btnShowMoreHotDeal2 = () => {
   .deal-content {
     gap: 6px;
   }
-  .deal-item{
+  .deal-item {
     width: 96%;
   }
   .deal-product {
