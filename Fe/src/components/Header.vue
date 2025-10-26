@@ -1,95 +1,39 @@
 <script setup lang="ts">
-import { ref, computed , onBeforeMount, onMounted, onBeforeUnmount} from 'vue';
+import { ref , onBeforeMount} from 'vue';
 import { useRouter } from 'vue-router';
 import { useCartStore } from '../stores/cartStore'
 import { useCategoryStore } from '../stores/categoryStore'
-import type { ProductSummary } from '../interfaces/product';
+
 import logo from '../assets/logo.jpg'
-import { useProductStore } from '../stores/productStore';
-import { getImage } from '../utils/getImage';
-import { formatPrice } from '../utils/getImage';
 
 const cart = useCartStore();
 const category = useCategoryStore();
 const router = useRouter();
-const useProduct = useProductStore()
-const products = ref <ProductSummary[]>([]);
+
 const searchQuery = ref('');
 const showNamDropdown = ref(false);
 const showNuDropdown = ref(false);
 const showPhuKienDropdown = ref(false);
-const showFormSearch = ref(false);
 const cartCount = ref<number>(0); 
 const categoryMale = ref<string[]>([]);
 const categoryFemale = ref<string[]>([]);
-const searchBarRef = ref<HTMLElement | null>(null);
-const avatar = ref<string>('');
-const showFormUser = ref(false);
-const isLogin = ref(false);
-const showMenuPhone = ref(false);
-const MenuPhone = ref<HTMLElement | null>(null);
-const listSearch = computed<ProductSummary[]>(()  => {
-    const query = searchQuery.value.toLowerCase().trim();
-    if (!query) return products.value;
-    return products.value.filter(product => product.name.toLowerCase().includes(query))
-});
 
-onBeforeMount(async () => {
+const handleSearch = () => {
+   console.log('Search:', searchQuery.value);
+};
+
+onBeforeMount(async() => {
     cartCount.value = await cart.getCartCountStore();
     categoryMale.value = await category.getCategoryNameStore('Nam');
     categoryFemale.value = await category.getCategoryNameStore('Nữ');
-    const storedAvatar = localStorage.getItem('avatar');
-    if (storedAvatar && storedAvatar.length > 10) {
-        avatar.value = storedAvatar;
-    }
-    isLogin.value = localStorage.getItem('user_id') ? true : false;
-    products.value = await useProduct.getAllProductActiveStore();
 })
-
 const goToCart = () => {
     router.push('/cart');
 };
-const goToLogin = () => {
-    router.push('/auth/login')
-}
-const goToRegister = () => {
-    router.push('/auth/register')
-}
-const goToLogout = () => {
-    localStorage.removeItem('accessToken');
-    localStorage.removeItem('refreshToken');
-    localStorage.removeItem('user_id');
-    localStorage.removeItem('avatar');
-    router.push('/home');
-}
 
 const goToProfile = () => {
     router.push('/profile/orderOfme');
 };
-const getDiscountPercent = (originalPrice: number, flashPrice?: number): number => {
-    if (!flashPrice || flashPrice >= originalPrice) return 0;
-    const percent = ((originalPrice - flashPrice) / originalPrice) * 100;
-    return Math.round(percent);
-};
-
-const handleSearchClickOutside = (event: Event) => {
-    if (searchBarRef.value && !searchBarRef.value.contains(event.target as Node)) {
-        showFormSearch.value = false;
-        searchQuery.value = '';
-    }
-    if (MenuPhone.value && !MenuPhone.value.contains(event.target as Node)) {
-        showMenuPhone.value = false;
-    }
-    
-}
-onMounted(() => {
-    document.addEventListener('click', handleSearchClickOutside);
-    document.addEventListener('click', handleSearchClickOutside);
-})
-onBeforeUnmount(() => {
-    document.removeEventListener('click', handleSearchClickOutside);
-    document.removeEventListener('click', handleSearchClickOutside);
-})
 </script>
 
 <template>
@@ -107,15 +51,7 @@ onBeforeUnmount(() => {
 
         <div class="main-header">
             <div class="container">
-                <i class="fa-solid fa-bars" @click="showMenuPhone = true" ref="MenuPhone"></i>
-                <div class="menu-phone" v-if="showMenuPhone" >
-                     <a href="/home" class="nav-link">Trang chủ</a>
-                    <a href="/dealHot" class="nav-link">Ưu đãi cực hot</a>
-                    <a href="/CategoryGender?gender=Nam" class="nav-link"> Nam </a>
-                    <a href="/CategoryGender?gender=Nữ" class="nav-link">Nữ </a>
-                    <a href="/phu-kien" class="nav-link"> Phụ kiện </a>
-                    
-                </div>
+                <i class="fa-solid fa-bars"></i>
                 <div class="logo">
                     <img :src="logo"  @click="router.push('/')">
                 </div>
@@ -154,61 +90,26 @@ onBeforeUnmount(() => {
                     </div>
                 </nav>
 
-                <div ref="searchBarRef" class="search-bar" >
-                    <i class="fa-solid fa-magnifying-glass"></i>
+                <div class="search-bar">
+                    <i class="fa-solid fa-magnifying-glass" @click="handleSearch"></i>
                     <input 
                         v-model="searchQuery" 
                         type="text" 
                         placeholder="Search" 
-                        @focus="showFormSearch = true"
+                        @keyup.enter="handleSearch"
                     >
-                    <div class="suggestions" v-if="showFormSearch">
-                        <h4>KẾT QUẢ TÌM KIẾM</h4>
-                        <div class="list-product">
-                            <div v-for="product in listSearch" class="product-item" @click="router.push({name: 'product-detail', params: { id: product.id },})">
-                                <div class="container-image">
-                                    <span class="discount-percent" v-if="getDiscountPercent(product.max_price, product.flash_price) > 0">{{ getDiscountPercent(product.max_price, product.flash_price) }}%</span>
-                                    <img :src="getImage(product.thumbnail || '')" alt="">
-                                </div>
-                                <div class="container-content">
-                                    <span class="title">NAVA</span>
-                                    <span class="name">{{ product.name }}</span>
-                                    <div class="item-prices">
-                                        <span class="item-price-new">{{ product.flash_price ? formatPrice(product.flash_price!) : formatPrice(product.min_price) }}</span>
-                                        <span class="item-price-old" v-if="product.flash_price"> {{ formatPrice(product.max_price) }}</span>
-                                    </div>
-                                </div>
-    
-                            </div>
-                            
-                        </div>
-                    </div>
                 </div>
                 <div class="user-actions">
+                    <div class="user-icon" @click="goToProfile">
+                        <i class="fa-solid fa-user"></i> 
+                    </div>
                     <div class="cart-icon" @click="goToCart">
                         <i class="fa-solid fa-cart-shopping"></i>
                         <span v-if="cartCount > 0" class="cart-badge">{{ cart.cartCount }}</span>
                     </div>
-                    <div class="user-icon" @mouseenter="showFormUser = true" @mouseleave="showFormUser = false">
-                        <i v-if="!avatar" class="fa-solid fa-user"></i> 
-                        <img v-else :src="getImage(avatar)" alt="">
-                        <div class="user-container" v-if="showFormUser">
-                            <div v-if="!isLogin" class="guest-actions">
-                                <span @click="goToLogin" class="login">Đăng nhập</span>
-                                <span @click="goToRegister" class="register">Đăng ký</span>
-                            </div>
-                            <div v-else class="user-btn">
-                                <span @click="goToProfile" class="file">Hồ sơ</span>
-                                <span @click="goToLogout" class="logout">Đăng xuất</span>
-                            </div>
-                                
-                        </div>
-                    </div>
-                    
                 </div>
             </div>
         </div>
-
     </header>
 </template>
 
@@ -260,20 +161,6 @@ onBeforeUnmount(() => {
         display: flex;
         align-items: center;
         gap: 30px;
-    }
-    .menu-phone{
-        z-index: 9999;
-        display: flex;
-        flex-direction: column;
-        gap: 10px;
-        width: 100px;
-        position: absolute;
-        top: 100%;
-        background-color: #ffffff;
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
-        border-radius: 5px;
-        padding: 10px;
-        
     }
 
     .logo {
@@ -377,131 +264,21 @@ onBeforeUnmount(() => {
         align-items: center;
     }
 
-    .suggestions{
-        background-color: rgb(243, 244, 240);
-        z-index: 9999;
-        width: 350px;
-        min-height: 100px;
-        max-height: 50vh;
-        position: absolute;
-        overflow-y: auto;
-        top: 100%;
-        border-radius: 6px;
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.9);
-        scroll-behavior: smooth;
-    }
-    .suggestions::-webkit-scrollbar {
-        width: 6px; 
-    }
-    .suggestions {
-        scrollbar-width: thin;
-        scrollbar-color: #ccc #f5f5f5;
-        
-    }
-    .suggestions::-webkit-scrollbar-thumb {
-        background-color: #ccc;
-        border-radius: 4px;
-    }
-
-    h4{
-        text-align: center;
-    }
-    .list-product{
-        display: flex;
-        flex-direction: column;
-        gap: 30px;
-        align-items: center;
-
-    }
-    .product-item{
-        width: 90%;
-        height: 100px;
-        background-color: white;
-        display: flex;
-        flex-direction: row;
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
-        align-items: center;
-        gap: 7px;
-        position: relative;
-        border-radius: 4px;
-        cursor: pointer;
-    }
-    .discount-percent{
-        position: absolute;
-        background-color: rgb(202, 47, 47);
-        border-radius: 2px;
-        font-size: 13px ;
-        color: rgb(244, 229, 229);
-    }
-    .container-image{
-        width: 95px;
-        height: 95px;
-        border-radius: 3px;
-    }
-    .container-image img{
-        width: 100%;
-        height: 100%;
-        border-radius: 3px;
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
-    }
-    .container-content{
-        /* width: ; */
-        height: 80%;
-        /* align-items: center; */
-        justify-content: center;
-        /* background-color: red; */
-        display: flex;
-        flex-direction: column;
-        
-        justify-content: space-between;   
-    }
-    .container-content .name{
-        color: #545454;
-    }
-    .container-content .title{
-        color: black;
-        font-size: 17px;
-        font-weight: 500;
-    }
-    .item-prices{
-        display: flex;
-        flex-direction: row;
-        gap: 6px;
-    }
-    .item-price-new{
-        color: red;
-        font-size: 17px;
-    }
-    .item-price-old{
-        text-decoration: line-through;
-        color: rgb(63, 60, 60);
-        font-size: 15px;
-    }
-
     .user-actions {
         display: flex;
         align-items: center;
         gap: 20px;
     }
-    .user-icon{
-        border-radius: 50%;
-        width: 28px;
-        height: 28px;
-        object-fit: contain;
-        /* background-color: red; */
-    }
-    .user-icon img{
-        width: 100%;
-        height: 100%;
-    }
 
+    .user-icon,
     .cart-icon {
         cursor: pointer;
         position: relative;
         display: flex;
         align-items: center;
-        /* background-color: red; */
     }
+
+    .user-icon img,
     .cart-icon img {
         width: 28px;
         height: 28px;
@@ -523,50 +300,6 @@ onBeforeUnmount(() => {
         font-size: 11px;
         font-weight: bold;
     }
-
-    .user-container{
-        /* top: 100%; */
-        background-color: rgb(255, 255, 255);
-        width: 120px;
-        height: auto;
-        position: absolute;
-        border-radius: 5px;
-        /* width: auto;
-        height: auto; */
-        /* margin-right: 1000px; */
-        right: 30px;
-        /* top: 90px; */
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
-        padding: 10px;
-    }
-    .guest-actions, .user-btn{
-        display: flex;
-        flex-direction: column;
-        gap: 5px;
-    }
-    .guest-actions span, .user-btn span{
-        padding: 7px;
-        border-radius: 5px;
-        text-align: center;
-        cursor: pointer;
-    
-    }
-    .guest-actions .login{
-        background-color: red;
-        color: white;
-    }
-    .guest-actions .register{
-        background-color: white;
-        color: red;
-        border: solid 1px red;
-    }
-    .user-btn span{
-        /* background-color: red; */
-        color: black;
-        border: 1px solid #333;
-    }
-    
-
 
     /* Responsive */
     @media screen and (max-width: 1024px) {
@@ -610,9 +343,7 @@ onBeforeUnmount(() => {
         .nav-menu {
             display: none;
         }
-        .dropdown-menu{
-            display: none;
-        }
+
         .search-bar {
             order: 3;
             width: 100%;

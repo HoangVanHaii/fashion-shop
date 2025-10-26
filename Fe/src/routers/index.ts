@@ -14,12 +14,14 @@ import Profile from '../pages/Profile.vue';
 import OrderDetail from '../pages/OrderDetail.vue';
 import Favourite from '../pages/Favourite.vue';
 import Shop from '../pages/Shop.vue'
+import HeaderSeller from '../components/sellers/Header.vue';
 
 const routes = [
   { path: '/', redirect: '/home' },
   { path: '/home', name: 'Home', component: Home },
   { path: '/auth/login', name: 'login', component: Auth },
   { path: '/header', name: 'header', component: Header },
+  { path: '/seller/header', name: 'header-seller', component: HeaderSeller },
   { path: '/auth/register', name: 'register-sendOTP', component: Auth },
   { path: '/verifyRegister', name: 'register-verify', component: VerifyOTP },
   { path: '/categoryGender', name: 'category-gender', component: CategoryGender },

@@ -1,13 +1,13 @@
 <script setup lang="ts">
-import { getImage } from '../utils/getImage';
+import { getImage } from '../utils/format';
 import Header from '../components/Header.vue';
 import { ref, onMounted } from 'vue';
 import type { ProductSummary, ProductPayload } from '../interfaces/product';
 import { useProductStore } from '../stores/productStore';
 import { useRouter } from "vue-router";
-import { formatPrice } from '../utils/getImage';
+import { formatPrice } from '../utils/format';
 import { voucherStore } from "../stores/voucherStore";
-import { formatDateTime } from '../utils/getImage';
+import { formatDateTime } from '../utils/format';
 import type { Voucher } from '../interfaces/voucher';
 import { useAuthStore } from '../stores/authStore';
 import type { ShopDetal } from '../interfaces/user';
