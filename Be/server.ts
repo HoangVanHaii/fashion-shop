@@ -24,6 +24,8 @@ import { Request, Response } from "express";
 import userVoucherRouter from './src/routers/userVoucher'
 
 import { errorHandler } from "./src/middlewares/errorHandler";
+import cors from "cors";
+
 
 dotenv.config();
 const app = express();
