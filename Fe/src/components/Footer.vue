@@ -41,7 +41,16 @@
                         <i class="fa-solid fa-envelope"></i>
                         <span>   abcdef@gmail.com</span>
                     </div>
-                    <b>Phương thức thanh toán</b>
+                    <div class="method_pay">
+                        <b>Phương thức thanh toán</b>
+                        <div class="edit_imgPay">
+                            <img src="../assets/vnpay.png"/>
+                            <img src="../assets/vnpay.png"/>
+                            <img src="../assets/vnpay.png"/>
+                        </div>
+                    </div>
+                    
+
                 </div>
             </div>
             <div class="LK col">
@@ -68,7 +77,7 @@
     </footer>
 </template>
 
-<script>
+<script setup lang="ts">
 
 </script>
 
@@ -156,7 +165,7 @@
 .content {
     display: flex;
     gap: 20px; 
-    margin: 0 10px 10px 10px;
+    margin: 0 10px 0px 10px;
 }
 
 .Nava{
@@ -202,4 +211,68 @@
     text-align:left;
     font-size:18px;
 }
+.method_pay img{
+    width: 90px;
+}
+
+.edit_imgPay{
+    display: flex;
+    gap:10px;
+}
+
+/* ----------------------------- */
+/*  Tablet (768px – 1024px) */
+/* ----------------------------- */
+@media (max-width: 1200px) and (min-width: 880px) {
+    .Nava{
+    flex: 1.6; 
+    margin:20px;
+    }
+    .CS {
+        flex: 1; 
+        margin:30 0 0 0px;
+    }
+    .LK{
+        flex: 0.6;
+        margin:30px 0px 0px 20px;
+    }
+    .subscribe p {
+    margin: 0;
+    font-size:22px;
+    text-align:left;
+    }
+
+    .social span {
+    font-size: 19px;
+    }
+}
+
+/* ----------------------------- */
+/*  mobile (880px<=) */
+/* ----------------------------- */
+@media (max-width: 880px) {
+    .Nava{
+    flex: 1.6; 
+    margin:20px;
+    }
+    .CS {
+        flex: 1; 
+        margin:30 0 0 0px;
+    }
+    .LK{
+        flex: 0.6;
+        margin:30px 0px 0px 20px;
+    }
+    .subscribe p {
+    margin: 0;
+    font-size:23px;
+    text-align:left;
+    }
+
+    .social span {
+    display: none;
+    }
+}
+
+
 </style>

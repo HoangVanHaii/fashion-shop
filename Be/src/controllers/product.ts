@@ -107,3 +107,30 @@ export const getMostDiscountedProduct = async (req: Request, res: Response, next
 		next(error);
 	}
 }
+
+export const getProductIdBySize = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const size_id: number = parseInt(req.params.id);
+        if (isNaN(size_id)) {
+            return res.status(400).json({ message: "Invalid size_id" });
+        }
+
+        const product_id = await productService.getProductIdBySizeId(size_id);
+        res.status(200).json({ product_id });
+    } catch (error: any) {
+        next(error);
+    }
+};
+
+export const getProductSizesBySize = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const size_id: number = parseInt(req.params.id);
+        if (isNaN(size_id)) {
+            return res.status(400).json({ message: "Invalid size_id" });
+        }
+        const sizeData = await productService.getProductSizesBySizeId(size_id);
+        res.status(200).json(sizeData);
+    } catch (error: any) {
+        next(error);
+    }
+};

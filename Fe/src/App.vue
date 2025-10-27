@@ -5,9 +5,9 @@ import CartView from './components/CartView.vue'
 </script>
 
 <template>
-<Footer>  </Footer>
-<Footer>  </Footer>
-  <CartView> </CartView>
+  <!-- <router-view />
+    <Footer>  </Footer>
+  <CartView> </CartView> -->
   <Footer>  </Footer>
   
 </template>

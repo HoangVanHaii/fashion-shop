@@ -477,3 +477,27 @@ export const getMostDiscountedProduct = async(limit: number) : Promise<ProductSu
         throw new AppError('Failed to fetch most discounted products', 500, false);
     }
 }
+
+export const getProductIdBySizeId = async (size_id: number): Promise<number> => {
+    try {
+        const pool = await connectionDB();
+        const result = await pool.request()
+            .input('size_id', size_id)
+            .query(`
+                SELECT pc.product_id
+                FROM product_sizes ps
+                INNER JOIN product_colors pc ON ps.color_id = pc.id
+                WHERE ps.id = @size_id
+            `);
+
+        if (!result.recordset.length) {
+            throw new AppError('Size not found', 404, false);
+        }
+
+        return result.recordset[0].product_id;
+    } catch (error) {
+        console.error(error);
+        if (error instanceof AppError) throw error;
+        throw new AppError('Failed to fetch product id from size id', 500, false);
+    }
+};
