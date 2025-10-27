@@ -44,8 +44,8 @@ export const getCategoryNamByGender = async (gender: string) : Promise<string[] 
             .query(query);
 
         if(!result) return null;
-
-        return result.recordset as string[];
+        const categoryNames = result.recordset.map(row => row.category_name);
+        return categoryNames as string[];
     } catch (error) {
         console.log("Failed to fetching category name",error);
         throw new AppError('Failed to fetching category name', 500, false);

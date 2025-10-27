@@ -88,6 +88,7 @@ export const loginUser = async (req: Request, res: Response, next: NextFunction)
         });
         
     } catch (err) {
+        console.log(err);
         next(err);
     }
 }
@@ -284,6 +285,24 @@ export const getShopDetailById = async (req: Request, res: Response, next: NextF
             success: true,
             message: "Shop details fetched successfully",
             data: result
+        });
+    } catch (err) {
+        next(err);
+    }
+}
+export const getShopNameByProductId = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const product_id = parseInt((req.params.productId || req.params.id) as string);
+
+        const shopName = await userService.getShopnameByProduct_id(product_id);
+        if (!shopName) {
+            throw new AppError("Shop not found for the given product", 404);
+        }
+
+        return res.status(200).json({
+            success: true,
+            message: "Shop name fetched successfully",
+            data: { shopName }
         });
     } catch (err) {
         next(err);

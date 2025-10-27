@@ -84,7 +84,8 @@ CREATE TABLE shop_visits
     shop_id INT NOT NULL,
     ip_address NVARCHAR(50) NOT NULL,
     visit_date DATE NOT NULL,
-    visit_count INT DEFAULT 1
+    visit_count INT DEFAULT 1,
+    FOREIGN KEY (shop_id) REFERENCES shops(id)
 );
 GO
 CREATE TABLE seller_requests
@@ -294,3 +295,15 @@ CREATE TABLE otp_codes
     created_at DATETIME DEFAULT GETDATE(),
     expires_at DATETIME NOT NULL
 );
+
+CREATE TABLE favourites
+(
+    id INT IDENTITY(1,1) PRIMARY KEY,
+    user_id INT NOT NULL,
+    product_id INT NOT NULL,
+    created_at DATETIME DEFAULT GETDATE(),
+    CONSTRAINT FK_Favourites_Users FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE,
+    CONSTRAINT FK_Favourites_Products FOREIGN KEY(product_id) REFERENCES products(id) ON DELETE CASCADE,
+    CONSTRAINT UQ_Favourites_User_Product UNIQUE (user_id, product_id)
+);
+GO

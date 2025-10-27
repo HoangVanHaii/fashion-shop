@@ -2,6 +2,8 @@ export interface Review {
     id?: number;
     order_item_id: number;
     user_id: number;
+    user_name?: string;
+    user_image_url?: string;
     rating: number;
     comment: string;
     review_images: ReviewImage[];

@@ -30,6 +30,7 @@ export interface OrderItemDetail{
     size: string;
     quantity: number;
     price: number;
+    flash_price: number;
     image_url: string;
 }
 export interface OderPayLoad {
@@ -47,4 +48,6 @@ export interface GetOrder {
     shipping_name?: string;
     shipping_address?: string;
     shipping_phone?: string;
+    discount_value?: number;
+    shop_id?: number;
 }

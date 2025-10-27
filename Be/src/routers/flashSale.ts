@@ -5,6 +5,9 @@ import * as flashSaleValidate from "../middlewares/validateFLashSale";
 import { validateRequest } from "../middlewares/validateRequest";
 
 const router = Router();
+router.get("/newFlashSale", flashSaleController.getFlashSaleHome);
+router.get("/activeNotIn", flashSaleController.getFlashSaleHotDeal);
+router.get("/totalSold/:id", flashSaleController.getTotalSoldFlashSaleById);
 
 router.post(
     "/",

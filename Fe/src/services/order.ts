@@ -1,26 +1,48 @@
-import axios from 'axios';
+import api from "./api";
 import type { OderPayLoad } from '../interfaces/order';
 
-const API_URL = 'http://localhost:3000/api/order';
-
-
 export const createOrderAPI = async (payload: OderPayLoad) => {
-  try {
-    const token="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwiZW1haWwiOiJvdm5ob2thQGdtYWlsLmNvbSIsInJvbGUiOiJzZWxsZXIiLCJpYXQiOjE3NjE0OTgyNjEsImV4cCI6MTc2MTUwMTg2MX0.4dO2wBuXvdKddAZAxlqihGdzsfEh_br_Ed9HhNK2hX4"
-    const res = await axios.post(`${API_URL}/createOrder`, {
+  const res = await axios.post(`/order/createOrder`, {
         orderItems:payload.orderItems,
         voucherCode:payload.order.voucher_code,
         shippingName:payload.order.shipping_name,
         shippingAddress:payload.order.shipping_address,
         shippingPhone:payload.order.shipping_phone,
         methodPayment:payload.order.payment_method
-    }, {
-      headers: { Authorization: `Bearer ${token}` }
     });
 
     return res.data; 
-  } catch (error: any) {
-    console.error('Lỗi khi tạo order:', error.response?.data || error.message);
-    throw error;
-  } 
+};
+
+export const getOrderOfMe = async () => {
+    const token = localStorage.getItem('accessToken');
+    const response = await api.get('/order/getOrderOfme', {
+        headers: {
+            Authorization: `Bearer ${token}`
+        }
+    });
+    return response.data;
+};
+export const getOrderById = async (id: number) => {
+    const token = localStorage.getItem('accessToken');
+    const response = await api.get(`/order/${id}`, {
+        headers: {
+            Authorization: `Bearer ${token}`
+        }
+    });
+    return response.data;
+};
+
+export const cancelledOrder = async (id: number) => {
+    const token = localStorage.getItem('accessToken');
+    const response = await api.put(
+        `/order/cancelOrderByUser`,
+        { order_id: id },
+        {
+            headers: {
+                Authorization: `Bearer ${token}`
+            }
+        }
+    );
+    return response.data;
 };

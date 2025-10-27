@@ -29,7 +29,20 @@ export const getCartItems = async (req: Request, res: Response, next: NextFuncti
     } catch (err : any) {
         next(err);
     }
-}   
+} 
+export const getCartItemCount = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const user_id = req.user!.id;
+        const count: number = await cartService.countCartItems(user_id);
+        return res.status(200).json({
+            success: true,
+            message: "Cart item count fetched successfully",
+            data: { count }
+        });
+    } catch (err: any) {
+        next(err);
+    }
+}
 export const updateCartItemQuantity = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const cart_item_id = parseInt(req.params.id);

@@ -1,31 +1,46 @@
-import axios from 'axios'
+import api from "./api";
 import type { ProductPayload,ProductSize } from '../interfaces/product.ts'
 
-const API_URL = 'http://localhost:3000/api/product'
-
 export const getProductIdBySize = async (sizeId: number): Promise<number> => {
-  const res = await axios.get(`${API_URL}/id-by-size/${sizeId}`);
-  if (res.data && typeof res.data.product_id === 'number') {
-    return res.data.product_id;
-  }
-  throw new Error(res.data?.message || 'Lỗi khi lấy product_id từ size_id');
-}
-
-
-export const getProductById = async (productId: number): Promise<ProductPayload> => {
-  const res = await axios.get(`${API_URL}/${productId}`);
-  const product = res.data;
-  if (!product) {
-    throw new Error('Sản phẩm không tồn tại');
-  }
-  return product;
+    const res = await api.get(`/product/id-by-size/${sizeId}`);
+    return res.data;
 }
 
 export const getProductSizesBySizeId = async (size_id: number): Promise<ProductSize> =>{
-  const res = await axios.get(`${API_URL}/size-detail/${size_id}`);
-  const product_size = res.data;
-  if(!product_size) {
-    throw new Error('Size không tồn tại');
-  }
-  return product_size;
+    const res = await api.get(`/product/size-detail/${size_id}`);
+    const product_size = res.data;
+    return product_size;
+}
+
+export const searchByCategoryGender = async (gender: string) => {
+    const response = await api.get(`/product/searchByCategoryGender?gender=${gender}`);
+    return response.data;
+};
+export const getProductById = async (id: number) => {
+    const response = await api.get(`/product/${id}`);
+    return response.data;
+}
+export const getProductByCategory = async (categoryName: string) => {
+    const response = await api.get(`/product/searchByCategory?categoryNames=${categoryName}`);
+    return response.data;
+}
+export const getProductBestSeller = async (id: number) => {
+    const result = await api.get(`/product/best-sellers?limit=${id}`);
+    return result.data;
+}
+export const getProductLatest = async (id: number) => {
+    const result = await api.get(`/product/latest?limit=${id}`);
+    return result.data;
+}
+export const getProductByName = async (name: string) => {
+    const result = await api.get(`/product/searchByName?name=${name}`);
+    return result.data;
+}
+export const getProductByShop = async (id: number) => {
+    const result = await api.get(`/product/searchByShop?shop_id=${id}`);
+    return result.data;
+}
+export const getAllProductActive = async () => {
+    const result = await api.get(`http://localhost:3000/api/product/actives`);
+    return result.data;
 }

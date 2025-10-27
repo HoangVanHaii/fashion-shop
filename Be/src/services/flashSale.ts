@@ -1,7 +1,8 @@
 import { connectionDB } from "../config/database";
-import { FlashSale, FlashSaleItem } from "../interfaces/flashSale";
+import { FlashSale, FlashSaleItem, FlashSaleProductSold, ImageProducts } from "../interfaces/flashSale";
+import { ProductSummary } from "../interfaces/product";
 import { AppError } from "../utils/appError";
-import mssql from "mssql";
+import mssql, { pool } from "mssql";
 
 export const createFlashSale = async (flashSale: FlashSale): Promise<number> => {
     try {
@@ -630,3 +631,172 @@ export const updateFlashSaleItem = async (user_id: number,item: FlashSaleItem): 
         throw new AppError("Failed to update flash sale item", 500);
     }
 };
+
+export const getTotalSoldFlashSaleById = async(id: number): Promise<FlashSaleProductSold[]> => {
+    try {
+        const pool = await connectionDB()
+        const result = await pool.request()
+            .input("flash_sale_id", id)
+            .query(`
+                SELECT 
+                    p.id AS product_id,
+                    SUM(fsi.sold) AS total_flash_sale_sold
+                FROM products p
+                INNER JOIN product_colors pc ON pc.product_id = p.id
+                INNER JOIN product_sizes ps ON ps.color_id = pc.id
+                INNER JOIN flash_sale_items fsi ON fsi.size_id = ps.id AND fsi.status = 'active'
+                INNER JOIN flash_sales fs ON fs.id = fsi.flash_sale_id AND fs.status = 'active'
+                WHERE fs.id = @flash_sale_id
+                GROUP BY p.id;
+
+            `)
+        return result.recordset as FlashSaleProductSold[];
+
+    } catch (err) {
+        if (err instanceof AppError) throw err;
+        console.error(err);
+        throw new AppError("Failed to update flash sale item", 500);
+    }
+}
+export const getFlashSaleHome = async (): Promise<{ flash_sale: FlashSale, products: ProductSummary[] }> => {
+    try {
+        const pool = await connectionDB();
+        const flashSaleResult = await pool.request().query(`
+            SELECT TOP 1 fs.*
+            FROM flash_sales fs
+            WHERE fs.status = 'active'
+              AND (
+                  SELECT COUNT(*)
+                  FROM flash_sale_items fsi
+                  WHERE fsi.flash_sale_id = fs.id
+                    AND fsi.status = 'active'
+              ) >= 4
+            ORDER BY fs.start_date DESC
+        `);
+        const flash_sale = flashSaleResult.recordset[0];
+        const products = await getProductsActive(flash_sale.id);
+        return { flash_sale, products };
+    } catch (err) {
+        console.error("Error getFlashSaleHome:", err);
+        throw new AppError("Failed to get flash sale Home", 500, false);
+    }
+};
+export const getFlashSaleHotDeal = async (excludeIds: number[] = []): Promise<{ flash_sale: FlashSale, products: ProductSummary[] }> => {
+    try {
+        const pool = await connectionDB();
+        const request = pool.request();
+        let notInClause = "";
+        if (excludeIds.length > 0) {
+            const params = excludeIds.map((_, i) => `@id${i}`).join(",");
+            notInClause = `AND fs.id NOT IN (${params})`;
+            excludeIds.forEach((id, i) => {
+                request.input(`id${i}`, id);
+            });
+        }
+        const query = `
+            SELECT TOP 1 fs.*
+            FROM flash_sales fs
+            WHERE fs.status = 'active'
+              AND (
+                  SELECT COUNT(*)
+                  FROM flash_sale_items fsi
+                  WHERE fsi.flash_sale_id = fs.id
+                    AND fsi.status = 'active'
+              ) >= 4
+              ${notInClause}
+            ORDER BY fs.start_date DESC;
+        `;
+
+        const flashSaleResult = await request.query(query);
+        const flash_sale = flashSaleResult.recordset[0];
+
+        if (!flash_sale) {
+            return {
+              flash_sale: {} as FlashSale,
+              products: [],
+            };
+          }
+          
+
+        const products = await getProductsActive(flash_sale.id);
+        return { flash_sale, products };
+    } catch (err) {
+        console.error("Error getHotDeal:", err);
+        throw new AppError("Failed to get hot deal", 500, false);
+    }
+};
+
+
+
+export const getProductsActive = async (flash_sale_id: number): Promise<ProductSummary[]> => {
+    try {
+        const query = `${baseQuery}
+            HAVING p.status = 'active'
+            ORDER BY fsi.flash_sale_price DESC `;
+        const pool = await connectionDB();
+        const result = await pool.request()
+            .input("flash_sale_id", flash_sale_id)
+            .query(query);
+        const records = result.recordset;
+        const productMap = new Map<number, ProductSummary>();
+
+        for (const row of records) {
+            const { id, name, shop_id, description, category_name, image_url, min_price, max_price, sold_quantity, flash_sale_price, avg_rating } = row;
+
+            if (!productMap.has(id)) {
+                productMap.set(id, {
+                    id,
+                    name,
+                    shop_id,
+                    description,
+                    category_name,
+                    min_price,
+                    max_price,
+                    sold_quantity,
+                    avg_rating: avg_rating ?? 0,
+                    flash_price: flash_sale_price ?? null,
+                    images: [],
+                    thumbnail: image_url
+                });
+            }
+            else {
+                const product = productMap.get(id)!;
+                product.sold_quantity += sold_quantity ?? 0;
+            }
+
+            const product = productMap.get(id)!;
+            if (image_url && !product.images.includes(image_url)) {
+                product.images.push(image_url);
+            }
+            
+        }
+
+        return Array.from(productMap.values());
+    } catch (error) {
+        console.error(error);
+        throw new AppError('Failed to fetch active products', 500, false);
+    }
+};
+
+const baseQuery = `
+                SELECT  
+                p.id,
+                fsi.id AS flash_sale_item_id,
+                p.name,
+                p.description,
+                p.status,
+                i.image_url,
+                MIN(fsi.flash_sale_price) AS flash_sale_price,
+                MIN(s.price) AS min_price,   
+                MAX(s.price) AS max_price,
+                fsi.stock AS sold_quantity
+            FROM products p
+            INNER JOIN categories c ON p.category_id = c.category_id
+            INNER JOIN product_colors i ON i.product_id = p.id
+            INNER JOIN product_sizes s ON s.color_id = i.id
+            LEFT JOIN flash_sale_items fsi ON fsi.size_id = s.id AND fsi.status = 'active'
+            LEFT JOIN flash_sales fs ON fs.id = fsi.flash_sale_id AND fs.status = 'active' 
+            WHERE fs.id = @flash_sale_id
+            GROUP BY 
+                p.id, fsi.id, p.name, p.description, p.status, i.image_url, fsi.flash_sale_price, fsi.stock
+            `;
