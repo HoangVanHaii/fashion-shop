@@ -1,12 +1,12 @@
 import api from "./api";
 import type { Voucher } from "../interfaces/voucher"
 
-export const getVoucherByIdAPI = async (id:number): Promise<Voucher> =>{
+export const getVoucherByIdAPI = async (id:number)=>{
     const res = await api.get(`/voucher/getVoucherById/${id}`)
     const voucher = res.data;
     return voucher;
 }
-export const getVoucherByCodeAPI = async (code:string): Promise<Voucher> =>{
+export const getVoucherByCodeAPI = async (code:string) =>{
     const res = await api.get(`/voucher/getVoucherByCode/${code}`)
     const voucher = res.data;
     return voucher;

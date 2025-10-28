@@ -1,7 +1,7 @@
 import { ref, computed } from "vue";
 import { defineStore } from "pinia";
-import { getOrderOfMe, getOrderById, cancelledOrder } from "../services/order";
-import type { GetOrder } from "../interfaces/order";
+import { getOrderOfMe, getOrderById, cancelledOrder, createOrderAPI } from "../services/order";
+import type { GetOrder, OderPayLoad, Order } from "../interfaces/order";
 
 export const useOrderStore = defineStore("order", () => {
     const listOrder = ref<GetOrder[]>([]);
@@ -93,6 +93,13 @@ export const useOrderStore = defineStore("order", () => {
             loading.value = false;
         }
     }
+    const currentOrder = ref<Order | null>(null) // order vừa tạo
+
+    const createOrder = async (payload: OderPayLoad) => {
+        const res = await createOrderAPI(payload)
+        currentOrder.value = res
+        return res
+    }
 
     return {
         listOrder,
@@ -106,6 +113,7 @@ export const useOrderStore = defineStore("order", () => {
         getOrderOfMeStore,
         getOrderByIdStore,
         resetFilter,
-        cancelledOrderStore
+        cancelledOrderStore,
+        createOrder
     };
 });

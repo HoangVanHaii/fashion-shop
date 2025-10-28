@@ -4,7 +4,8 @@ import { getVoucherByIdAPI,getVoucherByCodeAPI } from "../services/voucher";
 
 export const validateVoucherByCode = async (code: string, total: number,shop_id?: number): Promise<number> => {
         
-    const voucher:Voucher = await getVoucherByCodeAPI(code);
+    const result = await getVoucherByCodeAPI(code);
+    const voucher:Voucher = result.voucher
     const now = new Date();
     const startDate = new Date(voucher.start_date);
     const endDate = new Date(voucher.end_date);

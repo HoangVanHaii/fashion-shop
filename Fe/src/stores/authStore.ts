@@ -129,6 +129,7 @@ export const useAuthStore = defineStore('auth', () => {
                     error.value = "Lỗi máy chủ!"
                     break;
             }
+            console.log(err)
         }
         finally {
             loading.value = false;

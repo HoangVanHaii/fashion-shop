@@ -2,7 +2,7 @@ import api from "./api";
 import type { OderPayLoad } from '../interfaces/order';
 
 export const createOrderAPI = async (payload: OderPayLoad) => {
-  const res = await axios.post(`/order/createOrder`, {
+  const res = await api.post(`/order/createOrder`, {
         orderItems:payload.orderItems,
         voucherCode:payload.order.voucher_code,
         shippingName:payload.order.shipping_name,

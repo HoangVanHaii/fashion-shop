@@ -14,12 +14,16 @@ import Profile from '../pages/Profile.vue';
 import OrderDetail from '../pages/OrderDetail.vue';
 import Favourite from '../pages/Favourite.vue';
 import Shop from '../pages/Shop.vue'
+import Pay from '../pages/Pay.vue';
+import CartView from '../pages/CartView.vue';
+import Footer from '../components/Footer.vue';
 
 const routes = [
   { path: '/', redirect: '/home' },
   { path: '/home', name: 'Home', component: Home },
   { path: '/auth/login', name: 'login', component: Auth },
   { path: '/header', name: 'header', component: Header },
+  { path: '/footer', name: 'footer', component: Footer },
   { path: '/auth/register', name: 'register-sendOTP', component: Auth },
   { path: '/verifyRegister', name: 'register-verify', component: VerifyOTP },
   { path: '/categoryGender', name: 'category-gender', component: CategoryGender },
@@ -32,6 +36,8 @@ const routes = [
   { path: '/profile/me', name: 'profile', component: Profile },
   { path: '/profile/orderOfme/:id', name: 'order-detail', component: OrderDetail },
   { path: '/profile/favouriteOfme', name: 'favourite', component: Favourite },
+  { path: '/order/payment', name: 'payment', component: Pay },
+  { path: '/cart/cartOfme', name: 'cart-of-me', component: CartView },
   { path: '/shop/:id', name: 'shop', component: Shop },
 ];
 const router = createRouter({ history: createWebHistory(import.meta.env.BASE_URL), routes });

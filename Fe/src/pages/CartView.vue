@@ -136,7 +136,10 @@
          <span v-if="cartStore.cartPay?.voucher_discount||0 > 0" class="voucher-discount">
           -{{ ((cartStore.cartPay?.voucher_discount||0)/1000).toLocaleString() }}k
         </span>
-        <a href="">Chọn hoặc nhập mã voucher</a>
+        <a href="javascript:void(0)" @click.stop="openVoucherModal">
+  {{ selectedVoucherCode || 'Chọn hoặc nhập mã voucher' }}
+</a>
+
       </div>
 
       <div class="left-right">
@@ -189,52 +192,32 @@
         </div>
       </div>
     </div>
+    <Voucher 
+  v-if="showVoucher"
+  @close="closeVoucherModal"
+  @selectVoucher="handleSelectVoucher"
+/>
+
   </div>
 </template>
 
 
 <script setup lang="ts">
 import { ref, onMounted, computed,watch} from 'vue'
-import { useCartStore } from '../stores/cart'
+import { useCartStore } from '../stores/cartStore'
 import type { ProductSize,ProductPayload,ProductColor } from '../interfaces/product' 
 import type { CartItemDetail } from '../interfaces/cart'
 import { useRouter } from 'vue-router'
 import {validateVoucherByCode, validateVoucherById} from '../utils/validateVoucher'
-
-
+import Voucher from '../components/Voucher.vue'
 
 const router = useRouter()
 const cartStore = useCartStore() 
 const token ="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwiZW1haWwiOiJvdm5ob2thQGdtYWlsLmNvbSIsInJvbGUiOiJzZWxsZXIiLCJpYXQiOjE3NjE1MjcxNDIsImV4cCI6MTc2MTUzMDc0Mn0.ew1U0qKpkVw4Y35nznF0m0Va_U8NfXZ7A-5UWwn_YS8"
 onMounted(async () => {
-  await cartStore.getCart(token)
+  await cartStore.getCart()
   await cartStore.checkSoldOut();
 })
-
-// const voucher_id=ref<number>(3)
-
-// watch(
-//   () => cartStore.total_price_after_reduction,
-//   async (total) => {
-//     const cart = cartStore.cartPay
-//     if (!cart) return 
-
-//     if (total > 0) {
-//       try {
-//         const discount = await validateVoucherById(voucher_id.value, total)
-//         cart.voucher_discount = discount
-
-//         // Lưu voucher_id vào cartPay
-//         cart.voucher_id = voucher_id.value
-//       } catch (err: any) {
-//         cart.voucher_discount = 0
-//         console.error(err.message)
-//       }
-//     } else {
-//       cart.voucher_discount = 0
-//     }
-//   }
-// )
 
 const voucher_code = ref<string>("GLOBAL102225")
 watch(
@@ -327,7 +310,8 @@ const cancelDelete = () => {
 const goToCheckout = () => {
   cartStore.filterSelectedItems() 
   console.log(cartStore.cartPay)
-  router.push('/pay')       
+  router.push({ name: 'payment' })
+    
 }
 //Xác nhận pay
 const showPayConfirm = ref(false)
@@ -344,6 +328,23 @@ const confirmPay = () => {
 
 const cancelPay = () => {
   showPayConfirm.value = false
+}
+
+//voucher
+const showVoucher = ref(false)
+const selectedVoucherCode = ref<string>("")
+
+const openVoucherModal = () => {
+  showVoucher.value = true
+}
+
+const closeVoucherModal = () => {
+  showVoucher.value = false
+}
+
+const handleSelectVoucher = (code: string) => {
+  selectedVoucherCode.value = code
+  closeVoucherModal()
 }
 
 </script>
@@ -416,6 +417,7 @@ input:focus {
   flex:3;
   display: flex;
    justify-content: space-between;
+   text-align: center;
 }
 .header_price{
   flex:1.5;

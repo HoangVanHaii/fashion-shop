@@ -159,10 +159,10 @@
 </template>
 
 <script setup lang="ts">
-import { useCartStore } from '../stores/cart'
-import { useOrderStore } from '../stores/order'
+import { useCartStore } from '../stores/cartStore'
+import { useOrderStore } from '../stores/orderStore'
 import { onMounted,computed,ref,watch } from 'vue'
-import {validateVoucherByCode, validateVoucherById} from '../utils/validateVoucher'
+import {validateVoucherByCode} from '../utils/validateVoucher'
 import type { OderPayLoad,OrderItem,Order } from '../interfaces/order'
 const cartStore = useCartStore()
 const orderStore = useOrderStore()
@@ -280,6 +280,7 @@ const clickOrder = async () =>{
 
     try {
     const res = await orderStore.createOrder(payload)
+    await cartStore.removePaidItems()
     console.log('Order created:', res)
     // chuyển trang hoặc show modal thành công
   } catch (err) {

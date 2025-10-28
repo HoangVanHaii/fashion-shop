@@ -19,25 +19,25 @@ export const addToCart = async (size_id: number, quantity: number) => {
     return response.data;
 }
 
-export const fetchCartAPI = async (token: string): Promise<Cart> => {
+export const fetchCartAPI = async () => {
 
     const res = await api.get('/cart')
     return res.data;
 }
 
-export const removeCartItemAPI = async (cartItemId: number): Promise<void> => {
+export const removeCartItemAPI = async (cartItemId: number) => {
     const res = await api.delete(`cart/removeItem/${cartItemId}`)
     return res.data;
 }
 
-export const updateSizeCartItemAPI = async (cart_item_id: number, size_id: number): Promise<void> => {
+export const updateSizeCartItemAPI = async (cart_item_id: number, size_id: number)=> {
     const res = await api.put(`/cart/updateItem/${cart_item_id}`,
         { size_id }
     );
     return res.data;
 };
 
-export const updateCartItemQuantityAPI = async (cart_item_id: number, newQuantity: number): Promise<void> => {
+export const updateCartItemQuantityAPI = async (cart_item_id: number, newQuantity: number) => {
     const res = await api.put(`/cart/updateItemQuantity/${cart_item_id}`,
         { quantity: newQuantity }
     );

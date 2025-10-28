@@ -1,7 +1,7 @@
 import api from "./api";
 import type { ProductPayload,ProductSize } from '../interfaces/product.ts'
 
-export const getProductIdBySize = async (sizeId: number): Promise<number> => {
+export const getProductIdBySize = async (sizeId: number) =>{
     const res = await api.get(`/product/id-by-size/${sizeId}`);
     return res.data;
 }

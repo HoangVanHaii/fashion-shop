@@ -8,12 +8,9 @@ import { getProductIdBySize, getProductById,getProductSizesBySizeId } from '../s
 
 export const useCartStore = defineStore('cart', () =>{
     const cartPay = ref<Cart|null>(null)
-
     const shops= reactive<ShopCart[]>([])
     const selectedShops= ref<ShopCart[]>([])
     const totalQuantity = ref(0)
-    // const token = localStorage.getItem('token') || "";
-    const token="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwiZW1haWwiOiJvdm5ob2thQGdtYWlsLmNvbSIsInJvbGUiOiJzZWxsZXIiLCJpYXQiOjE3NjA4NTE2NjgsImV4cCI6MTc2MDg1NTI2OH0.opd_G7ebwtGVUQft-6AmwMlb0ODdWk9-VwS2DBek6D0"
     const selectAll = ref(true)
     const total_price_after_reduction = computed(() => {
         let sum = 0
@@ -54,8 +51,8 @@ export const useCartStore = defineStore('cart', () =>{
     })
 
 
-    const getCart= async(token:string)=>{
-        const cart:Cart=await fetchCartAPI(token)
+    const getCart= async()=>{
+        const cart:Cart=await fetchCartAPI()
         shops.splice(0,shops.length,...cart.shops)
         shops.forEach(shop=>{
             shop.carts?.forEach(product=>{
@@ -223,21 +220,21 @@ export const useCartStore = defineStore('cart', () =>{
     }
 
     const filterSelectedItems = () => {
-    if (!cartPay.value) {
-        cartPay.value = { shops: [], total_quantity: 0, total_amount: 0,voucher_discount:0, voucher_id: 0,voucher_code:"" }
-    }
-    cartPay.value.shops.splice(0, cartPay.value.shops.length)
-
-    shops.forEach(shop => {
-        const selectedItems = shop.carts?.filter(item => item.selected && !item.sold_out) || []
-        if (selectedItems.length > 0) {
-            cartPay.value!.shops.push({
-                ...shop,
-                carts: selectedItems
-            })
+        if (!cartPay.value) {
+            cartPay.value = { shops: [], total_quantity: 0, total_amount: 0,voucher_discount:0, voucher_id: 0,voucher_code:"" }
         }
-    })
-}
+        cartPay.value.shops.splice(0, cartPay.value.shops.length)
+
+        shops.forEach(shop => {
+            const selectedItems = shop.carts?.filter(item => item.selected && !item.sold_out) || []
+            if (selectedItems.length > 0) {
+                cartPay.value!.shops.push({
+                    ...shop,
+                    carts: selectedItems
+                })
+            }
+        })
+    }
 
 
     
