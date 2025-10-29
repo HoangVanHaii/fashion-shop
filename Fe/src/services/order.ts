@@ -1,4 +1,18 @@
 import api from "./api";
+import type { OderPayLoad } from '../interfaces/order';
+
+export const createOrderAPI = async (payload: OderPayLoad) => {
+  const res = await api.post(`/order/createOrder`, {
+        orderItems:payload.orderItems,
+        voucherCode:payload.order.voucher_code,
+        shippingName:payload.order.shipping_name,
+        shippingAddress:payload.order.shipping_address,
+        shippingPhone:payload.order.shipping_phone,
+        methodPayment:payload.order.payment_method
+    });
+
+    return res.data; 
+};
 
 export const getOrderOfMe = async () => {
     const token = localStorage.getItem('accessToken');
@@ -32,5 +46,3 @@ export const cancelledOrder = async (id: number) => {
     );
     return response.data;
 };
-
-

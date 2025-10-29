@@ -1,9 +1,10 @@
 export interface Order {
     id?: number;
-    user_id: number;
+    user_id?: number;
     voucher_id?: number;
+    voucher_code?:string
     discount_value?: number;
-    total: number;
+    total?: number;
     payment_method: 'cod' | 'credit_card' | 'paypal' | 'vnpay' | 'momo';
     shipping_name: string;
     shipping_address: string;
@@ -14,24 +15,25 @@ export interface Order {
 export interface OrderItem {
     id?: number;
     order_id?: number;
-    size_id: number;
+    size_id:number;
     quantity: number;
-    price: number;
-    flash_sale_item_id: number;
+    price?: number;
+    flash_sale_item_id?: number;
 }
-export interface OrderItemDetail {
+export interface OrderItemDetail{
     id?: number;
     product_id: number;
-    size_id: number;
+    size_id:number;
     color_id: number;
-
+    
     product_name: string;
-    color: string;
+    color:string;
     size: string;
     quantity: number;
     price: number;
     image_url: string;
     flash_price: number;
+    flash_sale_id: number;
 }
 export interface OderPayLoad {
     order: Order;
@@ -50,7 +52,8 @@ export interface GetOrder {
     shipping_address?: string;
     shipping_phone?: string;
     discount_value?: number;
-    shop_id: number
+    shop_id: number;
+    user_id?: number;
 }
 export interface createOrder{
     // shop

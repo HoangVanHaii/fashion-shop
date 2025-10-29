@@ -1,7 +1,7 @@
 import { ProductPayload, ProductSize, ProductColor, ProductSummary } from '../interfaces/product';
 import { connectionDB } from '../config/database';
 import { AppError } from '../utils/appError';
-import mssql, { query } from 'mssql';
+import mssql from 'mssql';
 const baseQuery = `
                 SELECT  
                 p.id,
@@ -239,8 +239,8 @@ export const getProductById = async (id: number): Promise<ProductPayload> => {
             }
             if (row.detail_image) {
                 const imagePath = `${row.detail_image}`;
-                if (!color.images.includes(imagePath)) {
-                    color.images.push(imagePath);
+                if (!color.images!.includes(imagePath)) {
+                    color.images!.push(imagePath);
                 }
             }
         })
@@ -251,6 +251,39 @@ export const getProductById = async (id: number): Promise<ProductPayload> => {
     } catch (error) {
         console.error(error);
         throw new AppError('Failed to fetch products', 500, false);
+    }
+}
+export const updateProductStatus = async (product_id: string, status: string): Promise<void> => {
+    try {
+        const pool = await connectionDB();
+        const query = `UPDATE products SET status = @status WHERE id IN (${product_id})`;
+        const result = await pool.request()
+            .input('status', status)
+            .query(query);
+        if (!result.rowsAffected || result.rowsAffected[0] === 0) {
+            throw new AppError('Product not found', 404, false);
+        }
+    } catch (error) {
+        console.error(error);
+        if (error instanceof AppError) throw error;
+        throw new AppError('Failed to update product status', 500, false);
+    }
+}
+
+export const updateSizes = async (size: string, stock: number): Promise<void> => {
+    try {
+        const pool = await connectionDB();
+        const query = `UPDATE product_sizes SET stock = @stock WHERE id IN (${size})`;
+        const result = await pool.request()
+            .input('stock', stock)
+            .query(query);
+        if (!result.rowsAffected || result.rowsAffected[0] === 0) {
+            throw new AppError('Size not found', 404, false);
+        }
+    } catch (error) {
+        console.error(error);
+        if (error instanceof AppError) throw error;
+        throw new AppError('Failed to update sizes', 500, false);
     }
 }
 export const getProductByCategoryGender = async (gender: string): Promise<ProductSummary[]> => {
@@ -307,7 +340,7 @@ const insertProductColors = async (transaction: mssql.Transaction, product_id: n
             .query(query)
         const color_id = result.recordset[0].color_id;
         await insertProductSizes(transaction, color_id, color.sizes);
-        await insertColorImages(transaction, color_id, color.images)
+        await insertColorImages(transaction, color_id, color.images!)
     }
 }
 const insertProductSizes = async (transaction: mssql.Transaction, color_id: number, productSizes: ProductSize[]): Promise<void> => {
@@ -723,3 +756,122 @@ export const getMostDiscountedProduct = async (limit: number): Promise<ProductSu
         throw new AppError('Failed to fetch most discounted products', 500, false);
     }
 }
+
+export const getProductPayloadOfShop = async (shop_id: number): Promise<ProductPayload[]> => {
+    const pool = await connectionDB();
+    const result = await pool.request()
+        .input("shop_id", shop_id)
+        .query(`
+      SELECT 
+          p.id AS product_id,
+          p.shop_id,
+          sp.name AS shop_name,
+          p.category_id,
+          p.name AS product_name,
+          p.description,
+          p.status,
+          p.created_at,
+          s.id AS size_id,
+          s.size,
+          s.stock,
+          s.price,
+          cl.id AS color_id,
+          cl.image_url,
+          cl.is_main,
+          cl.color,
+          fsi.flash_sale_price,
+          ISNULL(SUM(oi.quantity), 0) AS sold_count
+      FROM products p
+          INNER JOIN product_colors cl ON p.id = cl.product_id
+          INNER JOIN product_sizes s ON cl.id = s.color_id
+          INNER JOIN shops sp ON p.shop_id = sp.id
+          LEFT JOIN flash_sale_items fsi ON fsi.size_id = s.id AND fsi.status = 'active'
+          LEFT JOIN flash_sales fs ON fs.id = fsi.flash_sale_id AND fs.status = 'active'
+          LEFT JOIN order_items oi ON oi.size_id = s.id
+      WHERE p.shop_id = @shop_id
+      GROUP BY 
+          p.id, p.shop_id, sp.name, p.category_id, p.name, p.description, p.status, p.created_at,
+          s.id, s.size, s.stock, s.price,
+          cl.id, cl.image_url, cl.is_main, cl.color,
+          fsi.flash_sale_price
+       ORDER BY p.id DESC
+    `);
+
+    const rows = result.recordset;
+    const productsMap = new Map<number, ProductPayload>();
+
+    for (const row of rows) {
+        let product = productsMap.get(row.product_id);
+        if (!product) {
+            product = {
+                id: row.product_id,
+                shop_id: row.shop_id,
+                shop_name: row.shop_name,
+                category_id: row.category_id,
+                name: row.product_name,
+                description: row.description,
+                status: row.status,
+                colors: [],
+                sold_product: 0 
+            };
+            productsMap.set(row.product_id, product);
+        }
+
+        let color = product.colors.find(c => c.id === row.color_id);
+        if (!color) {
+            color = {
+                id: row.color_id,
+                product_id: row.product_id,
+                color: row.color,
+                image_url: row.image_url,
+                is_main: row.is_main,
+                sizes: [],
+                sold_count: 0
+            };
+            product.colors.push(color);
+        }
+
+        if (!color.sizes.some(s => s.id === row.size_id)) {
+            const size: ProductSize = {
+                id: row.size_id,
+                product_id: row.product_id,
+                size: row.size,
+                stock: row.stock,
+                price: row.price,
+                flash_sale_price: row.flash_sale_price
+            };
+            color.sizes.push(size);
+        }
+
+        color.sold_count += row.sold_count ?? 0;
+    }
+
+    for (const product of productsMap.values()) {
+        product.sold_product = product.colors.reduce((sum, color) => sum + (color.sold_count || 0), 0);
+    }
+
+    return Array.from(productsMap.values());
+};
+export const getProductIdBySizeId = async (size_id: number): Promise<number> => {
+    try {
+        const pool = await connectionDB();
+        const result = await pool.request()
+            .input('size_id', size_id)
+            .query(`
+                SELECT pc.product_id
+                FROM product_sizes ps
+                INNER JOIN product_colors pc ON ps.color_id = pc.id
+                WHERE ps.id = @size_id
+            `);
+
+        if (!result.recordset.length) {
+            throw new AppError('Size not found', 404, false);
+        }
+
+        return result.recordset[0].product_id;
+    } catch (error) {
+        console.error(error);
+        if (error instanceof AppError) throw error;
+        throw new AppError('Failed to fetch product id from size id', 500, false);
+    }
+};

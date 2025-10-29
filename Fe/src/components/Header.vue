@@ -49,7 +49,7 @@ onBeforeMount(async () => {
 });
 
 const goToCart = () => {
-  router.push("/cart");
+  router.push("/cart/cartOfme");
 };
 const goToLogin = () => {
   router.push("/auth/login");

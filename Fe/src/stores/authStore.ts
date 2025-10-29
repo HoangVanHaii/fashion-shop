@@ -1,6 +1,6 @@
 import { defineStore } from "pinia";
 import { ref } from "vue";
-import { registerSendOTP } from "../services/user";
+import { getNameById, registerSendOTP } from "../services/user";
 import { verifyRegister, loginUser, getUserById, getShopByid, getShopName } from "../services/user";
 import type { User } from "../interfaces/user";
 export const errorMap: Record<string, string> = {
@@ -129,6 +129,7 @@ export const useAuthStore = defineStore('auth', () => {
                     error.value = "Lỗi máy chủ!"
                     break;
             }
+            console.log(err)
         }
         finally {
             loading.value = false;
@@ -151,17 +152,22 @@ export const useAuthStore = defineStore('auth', () => {
             console.error("Failed to get user by ID:", error);
         }
     }
-
+    const getNameByIdStore = async (id: number) => {
+        try {
+            const data = await getNameById(id);
+            return data.data.name;
+        } catch (error) {
+            console.error("Failed to get user by ID:", error);
+        }
+    }
     const getShopByidStore = async (id: number) => {
         try {
             const data = await getShopByid(id);
-            console.log(data);
             return data.data;
         } catch (error) {
             console.error("Failed to get user by ID:", error);
         }
     }
-
     return {
         OTP,
         loading,
@@ -173,6 +179,7 @@ export const useAuthStore = defineStore('auth', () => {
         loginStore,
         getUserByIdStore,
         getShopByidStore,
-        getShopNameStore
+        getShopNameStore,
+        getNameByIdStore
     }
 })
