@@ -170,7 +170,7 @@
 import Voucher from '../components/Voucher.vue'
 import { useCartStore } from '../stores/cartStore'
 import { useOrderStore } from '../stores/orderStore'
-import { onMounted,computed,ref,watch } from 'vue'
+import { onMounted,computed,ref } from 'vue'
 import {validateVoucherByCode} from '../utils/validateVoucher'
 import type { OderPayLoad,OrderItem,Order } from '../interfaces/order'
 const cartStore = useCartStore()
@@ -191,12 +191,7 @@ onMounted(() => {
     console.log('Voucher in cartPay:', cartStore.cartPay?.voucher_discount)
 
 })
-// const totalBeforeDiscount = computed(() => {
-//     return cartStore.cartPay?.shops.reduce(
-//         (total, shop) => total + (shop.carts?.reduce(
-//         (totalShop, item) => totalShop + (item.price_after_reduction! * item.quantity),0) || 0),0)
-//     }
-// )
+
 
 const totalBeforeDiscount = computed(() => {
     return (
@@ -258,38 +253,6 @@ const selectMethod = (method: PaymentMethod) => {
     showPaymentOptions.value = false
 }
 
-
-// watch(
-//   () => cartStore.cartPay?.voucher_id,
-//   async () => {
-//     const cart = cartStore.cartPay
-//     if (!cart || cart.voucher_id == null) return
-//       try {
-//         const discount = await validateVoucherById(cart.voucher_id, cartStore.total_price_after_reduction)
-//         cart.voucher_discount = discount
-//       } catch (err: any) {
-//         cart.voucher_discount = 0
-//         console.error(err.message)
-//       }
-//   }
-// )
-
-
-// watch(
-//   () => cartStore.cartPay?.voucher_id,
-//   async () => {
-//     const cart = cartStore.cartPay
-//     if (!cart || cart.voucher_code ==null) return
-//       try {
-//         const discount = await validateVoucherByCode(cart.voucher_code, cartStore.total_price_after_reduction)
-//         cart.voucher_discount = discount
-//       } catch (err: any) {
-//         cart.voucher_discount = 0
-//         console.error(err.message)
-//       }
-//   }
-// )
-
 const clickOrder = async () =>{
     if (!cartStore.cartPay) return
     const orderItems: OrderItem[] = []
@@ -320,7 +283,11 @@ const clickOrder = async () =>{
 
     try {
     console.log("Payload gửi lên API:", payload);
-    const res = await orderStore.createOrder(payload)
+        const res = await orderStore.createOrder(payload)
+        if (order.payment_method == 'vnpay') {
+        console.log(res.paymentUrl)
+        // window.location.href = res.paymentUrl;    
+    }
     await cartStore.removePaidItems()
     console.log('Order created:', res)
     // chuyển trang hoặc show modal thành công
