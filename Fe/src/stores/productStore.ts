@@ -39,7 +39,7 @@ export const useProductStore = defineStore('product', () => {
     }
     const getProductBestSellerStore = async () => {
         try {
-            const result = await getProductBestSeller(40);
+            const result = await getProductBestSeller(20);
             return result as ProductSummary[];
         } catch (err) {
             console.log(err);
@@ -48,7 +48,7 @@ export const useProductStore = defineStore('product', () => {
     }
     const getProductLatestStore = async () => {
         try {
-            const result = await getProductLatest(40);
+            const result = await getProductLatest(20);
             return result as ProductSummary[];
         } catch (err) {
             console.log(err);
@@ -75,7 +75,7 @@ export const useProductStore = defineStore('product', () => {
     const getAllProductActiveStore = async () => {
         try {
             const result = await getAllProductActive();
-            return result
+            return result;
         } catch (err) {
             console.log(err);
         }

@@ -30,11 +30,11 @@ router.put("/changeEmail", authMiddleware, userValidator.changeEmailValidator, v
 router.put("/verifyChangeEmail", authMiddleware, userValidator.verifyChangeEmailValidator, validateRequest, userController.verifyChangeEmail);
 
 //
+router.get('/shop/statistic', authMiddleware, isSeller, userController.getShopStatistic);
+router.get('/shop/todoSummary', authMiddleware, isSeller, userController.getShopTodoSummary);
 router.put('/shop/:id', authMiddleware, isSeller, uploadLogo, userValidator.changeLogoValidator, validateRequest, userController.changeLogo)
 router.get('/shop/:id', userValidator.paramsShopId, validateRequest, userController.getShopDetailById);
 router.post('/requestSeller', authMiddleware, userValidator.createSellerRequestValidator, validateRequest, userController.createRequestSeller);
-router.get('/shop/statistic/:id', authMiddleware, isSeller, userValidator.paramsShopId, validateRequest, userController.getShopStatistic);
-router.get('/shop/todoSummary/:id', authMiddleware, isSeller, userValidator.paramsShopId, validateRequest, userController.getShopTodoSummary);
 router.get('/shop/reviewRatingDetail/:id', authMiddleware, isSeller, userValidator.paramsShopId, validateRequest, userController.getReviewRatingDetail)
 router.get('/shop/reviewSummary/:id', authMiddleware, isSeller, userValidator.paramsShopId, validateRequest, userController.getShopReviewSummary)
 router.get('/shop/nameByProduct/:id', userController.getShopNameByProductId);

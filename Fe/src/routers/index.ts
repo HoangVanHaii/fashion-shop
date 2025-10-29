@@ -14,25 +14,31 @@ import Profile from '../pages/Profile.vue';
 import OrderDetail from '../pages/OrderDetail.vue';
 import Favourite from '../pages/Favourite.vue';
 import Shop from '../pages/Shop.vue'
+import HomeSeller from '../pages/sellers/Home.vue';
+import FlashSaleSeller from '../pages/sellers/FlashSale.vue';
 
 const routes = [
-  { path: '/', redirect: '/home' },
-  { path: '/home', name: 'Home', component: Home },
-  { path: '/auth/login', name: 'login', component: Auth },
-  { path: '/header', name: 'header', component: Header },
-  { path: '/auth/register', name: 'register-sendOTP', component: Auth },
-  { path: '/verifyRegister', name: 'register-verify', component: VerifyOTP },
-  { path: '/categoryGender', name: 'category-gender', component: CategoryGender },
-  { path: '/product/:id', name: 'product-detail', component: ProductDetail },
-  { path: '/dealHot', name: 'DealHot', component: DealHot },
-  { path: '/addToCart', name: 'AddToCart', component: AddToCart },
-  { path: '/orderSuccess', name: 'OrderSuccess', component: OrderSuccess },
-  { path: '/profile/orderOfme', name: 'order-of-me', component: Order },
-  { path: '/navbarProfile', name: 'nav-bar', component: NavbarProfile },
-  { path: '/profile/me', name: 'profile', component: Profile },
-  { path: '/profile/orderOfme/:id', name: 'order-detail', component: OrderDetail },
-  { path: '/profile/favouriteOfme', name: 'favourite', component: Favourite },
-  { path: '/shop/:id', name: 'shop', component: Shop },
+    { path: '/', redirect: '/home' },
+    { path: '/home', name: 'Home', component: Home },
+    { path: '/auth/login', name: 'login', component: Auth },
+    { path: '/header', name: 'header', component: Header },
+    { path: '/auth/register', name: 'register-sendOTP', component: Auth },
+    { path: '/verifyRegister', name: 'register-verify', component: VerifyOTP },
+    { path: '/categoryGender', name: 'category-gender', component: CategoryGender },
+    { path: '/product/:id', name: 'product-detail', component: ProductDetail },
+    { path: '/dealHot', name: 'DealHot', component: DealHot },
+    { path: '/addToCart', name: 'AddToCart', component: AddToCart },
+    { path: '/orderSuccess', name: 'OrderSuccess', component: OrderSuccess },
+    { path: '/profile/orderOfme', name: 'order-of-me', component: Order },
+    { path: '/navbarProfile', name: 'nav-bar', component: NavbarProfile },
+    { path: '/profile/me', name: 'profile', component: Profile },
+    { path: '/profile/orderOfme/:id', name: 'order-detail', component: OrderDetail },
+    { path: '/profile/favouriteOfme', name: 'favourite', component: Favourite },
+    { path: '/shop/:id', name: 'shop', component: Shop },
+
+    { path: '/seller/home', name: 'home-seller', component: HomeSeller },
+    { path: '/seller/flashSale', name: 'flashsale-seller', component: FlashSaleSeller },
+
 ];
 const router = createRouter({ history: createWebHistory(import.meta.env.BASE_URL), routes });
 

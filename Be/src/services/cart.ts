@@ -8,12 +8,13 @@ export const countCartItems = async (user_id: number): Promise<number> => {
         const result = await pool.request()
             .input("user_id", user_id)
             .query(`
-                SELECT COALESCE(SUM(ci.quantity), 0) AS total
+                SELECT ci.id
                 FROM carts c
                 JOIN cart_items ci ON c.id = ci.cart_id
                 WHERE c.user_id = @user_id
+                GROUP BY ci.id
             `);
-        return Number(result.recordset[0]?.total ?? 0);
+        return Number(result.recordset.length);
     } catch (err: any) {
         if (err instanceof AppError) throw err;
         console.error(err);
