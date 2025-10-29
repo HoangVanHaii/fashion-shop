@@ -193,9 +193,10 @@
       </div>
     </div>
     <Voucher 
-  v-if="showVoucher"
-  @close="closeVoucherModal"
-  @selectVoucher="handleSelectVoucher"
+    :total_amount="(cartStore.total_price_after_reduction - (cartStore.cartPay?.voucher_discount ||0) )"
+    v-if="showVoucher"
+    @close="closeVoucherModal"
+    @selectVoucher="handleSelectVoucher"
 />
 
   </div>

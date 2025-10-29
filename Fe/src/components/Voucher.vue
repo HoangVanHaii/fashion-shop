@@ -8,8 +8,12 @@ const vouhers = ref<Voucher[]>([]);
 const selectedVoucher = ref<number>();
 const voucherDetail = ref<Voucher | null>(null);
 
+const props = defineProps<{
+  total_amount: number
+}>()
 onMounted(async () => {
   vouhers.value = await useVoucher.getAllVoucherStore();
+  alert(props.total_amount);
 });
 const check = ref<Boolean>(false);
 
@@ -29,6 +33,14 @@ const handleSearchVoucher = async () => {
     textSearch.value
   );
 };
+const now = new Date();
+const isVoucherDisabled = (voucher: any) => {
+  const expired = new Date(voucher.end_date) < now
+  const usedUp = voucher.used >= voucher.quantity
+  const notEnough = voucher.min_order_value > props.total_amount
+
+  return expired || usedUp || notEnough
+}
 </script>
 <template>
   <div class="modal" @click="handleClose">
@@ -87,7 +99,7 @@ const handleSearchVoucher = async () => {
           >
         </div>
         <div class="list-voucher" v-if="!voucherDetail">
-          <div v-for="voucher in vouhers" class="voucher">
+          <div v-for="voucher in vouhers" class="voucher" >
             <div class="voucher-image">
               <img :src="getImage(voucher.image_url)" alt="" />
             </div>
@@ -110,6 +122,7 @@ const handleSearchVoucher = async () => {
                 :value="voucher.id"
                 name="voucher_select"
                 v-model="selectedVoucher"
+                :disabled="isVoucherDisabled(voucher)"
               />
             </div>
           </div>
@@ -134,6 +147,7 @@ const handleSearchVoucher = async () => {
   display: flex;
   justify-content: center;
   align-items: center;
+  z-index: 999999999;
 }
 .container {
   width: 450px;
