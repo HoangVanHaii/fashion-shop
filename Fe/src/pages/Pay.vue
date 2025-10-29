@@ -100,8 +100,11 @@
                         <span>Voucher</span>
                     </div>
                     <div class="voucher-right">
-                        <span class="voucher-discount">-{{ ((cartStore.cartPay?.voucher_discount||0) / 1000).toLocaleString() }}k</span>
-                        <b class="choose-voucher">Chọn voucher</b>
+                        <span v-if="(cartStore.cartPay?.voucher_discount||0) > 0" class="voucher-discount">-{{ ((cartStore.cartPay?.voucher_discount||0) / 1000).toLocaleString() }}k</span>
+                        <!-- <b class="choose-voucher">Chọn voucher</b> -->
+                         <a href="javascript:void(0)" @click.stop="openVoucherModal">
+                            {{ cartStore.cartPay?.voucher_code || 'Chọn hoặc nhập mã voucher' }}
+                        </a>
                     </div>
                 </div>
 
@@ -155,10 +158,16 @@
                 </div>                
             </div>
         </div>  
+        <Voucher 
+            v-if="showVoucher"
+            @close="closeVoucherModal"
+            @selected="handleSelectVoucher"
+            />
     </div>
 </template>
 
 <script setup lang="ts">
+import Voucher from '../components/Voucher.vue'
 import { useCartStore } from '../stores/cartStore'
 import { useOrderStore } from '../stores/orderStore'
 import { onMounted,computed,ref,watch } from 'vue'
@@ -166,6 +175,14 @@ import {validateVoucherByCode} from '../utils/validateVoucher'
 import type { OderPayLoad,OrderItem,Order } from '../interfaces/order'
 const cartStore = useCartStore()
 const orderStore = useOrderStore()
+const showVoucher = ref(false)
+const openVoucherModal = () => {
+  showVoucher.value = true
+}
+
+const closeVoucherModal = () => {
+  showVoucher.value = false
+}
 
 onMounted(() => {
     if (cartStore.cartPay?.shops.length === 0) {
@@ -193,8 +210,31 @@ const totalBeforeDiscount = computed(() => {
         0
         ) || 0
     )
-    })
+})
 
+const handleSelectVoucher = async (code: string, id_shop: number) => {
+  console.log("đã chạy1")
+//   selectedVoucherCode.value = code
+  cartStore.filterSelectedItems()
+  const cart = cartStore.cartPay
+  if (cart && cartStore.total_price_after_reduction > 0) {
+    console.log("đã chạy2")
+    try {
+      console.log("đã chạy3")
+      const discount = await validateVoucherByCode(code, cartStore.total_price_after_reduction,id_shop)
+      console.log("đã chạy4")
+      cart.voucher_discount = discount
+      cart.voucher_code = code
+      
+      
+    } catch (err: any) {
+      cart.voucher_discount = 0
+      console.error(err.message)
+    }
+  }
+  console.log("đóng luôn")
+  closeVoucherModal()
+}
 
 //Phương thức pay
 const showPaymentOptions = ref(false)
