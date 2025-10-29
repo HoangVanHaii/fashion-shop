@@ -8,12 +8,13 @@ export const countCartItems = async (user_id: number): Promise<number> => {
         const result = await pool.request()
             .input("user_id", user_id)
             .query(`
-                SELECT COALESCE(SUM(ci.quantity), 0) AS total
+                SELECT ci.id
                 FROM carts c
                 JOIN cart_items ci ON c.id = ci.cart_id
                 WHERE c.user_id = @user_id
+                GROUP BY ci.id
             `);
-        return Number(result.recordset[0]?.total ?? 0);
+        return Number(result.recordset.length);
     } catch (err: any) {
         if (err instanceof AppError) throw err;
         console.error(err);
@@ -113,13 +114,9 @@ export const getCartItems = async (user_id: number): Promise<Cart> => {
                     JOIN product_colors pc ON ps.color_id = pc.id
                     JOIN products p ON pc.product_id = p.id
                     JOIN shops s ON s.id = p.shop_id
-                    LEFT JOIN flash_sale_items fsi ON fsi.size_id = ps.id
-                    LEFT JOIN flash_sales fs ON fs.id = fsi.flash_sale_id 
-                        AND fs.status = 'active' 
-                        AND GETDATE() BETWEEN fs.start_date AND fs.end_date
-                    
-                WHERE c.user_id = @user_id
-                
+                    LEFT JOIN flash_sale_items fsi ON fsi.size_id = ps.id AND fsi.status = 'active'
+                    LEFT JOIN flash_sales fs ON fs.id = fsi.flash_sale_id AND fs.status = 'active'
+                WHERE c.user_id = @user_id  
                 ORDER BY ci.id DESC
                 `);
         const items: CartItemDetail[] = result.recordset;

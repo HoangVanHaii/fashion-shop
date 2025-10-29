@@ -382,23 +382,64 @@ export const getFlashSaleItemById = async (id: number): Promise<FlashSaleItem | 
     }
 
 }
-export const getAllFlashSalesByStatus = async (status: string): Promise<FlashSale[] | null> => {
+export const getAllFlashSalesByStatus = async (status: string, shop_id: number): Promise<FlashSale[] | null> => {
     try {
         const pool = await connectionDB();
-        const result = await pool.request()
-            .input("status", status || "active")
+        const request = await pool.request();
+        let stringQuery = 'AND status <> \'Cancelled\''; 
+        if (status) {
+            request.input("status", status);
+            stringQuery = 'AND status = @status';
+        }
+        const result = await request
             .query(`
-                SELECT *
+                SELECT id, title, start_date, end_date, status, created_by, created_at
                 FROM flash_sales
-                WHERE status = @status
+                WHERE 1 = 1  ${stringQuery}
             `);
-        return result.recordset || null;
+
+        const flashSales = result.recordset as FlashSale[]; 
+        const flashSalesWithShopStatus: FlashSale[] = [];
+        for (const sale of flashSales) {
+            
+            const checkParticipation = await pool.request()
+                .input("flash_sale_id", sale.id) 
+                .input("shop_id", shop_id)
+                .input("status", "removed")
+                .query(`
+                    SELECT
+                        CASE WHEN EXISTS (
+                            SELECT 1
+                            FROM flash_sale_items AS fsi
+                            JOIN product_sizes AS ps ON ps.id = fsi.size_id
+                            JOIN product_colors AS pc ON pc.id = ps.color_id
+                            JOIN products AS p ON p.id = pc.product_id
+                            WHERE
+                                fsi.flash_sale_id = @flash_sale_id
+                                AND p.shop_id = @shop_id
+                                AND fsi.status <> @status
+                        ) THEN 1 
+                        ELSE 0 
+                        END AS ShopParticipated
+                `);
+            
+            const shopParticipated = checkParticipation.recordset.length > 0 && checkParticipation.recordset[0].ShopParticipated === 1;
+
+            const newSale = {
+                ...sale,
+                shop_has_sale: shopParticipated
+            };
+            
+            flashSalesWithShopStatus.push(newSale);
+        }
+
+        return flashSalesWithShopStatus.length > 0 ? flashSalesWithShopStatus : null;
+
     } catch (err) {
         console.error(err); 
-        throw new AppError("Failed to get flash sales by status", 500, false);
+        throw new AppError("Failed to get flash sales by status", 500, false); 
     }
 };
-
 export const cancelFlashSaleForAdmin = async (id: number): Promise<void> => {
     const pool = await connectionDB();
     const transaction = new mssql.Transaction(pool);
@@ -450,7 +491,7 @@ export const cancelFlashSaleForAdmin = async (id: number): Promise<void> => {
         throw new AppError("Failed to cancel flash sale", 500);
     }
 }
-export const cancelAllFlashSaleItemsBySeller = async (user_id: number, id: number): Promise<void> => {
+export const cancelAllFlashSaleItemsForSeller = async (shop_id: number, id: number): Promise<void> => {
     const pool = await connectionDB();
     const transaction = new mssql.Transaction(pool);
 
@@ -460,9 +501,9 @@ export const cancelAllFlashSaleItemsBySeller = async (user_id: number, id: numbe
         const checkSale = await new mssql.Request(transaction)
             .input("flash_sale_id", id)
             .query(`
-            SELECT id, created_by, status
-            FROM flash_sales
-            WHERE id = @flash_sale_id
+                SELECT id, status
+                FROM flash_sales
+                WHERE id = @flash_sale_id
         `);
 
         if (checkSale.recordset.length === 0) {
@@ -470,25 +511,26 @@ export const cancelAllFlashSaleItemsBySeller = async (user_id: number, id: numbe
         }
         const flash_sale = checkSale.recordset[0];
 
-        if (flash_sale.status === "active") {
-            throw new AppError(`Cannot update while flash sale is active`, 400);
-        }
         if (flash_sale.status === "cancelled") {
             throw new AppError(`flash sale was cancelled`, 400);
         }
+        if (flash_sale.status === "ended") {
+            throw new AppError(`flash sale was ended`, 400);
+        }
         await new mssql.Request(transaction)
             .input("flash_sale_id", id)
-            .input("user_id", user_id)
+            .input("shop_id", shop_id)
             .query(`
                 UPDATE fsi
                 SET status = 'removed'
                 FROM flash_sale_items fsi
-                    JOIN products p on p.id = fsi.product_id
-                    JOIN shops s on s.id = p.shop_id
-                WHERE fsi.flash_sale_id = @flash_sale_id AND s.seller_id = @user_id
+                    JOIN product_sizes ps ON ps.id = fsi.size_id
+                    JOIN product_colors pc ON pc.id = ps.color_id
+                    JOIN products p ON p.id = pc.product_id
+                WHERE fsi.flash_sale_id = @flash_sale_id AND p.shop_id = @shop_id
             `);
-
         await transaction.commit();
+        console.log(11111111111111111111111111111);
     } catch (err) {
         await transaction.rollback();
         if (err instanceof AppError) throw err;

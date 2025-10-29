@@ -1,10 +1,16 @@
 <script setup lang="ts">
-const props = defineProps<{ message: string }>();
-const emit = defineEmits(['close', 'confirm']);
+import { ref } from 'vue';
+
+const props = defineProps<{message: string}>()
+const emit = defineEmits(['close', 'confirm', 'stock', 'type']);
+const stock = ref<number>(0);
+const type = ref<string>('active')
 const handleClose = () => {
     emit('close');
 }
 const handleConfirm = () => {
+    emit('stock', stock.value);
+    emit('type', type.value);
     emit('confirm');
 }
 </script>
@@ -19,6 +25,11 @@ const handleConfirm = () => {
                 </div>
                 <div class="content"> 
                     <span>{{ props.message }}</span>
+                    <input v-if="props.message == 'Nhập số lượng tồn kho'" v-model="stock" type="number" name="" id="">
+                    <i v-if="props.message == 'Bật/Tắt hàng loạt' && type=='active'" @click="type ='hidden'" class="fa-solid fa-toggle-on"></i>
+                    <i v-if="props.message == 'Bật/Tắt hàng loạt' && type=='hidden'" @click="type ='active'" class="fa-solid fa-toggle-off"></i>
+
+
                 </div>
                 <div class="btn-actions">
                     <button class="btn-back" @click="handleClose">Hủy</button>
@@ -30,6 +41,16 @@ const handleConfirm = () => {
 
 </template>
 <style scoped>
+.fa-toggle-on{
+    color: green;
+}
+input{
+    padding: 2px;
+    background-color: white;
+    border-radius: 4px;
+    border: 1px solid rgb(69, 69, 69);
+    outline: none;
+}
     .container{
         width: 100%;
         height: 100%;
@@ -63,9 +84,12 @@ const handleConfirm = () => {
         width: 90%;
         height: 65%;
         display: flex;
-        flex-direction: row;
+        flex-direction: column;
         align-items: center;
         justify-content: center;
+    }
+    .content i {
+        font-size: 24px;
     }
     .content span{
         text-align: center;

@@ -20,6 +20,8 @@ const baseQuery = `SELECT
                     oi.id AS item_id,
                     o.status,
                     o.created_at,
+                    o.user_id,
+                    fsi.flash_sale_id,
                     o.total,
                     pay.method,
                     o.shipping_address,
@@ -74,7 +76,8 @@ const transformationOrder = (result: any[], orderMaps: Record<number, GetOrder>)
                     shipping_name: row.shipping_name,
                     shipping_phone: row.shipping_phone,
                     discount_value: row.discount_value,
-                    shop_id: row.shop_id
+                    shop_id: row.shop_id,
+                    user_id: row.user_id
                 }
             }
             orderMaps[row.order_id].items.push({
@@ -88,7 +91,8 @@ const transformationOrder = (result: any[], orderMaps: Record<number, GetOrder>)
                 quantity: row.quantity,
                 price: row.price,
                 image_url: row.image_url,
-                flash_price: row.flash_sale_price       
+                flash_price: row.flash_sale_price,
+                flash_sale_id: row.flash_sale_id
             })
         })
 } 
@@ -275,7 +279,7 @@ export const updateStatusOrder = async (order_id: number, status: string) : Prom
             .input('status', status)
             .query(query);
     } catch (error) {
-        console.log(error);
+        console.log("failed", error);
         throw new AppError('Failed to confirm order', 500, false);
     }
 }

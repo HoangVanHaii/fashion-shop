@@ -2,7 +2,7 @@
     <footer class="footer">
         <div class="subscribe">
             <div class="subscribe-input">
-                <p>Đăng ký nhận tin</p>
+                <p class="message">Đăng ký nhận tin</p>
                 <div class="input-wrapper">
                     <i class="fa-solid fa-envelope"></i>
                     <input type="email" placeholder="Nhập Email của bạn">
@@ -144,6 +144,7 @@ const clickPolicy = () => {
 
 <style scoped>
 .footer {
+    /* margin-top: 2500px; */
     background-color: #F26B3A;
     color: white;
     border: 2px solid #9b59b6;
@@ -151,6 +152,7 @@ const clickPolicy = () => {
     overflow: hidden;
     width: 100%;
     font-size:20px;
+    bottom: 0%;
 }
 
 .introduction{
@@ -253,7 +255,8 @@ const clickPolicy = () => {
 }
 
 .col h4 {
-    margin: 5px 0 10px 0;
+    margin: 1px;
+    /* margin: 5px 0 10px 0; */
     font-size: 18px;
     text-align: justify;
 }
@@ -340,6 +343,9 @@ display:none
 /* Mobile (≤880px) */
 /* ----------------------------- */
 @media (max-width: 880px) {
+    .message{
+        display: none;
+    }
     .footer {
         position: relative;
         font-size: 23px;

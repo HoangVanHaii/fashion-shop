@@ -3,6 +3,7 @@ import { Request, Response, NextFunction } from "express";
 import * as FlashSaleService from "../services/flashSale";
 import { AppError } from "../utils/appError";
 import redisClient from "../config/redisClient";
+import { getShopIdByUserId } from "../services/user";
 
 export const createFlashSale = async (req: Request, res: Response, next: NextFunction) => {
     try {
@@ -22,8 +23,9 @@ export const createFlashSale = async (req: Request, res: Response, next: NextFun
 
 export const getAllFlashSales = async (req: Request, res: Response, next: NextFunction) => {
     try {
+        const shop_id = await getShopIdByUserId(req.user?.id!);
         const status = req.query.status as string;
-        const flashSales = await FlashSaleService.getAllFlashSalesByStatus(status);
+        const flashSales = await FlashSaleService.getAllFlashSalesByStatus(status, shop_id);
         return res.status(200).json({
             success: true,
             message: 'Get all flash sales successfully',
@@ -194,11 +196,12 @@ export const cancelFlashSale = async (req: Request, res: Response, next: NextFun
     }
 }
 
-export const cancelAllFlashSaleItemsBySeller = async (req: Request, res: Response, next: NextFunction) => {
+export const cancelAllFlashSaleItemsForSeller = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const flash_sale_id = parseInt(req.params.id);
         const user_id = req.user!.id;
-        await FlashSaleService.cancelAllFlashSaleItemsBySeller(user_id, flash_sale_id);
+        const shop_id = await getShopIdByUserId(user_id);
+        await FlashSaleService.cancelAllFlashSaleItemsForSeller(shop_id, flash_sale_id);
         return res.status(200).json({
             success: true,
             message: 'Cancel flash sale successfully'

@@ -460,6 +460,8 @@ const props = defineProps<{ product: ProductPayload }>();
 input {
   width: 24px;
   height: 17px;
+  border: 1px solid #333;
+  text-align: center;
 }
 input[type="number"]::-webkit-outer-spin-button,
 input[type="number"]::-webkit-inner-spin-button {
@@ -475,7 +477,7 @@ input:focus {
   width: 23px;
   height: 21px;
   background: none;
-  border: 1px solid rgb(48, 48, 48);
+  border: 1px solid rgb(190, 189, 189);
 }
 .dec:hover {
   cursor: pointer;

@@ -113,7 +113,24 @@ export const refreshToken = async (req: Request, res: Response, next: NextFuncti
         next(err);
     }
 }
+export const getNameById = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const id = parseInt(req.params.id);
 
+        const name = await userService.getNameById(id);
+        if (!name) {
+            throw new AppError("User not found", 404);
+        }
+        return res.status(200).json({
+            success: true,
+            message: "get userById successfully",
+            data: name
+        });
+
+    } catch (err) {
+        next(err);
+    }
+}
 export const getProfile = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const id = req.user!.id;
@@ -326,7 +343,8 @@ export const changeLogo = async (req: Request, res: Response, next: NextFunction
 }
 export const getShopTodoSummary = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const shop_id = parseInt(req.params.id)
+        
+        const shop_id = await userService.getShopIdByUserId(req.user?.id!);
         const result = await userService.getShopTodoSummary(shop_id);
         return res.status(200).json({
             success: true,
@@ -339,7 +357,7 @@ export const getShopTodoSummary = async (req: Request, res: Response, next: Next
 }
 export const getShopStatistic = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const shop_id = parseInt(req.params.id)
+        const shop_id = await userService.getShopIdByUserId(req.user?.id!);
         const result = await userService.getShopStatistic(shop_id);
         return res.status(200).json({
             success: true,

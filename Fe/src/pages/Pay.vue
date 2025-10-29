@@ -199,8 +199,8 @@ const totalBeforeDiscount = computed(() => {
 //Phương thức pay
 const showPaymentOptions = ref(false)
 interface PaymentMethod {
-id: string
-label: string
+    id: string
+    label: string
 }
 
 const paymentMethods: PaymentMethod[] = [
@@ -307,6 +307,9 @@ const clickOrder = async () =>{
     flex-direction: column;
     min-height: 100vh;
     background-color: #f0f0f0;
+    width: 90%;
+    margin: 0 auto;
+    overflow: hidden;
 }
 
 .cart-content {
@@ -314,6 +317,8 @@ const clickOrder = async () =>{
     padding: 16px;
     padding-bottom: 160px;
     overflow-y: auto;
+    overflow-x: hidden;
+    
 }
 
 .tab {
@@ -431,7 +436,7 @@ const clickOrder = async () =>{
     right: 0;
     top: 50%;
     transform: translateY(-50%);
-    font-size: 40px;
+    font-size: 30px;
     color: #dc2626;
 }
 
@@ -440,7 +445,7 @@ const clickOrder = async () =>{
     left: 0;
     top: 50%;
     transform: translateY(-50%);
-    font-size: 40px;
+    font-size: 30px;
     color: #dc2626;
     animation: truckRun 3s linear infinite;
 }
@@ -470,7 +475,7 @@ const clickOrder = async () =>{
     background-color: white;
     padding: 20px;
     border-radius: 8px;
-    border-bottom: 1px solid #0a0a0a;
+    border-bottom: 1px solid #494949;
 }
 
 .header-item {
@@ -480,7 +485,7 @@ const clickOrder = async () =>{
     /* border-bottom: 2px solid #0a0a0a; */
     font-weight: 500;
     border-radius: 8px 8px 0 0;
-    box-shadow: 0px 4px 8px rgba(0,0,0,0.5);
+    box-shadow: 0px 4px 8px rgba(0,0,0,0.2);
 }
 
 .header-item1 {
@@ -533,7 +538,7 @@ const clickOrder = async () =>{
     padding: 12px 20px;
     text-align: left;
     border-bottom: 1px solid #e0e0e0;
-    border-bottom: 2px solid #0a0a0a;
+    border-bottom: 1px solid #5f5f5f;
 }
 
 .shop-header i {
@@ -632,7 +637,7 @@ justify-content: flex-end;
 padding: 15px 25px 15px 15px;
 border-top: 1px solid #e0e0e0;
 background-color: #fafafa;
-font-size: 22px;
+font-size: 21px;
 text-align: right;
 }
 
@@ -691,12 +696,12 @@ border-bottom: 1px dashed #ccc;
 
 .voucher-left i {
     color: #ff6f00; 
-    font-size: 40px; 
+    font-size: 26px; 
 }
 
 .payment-left i { 
     color: #ff9f1c; 
-    font-size: 40px; 
+    font-size: 26px; 
 }
 
 /* Cột phải */
@@ -896,6 +901,9 @@ text-align: left;
 /*  Mobile (870px <=) */
 /* ----------------------------- */   
 @media (max-width: 870px) {
+    .cart-page{
+        width: 100%;
+    }
     .header2{
         display:none;
     }
