@@ -67,6 +67,10 @@ const loadData = async () => {
   );
   productOfShop.value = shopStore.filter((p) => p.id !== productId.value?.id);
 };
+
+const handleOrder = () => {
+    alert(sizeChose.value?.id);
+}
 onMounted(async () => {
   await loadData();
   favourite.getFavouriteOfMeStore();
@@ -292,7 +296,7 @@ const copiedLink = () => {
           </button>
           <button
             class="order"
-            @click="handleOrder(sizeChose)"
+            @click="handleOrder()"
             :disabled="sizeChose?.stock == 0"
           >
             Mua ngay

@@ -138,7 +138,7 @@ const props = defineProps<{ product: ProductPayload }>();
             <span>Màu sắc: </span>
             <span class="text">{{ colorChose?.color }}</span>
           </div>
-          <div class="list-color">
+          <div class="list-color" >
             <div
               v-for="color in props.product.colors"
               class="color"
