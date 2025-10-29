@@ -4,6 +4,10 @@ import { voucherStore } from "../stores/voucherStore";
 import { formatDateTime, formatPrice, getImage } from "../utils/format";
 const useVoucher = voucherStore();
 import type { Voucher } from "../interfaces/voucher";
+import { useCartStore } from '../stores/cartStore'
+import Notification from '../components/Notification.vue';
+
+const cartStore = useCartStore() 
 const vouhers = ref<Voucher[]>([]);
 const selectedVoucher = ref<number>();
 const voucherDetail = ref<Voucher | null>(null);
@@ -16,14 +20,13 @@ onMounted(async () => {
   alert(props.total_amount);
 });
 const check = ref<Boolean>(false);
-
 const textSearch = ref<string>("");
 const isValid = computed(() => {
   check.value = false;
   voucherDetail.value = null;
   return textSearch.value?.length > 3;
 });
-const emit = defineEmits(["close"]);
+const emit = defineEmits(["close","selected"]);
 const handleClose = () => {
   emit("close");
 };
@@ -33,6 +36,37 @@ const handleSearchVoucher = async () => {
     textSearch.value
   );
 };
+
+const handleOK = () => {
+  const voucher = vouhers.value.find(v => v.id === selectedVoucher.value) || 
+                  (voucherDetail.value && voucherDetail.value.id === selectedVoucher.value
+                    ? voucherDetail.value
+                    : null);
+
+  if (voucher) {
+    console.log( voucher.code)
+    emit("selected", voucher.code,voucher.shop_id); 
+  } else {
+    console.warn("Bạn chưa chọn voucher nào!");
+  }
+
+  handleClose(); 
+};
+
+
+const isEligible = (voucher: Voucher) => {
+  if (voucher.scope === 'GLOBAL') {
+    return cartStore.total_price_after_reduction >= voucher.min_order_value;
+  }
+  else if(voucher.scope === 'SHOP' && voucher.shop_id){
+    const shop = cartStore.shops.find(s => s.shop_id === voucher.shop_id);
+    if (!shop) return false;
+    const total = shop.total_shop || 0
+    return total >= voucher.min_order_value
+  }
+  return false
+};
+
 const now = new Date();
 const isVoucherDisabled = (voucher: any) => {
   const expired = new Date(voucher.end_date) < now
@@ -43,6 +77,7 @@ const isVoucherDisabled = (voucher: any) => {
 }
 </script>
 <template>
+  <!-- <Notification :text="toastText" :isSuccess="showNotification" /> -->
   <div class="modal" @click="handleClose">
     <div class="container" @click.stop>
       <div class="title">
@@ -99,7 +134,7 @@ const isVoucherDisabled = (voucher: any) => {
           >
         </div>
         <div class="list-voucher" v-if="!voucherDetail">
-          <div v-for="voucher in vouhers" class="voucher" >
+          <div v-for="voucher in vouhers" class="voucher" :class="{ 'disabled-voucher': !isEligible(voucher) }">
             <div class="voucher-image">
               <img :src="getImage(voucher.image_url)" alt="" />
             </div>
@@ -122,7 +157,7 @@ const isVoucherDisabled = (voucher: any) => {
                 :value="voucher.id"
                 name="voucher_select"
                 v-model="selectedVoucher"
-                :disabled="isVoucherDisabled(voucher)"
+                :disabled="!isEligible(voucher)"
               />
             </div>
           </div>
@@ -130,7 +165,7 @@ const isVoucherDisabled = (voucher: any) => {
       </div>
       <div class="btn">
         <button class="btn-back" @click="handleClose">Trở lại</button>
-        <button class="btn-ok">OK</button>
+        <button class="btn-ok" @click="handleOK">OK</button>
       </div>
     </div>
   </div>
@@ -339,6 +374,12 @@ input {
   cursor: pointer;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 }
+.disabled-voucher {
+  opacity: 0.5;
+  pointer-events: none;
+  filter: grayscale(0.7);
+}
+
 @media (max-width: 768px) {
   .container {
     width: 350px;
@@ -369,5 +410,6 @@ input {
     width: 14xpx;
     height: 14px;
   }
+
 }
 </style>

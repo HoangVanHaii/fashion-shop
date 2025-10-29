@@ -137,8 +137,8 @@
           -{{ ((cartStore.cartPay?.voucher_discount||0)/1000).toLocaleString() }}k
         </span>
         <a href="javascript:void(0)" @click.stop="openVoucherModal">
-  {{ selectedVoucherCode || 'Chọn hoặc nhập mã voucher' }}
-</a>
+          {{ selectedVoucherCode || 'Chọn hoặc nhập mã voucher' }}
+        </a>
 
       </div>
 
@@ -193,11 +193,10 @@
       </div>
     </div>
     <Voucher 
-    :total_amount="(cartStore.total_price_after_reduction - (cartStore.cartPay?.voucher_discount ||0) )"
-    v-if="showVoucher"
-    @close="closeVoucherModal"
-    @selectVoucher="handleSelectVoucher"
-/>
+      v-if="showVoucher"
+      @close="closeVoucherModal"
+      @selected="handleSelectVoucher"
+    />
 
   </div>
 </template>
@@ -214,38 +213,10 @@ import Voucher from '../components/Voucher.vue'
 
 const router = useRouter()
 const cartStore = useCartStore() 
-const token ="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwiZW1haWwiOiJvdm5ob2thQGdtYWlsLmNvbSIsInJvbGUiOiJzZWxsZXIiLCJpYXQiOjE3NjE1MjcxNDIsImV4cCI6MTc2MTUzMDc0Mn0.ew1U0qKpkVw4Y35nznF0m0Va_U8NfXZ7A-5UWwn_YS8"
 onMounted(async () => {
   await cartStore.getCart()
   await cartStore.checkSoldOut();
 })
-
-const voucher_code = ref<string>("GLOBAL102225")
-watch(
-  () => cartStore.total_price_after_reduction,
-  async (total) => {
-    const cart = cartStore.cartPay
-    if (!cart) return 
-
-    if (total > 0) {
-      try {
-        const discount = await validateVoucherByCode(voucher_code.value, total)
-        cart.voucher_discount = discount
-
-        // Lưu voucher_id vào cartPay
-        cart.voucher_code = voucher_code.value
-      } catch (err: any) {
-        cart.voucher_discount = 0
-        console.error(err.message)
-      }
-    } else {
-      cart.voucher_discount = 0
-    }
-  }
-)
-
-
-
 
 const openDropdown = ref<number | null>(null)
 
@@ -343,11 +314,51 @@ const closeVoucherModal = () => {
   showVoucher.value = false
 }
 
-const handleSelectVoucher = (code: string) => {
+const handleSelectVoucher = async (code: string, id_shop: number) => {
+  console.log("đã chạy1")
   selectedVoucherCode.value = code
+  cartStore.filterSelectedItems()
+  const cart = cartStore.cartPay
+  if (cart && cartStore.total_price_after_reduction > 0) {
+    console.log("đã chạy2")
+    try {
+      console.log("đã chạy3")
+      const discount = await validateVoucherByCode(code, cartStore.total_price_after_reduction,id_shop)
+      console.log("đã chạy4")
+      cart.voucher_discount = discount
+      cart.voucher_code = code
+      
+      
+    } catch (err: any) {
+      cart.voucher_discount = 0
+      console.error(err.message)
+    }
+  }
+  console.log("đóng luôn")
   closeVoucherModal()
 }
 
+// watch(
+//   () => cartStore.total_price_after_reduction,
+//   async (total) => {
+//     const cart = cartStore.cartPay
+//     if (!cart) return 
+
+//     if (total > 0) {
+//       try {
+//         const discount = await validateVoucherByCode(selectedVoucherCode.value, total)
+//         cart.voucher_discount = discount
+
+//         cart.voucher_code = selectedVoucherCode.value
+//       } catch (err: any) {
+//         cart.voucher_discount = 0
+//         console.error(err.message)
+//       }
+//     } else {
+//       cart.voucher_discount = 0
+//     }
+//   }
+// )
 </script>
 
 

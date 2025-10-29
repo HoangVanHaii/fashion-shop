@@ -30,6 +30,5 @@ export interface Cart{
     total_quantity: number;
     total_amount: number;
     voucher_discount?:number;
-    voucher_id?:number;
     voucher_code?:string;
 }

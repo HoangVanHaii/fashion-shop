@@ -10,7 +10,6 @@ export const useCartStore = defineStore('cart', () => {
     const error = ref<string | null>(null);
     const cartCount = ref<number>(0);
     const loading = ref<boolean>(false);
-
     const getCartCountStore = async () => {{
         try {
             const res = await getCartCount();
@@ -41,12 +40,42 @@ export const useCartStore = defineStore('cart', () => {
             loading.value = false;
         }
     }
-
     const cartPay = ref<Cart|null>(null)
     const shops= reactive<ShopCart[]>([])
     const selectedShops= ref<ShopCart[]>([])
     const totalQuantity = ref(0)
     const selectAll = ref(true)
+    watch(shops, () => {
+        shops.forEach(shop => {
+            if (shop.carts) {
+                shop.total_shop = shop.carts
+                    .filter(item => item.selected && !item.sold_out)
+                    .reduce((sum, item) => sum + (item.price_after_reduction ?? item.price) * item.quantity, 0);
+            } else {
+                shop.total_shop = 0;
+            }
+            console.log(`shop ${shop.shop_id} ${shop.shop_name} total: ${shop.total_shop}`)
+        });
+    }, { deep: true });
+
+    watch(() => cartPay.value?.shops,
+    (newCartPayShops) => {
+        if (!newCartPayShops) return;
+
+        newCartPayShops.forEach(shop => {
+        if (shop.carts) {
+            shop.total_shop = shop.carts
+            .filter(i => i.selected && !i.sold_out)
+            .reduce((sum, i) => sum + (i.price_after_reduction ?? i.price) * i.quantity, 0);
+        } else {
+            shop.total_shop = 0;
+        }
+        console.log(`shop ${shop.shop_id} ${shop.shop_name} total: ${shop.total_shop}`)
+        });
+    },
+    { deep: true }
+);
+
     const total_price_after_reduction = computed(() => {
         let sum = 0
         shops.forEach(shop => {
@@ -69,6 +98,24 @@ export const useCartStore = defineStore('cart', () => {
         return sum
     })
 
+    watch(() => cartPay.value?.shops,
+        (newCartPayShops) => {
+            if (!newCartPayShops) return;
+
+            newCartPayShops.forEach(shop => {
+            if (shop.carts) {
+                shop.total_shop = shop.carts
+                .filter(i => i.selected && !i.sold_out)
+                .reduce((sum, i) => sum + (i.price_after_reduction ?? i.price) * i.quantity, 0);
+            } else {
+                shop.total_shop = 0;
+            }
+            console.log(`shop ${shop.shop_id} ${shop.shop_name} total: ${shop.total_shop}`)
+            });
+        },
+        { deep: true }
+    );
+    
     const totalItemCount = computed(() => {
         return shops.reduce((sum, shop) => 
             sum + (shop.carts?.filter(item => !item.sold_out).length || 0),
@@ -201,7 +248,6 @@ export const useCartStore = defineStore('cart', () => {
             }
         }
         cartPay.value = null
-        localStorage.removeItem('selectedCart')
     }
 
 
@@ -227,15 +273,15 @@ export const useCartStore = defineStore('cart', () => {
     const selectedColor = ref<ProductColor | null>(null)
 
     const selectedProduct = ref<ProductPayload | null>(null)
-const getProductDetail = async (cartItem: CartItemDetail) => {
-  try {
-    const productId = await getProductIdBySize(cartItem.size_id) 
-    const product: ProductPayload = await getProductById(productId.product_id) 
-    selectedProduct.value = product || null
-  } catch (error) {
-    console.error('Lỗi khi lấy chi tiết sản phẩm:', error)
-  }
-}
+    const getProductDetail = async (cartItem: CartItemDetail) => {
+        try {
+            const productId = await getProductIdBySize(cartItem.size_id) 
+            const product: ProductPayload = await getProductById(productId.product_id) 
+            selectedProduct.value = product || null
+        } catch (error) {
+            console.error('Lỗi khi lấy chi tiết sản phẩm:', error)
+        }
+    }
 
     const updateCartItemSize = async (cartItem: CartItemDetail, newSizeId: number) => {
         try {
@@ -280,7 +326,7 @@ const getProductDetail = async (cartItem: CartItemDetail) => {
 
     const filterSelectedItems = () => {
         if (!cartPay.value) {
-            cartPay.value = { shops: [], total_quantity: 0, total_amount: 0,voucher_discount:0, voucher_id: 0,voucher_code:"" }
+            cartPay.value = { shops: [], total_quantity: 0, total_amount: 0,voucher_discount:0,voucher_code:"" }
         }
         cartPay.value.shops.splice(0, cartPay.value.shops.length)
 

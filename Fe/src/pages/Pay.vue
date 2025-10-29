@@ -235,20 +235,20 @@ const selectMethod = (method: PaymentMethod) => {
 // )
 
 
-watch(
-  () => cartStore.cartPay?.voucher_id,
-  async () => {
-    const cart = cartStore.cartPay
-    if (!cart || cart.voucher_code ==null) return
-      try {
-        const discount = await validateVoucherByCode(cart.voucher_code, cartStore.total_price_after_reduction)
-        cart.voucher_discount = discount
-      } catch (err: any) {
-        cart.voucher_discount = 0
-        console.error(err.message)
-      }
-  }
-)
+// watch(
+//   () => cartStore.cartPay?.voucher_id,
+//   async () => {
+//     const cart = cartStore.cartPay
+//     if (!cart || cart.voucher_code ==null) return
+//       try {
+//         const discount = await validateVoucherByCode(cart.voucher_code, cartStore.total_price_after_reduction)
+//         cart.voucher_discount = discount
+//       } catch (err: any) {
+//         cart.voucher_discount = 0
+//         console.error(err.message)
+//       }
+//   }
+// )
 
 const clickOrder = async () =>{
     if (!cartStore.cartPay) return
@@ -279,13 +279,16 @@ const clickOrder = async () =>{
     }
 
     try {
+    console.log("Payload gửi lên API:", payload);
     const res = await orderStore.createOrder(payload)
     await cartStore.removePaidItems()
     console.log('Order created:', res)
     // chuyển trang hoặc show modal thành công
-  } catch (err) {
-    console.error('Đặt hàng thất bại:', err)
-  }
+  } catch (err: any) {
+    const msg = err.response?.data?.message || err.message;
+    console.error("Đặt hàng thất bại:", msg);
+    }
+
 }
 
 
