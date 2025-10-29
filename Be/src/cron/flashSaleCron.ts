@@ -18,6 +18,16 @@ cron.schedule("*/2 * * * *", async () => {
       WHERE status = 'active'
         AND end_date <= GETDATE()
     `);
+    await pool.request().query(`
+        UPDATE flash_sale_items
+        SET status = 'removed' 
+        WHERE flash_sale_id IN (
+            SELECT id 
+            FROM flash_sales
+            WHERE status = 'Cancelled' 
+        )
+        AND status <> 'removed'
+    `);
 
     console.log(`[CRON] Flash sales status updated at ${new Date().toISOString()}`);
   } catch (err) {

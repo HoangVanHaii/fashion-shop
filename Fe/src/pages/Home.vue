@@ -15,6 +15,7 @@ import { formatPrice } from "../utils/format";
 import type { Voucher } from "../interfaces/voucher";
 import type { ProductSummary, ProductPayload } from "../interfaces/product";
 import type { FlashSale, FlashSaleProductSold } from "../interfaces/flashSale";
+import Footer from "../components/Footer.vue";
 
 import { onBeforeUnmount, onMounted, computed, ref, watch } from "vue";
 import { useProductStore } from "../stores/productStore";
@@ -194,352 +195,353 @@ const toggleFavourite = async (id: number) => {
 <template>
   <Header />
 
-  <div class="container">
-    <div class="banner-container">
-      <button class="btn btn-prev" @click="prevImage"><</button>
-      <img
-        :key="banners[currentIndex]"
-        :src="banners[currentIndex]"
-        :alt="'banner' + currentIndex"
-        class="banner-image"
-      />
-      <button class="btn btn-next" @click="nextImage">></button>
-    </div>
-    <div class="promo-section">
-      <div class="promo-row">
-        <div
-          v-for="(value, index) in bannerItems"
-          :key="index"
-          class="promo-item banner"
-        >
-          <img :src="value" alt="" />
+    <div class="container">
+        <div class="banner-container">
+        <button class="btn btn-prev" @click="prevImage"><</button>
+        <img
+            :key="banners[currentIndex]"
+            :src="banners[currentIndex]"
+            :alt="'banner' + currentIndex"
+            class="banner-image"
+        />
+        <button class="btn btn-next" @click="nextImage">></button>
         </div>
-      </div>
-      <div class="promo-row" v-if="vouchers.length >= 4">
-        <div
-          v-for="(voucher, index) in vouchers"
-          :key="index"
-          class="promo-item voucher"
-        >
-          <img :src="getImage(voucher.image_url)" alt="" />
-          <div class="content-voucher">
-            <div class="top-content">
-              <div class="title">
-                <p>NHẬP MÃ: {{ voucher.code }}</p>
-              </div>
-              <div class="description">
-                <p>{{ voucher.description }}</p>
-              </div>
-            </div>
-            <div class="btn-voucher">
-              <button @click="copyText(voucher.code, index, voucher.id!)">
-                {{ copiedList[index] ? "Đã sao chép" : "Sao chép" }}
-              </button>
-              <p class="condition">Điều kiện</p>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <div class="promo-flashsale" v-if="displayedProducts.length > 0">
-      <div class="flashsale-image">
-        <img :src="flashSale" alt="flashsale" />
-      </div>
-      <div class="flashsale-title">
-        <p>{{ flashSaleHomes?.title }}</p>
-
-        <div class="flashsale-time">
-          <span class="time-text">Kết thúc sau</span>
-          <div class="time-boxes">
-            <div class="time-box">
-              <span class="time">{{ hours }}</span>
-              <span class="text">Giờ</span>
-            </div>
-            <div class="time-box">
-              <span class="time">{{ minutes }}</span>
-              <span class="text">Phút</span>
-            </div>
-            <div class="time-box">
-              <span class="time">{{ seconds }}</span>
-              <span class="text">Giây</span>
-            </div>
-          </div>
-        </div>
-      </div>
-      <div class="promo-product" :class="showAll ? 'grid-mode' : 'row-mode'">
-        <div
-          v-for="(product, index) in displayedProducts"
-          :key="index"
-          class="product-item"
-          @click="
-            router.push({
-              name: 'product-detail',
-              params: { id: product.id },
-            })
-          "
-        >
-          <div class="product-image">
-            <img :src="getImage(product.thumbnail!)" alt="" />
-          </div>
-          <div class="promo-description">
-            <div class="product-logo-color">
-              <span class="logo">NAVA</span>
-              <div class="list-color">
-                <div
-                  v-for="(img, index) in product.images.slice(0, 6)"
-                  :key="index"
-                  class="item-image"
-                >
-                  <img :src="getImage(img)" alt="" />
-                </div>
-              </div>
-            </div>
-            <div class="product-info">
-              <div class="product-name">
-                <p>{{ product.name }}</p>
-              </div>
-              <div class="product-bottom">
-                <div class="grid-prices">
-                  <span class="grid-price-new">{{
-                    product.flash_price
-                      ? formatPrice(product.flash_price!)
-                      : product.min_price
-                  }}</span>
-                  <span class="grid-price-old" v-if="product.flash_price">{{
-                    formatPrice(product.max_price)
-                  }}</span>
-                </div>
-                <div class="product-action" @click.stop>
-                  <button @click="handleCart(product.id)">
-                    <i class="fa-solid fa-cart-shopping"></i>
-                  </button>
-                  <button @click.stop="toggleFavourite(product.id)">
-                    <i
-                      v-if="favourite.isFavourite(product.id)"
-                      class="fa-solid fa-heart"
-                    ></i>
-                    <i
-                      v-if="!favourite.isFavourite(product.id)"
-                      class="fa-regular fa-heart"
-                    ></i>
-                  </button>
-                </div>
-              </div>
-              <div class="product-sold">
-                <span>Đã bán {{ getSold(product.id) }} sản phẩm</span>
-                <div class="progress-bar">
-                  <div
-                    class="progress"
-                    :style="{
-                      width:
-                        Math.min(
-                          (getSold(product.id) / product.sold_quantity) * 100,
-                          100
-                        ) + '%',
-                    }"
-                  ></div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-      <button class="btn-best-seller" @click="btnShowMoreProductSale">
-        {{ showAll ? "Thu gọn" : "Xem thêm sản phẩm" }}
-        <i
-          :class="showAll ? 'fa-solid fa-angle-up' : 'fa-solid fa-arrow-right'"
-        ></i>
-      </button>
-    </div>
-    <div class="featured-products">
-      <div class="best-sellers" v-if="productBestSeller.length > 0">
-        <span class="title">TOP SẢN PHẨM BÁN CHẠY TẠI CỬA HÀNG</span>
-        <div
-          class="products-grid bestseller"
-          :class="showMoreBestSeller ? 'flex-wrap' : 'no-flex-wrap'"
-        >
-          <div
-            v-for="(product, index) in displayedBestSellerProducts"
+        <div class="promo-section">
+        <div class="promo-row">
+            <div
+            v-for="(value, index) in bannerItems"
             :key="index"
-            class="grid-item"
+            class="promo-item banner"
+            >
+            <img :src="value" alt="" />
+            </div>
+        </div>
+        <div class="promo-row" v-if="vouchers.length >= 4">
+            <div
+            v-for="(voucher, index) in vouchers"
+            :key="index"
+            class="promo-item voucher"
+            >
+            <img :src="getImage(voucher.image_url)" alt="" />
+            <div class="content-voucher">
+                <div class="top-content">
+                <div class="title">
+                    <p>NHẬP MÃ: {{ voucher.code }}</p>
+                </div>
+                <div class="description">
+                    <p>{{ voucher.description }}</p>
+                </div>
+                </div>
+                <div class="btn-voucher">
+                <button @click="copyText(voucher.code, index, voucher.id!)">
+                    {{ copiedList[index] ? "Đã sao chép" : "Sao chép" }}
+                </button>
+                <p class="condition">Điều kiện</p>
+                </div>
+            </div>
+            </div>
+        </div>
+        </div>
+
+        <div class="promo-flashsale" v-if="displayedProducts.length > 0">
+        <div class="flashsale-image">
+            <img :src="flashSale" alt="flashsale" />
+        </div>
+        <div class="flashsale-title">
+            <p>{{ flashSaleHomes?.title }}</p>
+
+            <div class="flashsale-time">
+            <span class="time-text">Kết thúc sau</span>
+            <div class="time-boxes">
+                <div class="time-box">
+                <span class="time">{{ hours }}</span>
+                <span class="text">Giờ</span>
+                </div>
+                <div class="time-box">
+                <span class="time">{{ minutes }}</span>
+                <span class="text">Phút</span>
+                </div>
+                <div class="time-box">
+                <span class="time">{{ seconds }}</span>
+                <span class="text">Giây</span>
+                </div>
+            </div>
+            </div>
+        </div>
+        <div class="promo-product" :class="showAll ? 'grid-mode' : 'row-mode'">
+            <div
+            v-for="(product, index) in displayedProducts"
+            :key="index"
+            class="product-item"
             @click="
-              router.push({
+                router.push({
                 name: 'product-detail',
                 params: { id: product.id },
-              })
+                })
             "
-          >
-            <div class="grid-image">
-              <img :src="getImage(product.thumbnail!)" alt="" />
+            >
+            <div class="product-image">
+                <img :src="getImage(product.thumbnail!)" alt="" />
             </div>
-            <div class="grid-description">
-              <div class="grid-logo-color">
-                <span class="grid-logo">NAVA</span>
-                <div class="grid-colors">
-                  <div
-                    v-for="(img, ind) in product.images.slice(0, 6)"
-                    :key="ind"
-                    class="grid-item-image"
-                  >
-                    <img :src="getImage(img)" alt="" />
-                  </div>
-                </div>
-              </div>
-              <div class="grid-info">
-                <div class="grid-name">
-                  <p>{{ product.name }}</p>
-                </div>
-                <div class="grid-bottom">
-                  <div class="grid-prices">
-                    <span class="grid-price-new">{{
-                      product.flash_price
-                        ? formatPrice(product.flash_price!)
-                        : formatPrice(product.min_price)
-                    }}</span>
-                    <span class="grid-price-old" v-if="product.flash_price">{{
-                      formatPrice(product.max_price)
-                    }}</span>
-                  </div>
-                  <div class="grid-action" @click.stop>
-                    <button @click="handleCart(product.id)">
-                      <i class="fa-solid fa-cart-shopping"></i>
-                    </button>
-                    <button @click.stop="toggleFavourite(product.id)">
-                      <i
-                        v-if="favourite.isFavourite(product.id)"
-                        class="fa-solid fa-heart"
-                      ></i>
-                      <i
-                        v-if="!favourite.isFavourite(product.id)"
-                        class="fa-regular fa-heart"
-                      ></i>
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-        <button class="btn-best-seller" @click="btnShowMoreBestSeller">
-          {{ showMoreBestSeller ? "Thu gọn" : "Xem thêm sản phẩm" }}
-          <i
-            :class="
-              showMoreBestSeller
-                ? 'fa-solid fa-angle-up'
-                : 'fa-solid fa-arrow-right'
-            "
-          ></i>
-        </button>
-      </div>
-      <div class="new-arrivals" v-if="productLatests.length > 0">
-        <span class="title">SẢN PHẨM MỚI RA MẮT</span>
-        <div
-          class="products-grid arrivals"
-          :class="showMoreNewArrivals ? 'flex-wrap' : 'no-flex-wrap'"
-        >
-          <div
-            v-for="(product, index) in displayedNewArrivalsProducts"
-            :key="index"
-            class="grid-item"
-            @click="
-              router.push({
-                name: 'product-detail',
-                params: { id: product.id },
-              })
-            "
-          >
-            <div class="grid-image">
-              <img :src="getImage(product.thumbnail!)" alt="" />
-            </div>
-            <div class="grid-description">
-              <div class="grid-logo-color">
-                <span class="grid-logo">NAVA</span>
-                <div class="grid-colors">
-                  <div
+            <div class="promo-description">
+                <div class="product-logo-color">
+                <span class="logo">NAVA</span>
+                <div class="list-color">
+                    <div
                     v-for="(img, index) in product.images.slice(0, 6)"
                     :key="index"
-                    class="grid-item-image"
-                  >
+                    class="item-image"
+                    >
                     <img :src="getImage(img)" alt="" />
-                  </div>
+                    </div>
                 </div>
-              </div>
-              <div class="grid-info">
-                <div class="grid-name">
-                  <p>{{ product.name }}</p>
                 </div>
-                <div class="grid-bottom">
-                  <div class="grid-prices">
+                <div class="product-info">
+                <div class="product-name">
+                    <p>{{ product.name }}</p>
+                </div>
+                <div class="product-bottom">
+                    <div class="grid-prices">
                     <span class="grid-price-new">{{
-                      product.flash_price
+                        product.flash_price
                         ? formatPrice(product.flash_price!)
-                        : formatPrice(product.min_price)
+                        : product.min_price
                     }}</span>
                     <span class="grid-price-old" v-if="product.flash_price">{{
-                      formatPrice(product.max_price)
+                        formatPrice(product.max_price)
                     }}</span>
-                  </div>
-                  <div class="grid-action" @click.stop>
+                    </div>
+                    <div class="product-action" @click.stop>
                     <button @click="handleCart(product.id)">
-                      <i class="fa-solid fa-cart-shopping"></i>
+                        <i class="fa-solid fa-cart-shopping"></i>
                     </button>
                     <button @click.stop="toggleFavourite(product.id)">
-                      <i
+                        <i
                         v-if="favourite.isFavourite(product.id)"
                         class="fa-solid fa-heart"
-                      ></i>
-                      <i
+                        ></i>
+                        <i
                         v-if="!favourite.isFavourite(product.id)"
                         class="fa-regular fa-heart"
-                      ></i>
+                        ></i>
                     </button>
-                  </div>
+                    </div>
                 </div>
-              </div>
+                <div class="product-sold">
+                    <span>Đã bán {{ getSold(product.id) }} sản phẩm</span>
+                    <div class="progress-bar">
+                    <div
+                        class="progress"
+                        :style="{
+                        width:
+                            Math.min(
+                            (getSold(product.id) / product.sold_quantity) * 100,
+                            100
+                            ) + '%',
+                        }"
+                    ></div>
+                    </div>
+                </div>
+                </div>
             </div>
-          </div>
+            </div>
         </div>
-        <button class="btn-new-arrival" @click="btnshowMoreNewArrivals">
-          {{ showMoreNewArrivals ? "Thu gọn" : "Xem thêm sản phẩm" }}
-          <i
-            :class="
-              showMoreNewArrivals
-                ? 'fa-solid fa-angle-up'
-                : 'fa-solid fa-arrow-right'
-            "
-          ></i>
+        <button class="btn-best-seller" @click="btnShowMoreProductSale">
+            {{ showAll ? "Thu gọn" : "Xem thêm sản phẩm" }}
+            <i
+            :class="showAll ? 'fa-solid fa-angle-up' : 'fa-solid fa-arrow-right'"
+            ></i>
         </button>
-      </div>
+        </div>
+        <div class="featured-products">
+        <div class="best-sellers" v-if="productBestSeller.length > 0">
+            <span class="title">TOP SẢN PHẨM BÁN CHẠY TẠI CỬA HÀNG</span>
+            <div
+            class="products-grid bestseller"
+            :class="showMoreBestSeller ? 'flex-wrap' : 'no-flex-wrap'"
+            >
+            <div
+                v-for="(product, index) in displayedBestSellerProducts"
+                :key="index"
+                class="grid-item"
+                @click="
+                router.push({
+                    name: 'product-detail',
+                    params: { id: product.id },
+                })
+                "
+            >
+                <div class="grid-image">
+                <img :src="getImage(product.thumbnail!)" alt="" />
+                </div>
+                <div class="grid-description">
+                <div class="grid-logo-color">
+                    <span class="grid-logo">NAVA</span>
+                    <div class="grid-colors">
+                    <div
+                        v-for="(img, ind) in product.images.slice(0, 6)"
+                        :key="ind"
+                        class="grid-item-image"
+                    >
+                        <img :src="getImage(img)" alt="" />
+                    </div>
+                    </div>
+                </div>
+                <div class="grid-info">
+                    <div class="grid-name">
+                    <p>{{ product.name }}</p>
+                    </div>
+                    <div class="grid-bottom">
+                    <div class="grid-prices">
+                        <span class="grid-price-new">{{
+                        product.flash_price
+                            ? formatPrice(product.flash_price!)
+                            : formatPrice(product.min_price)
+                        }}</span>
+                        <span class="grid-price-old" v-if="product.flash_price">{{
+                        formatPrice(product.max_price)
+                        }}</span>
+                    </div>
+                    <div class="grid-action" @click.stop>
+                        <button @click="handleCart(product.id)">
+                        <i class="fa-solid fa-cart-shopping"></i>
+                        </button>
+                        <button @click.stop="toggleFavourite(product.id)">
+                        <i
+                            v-if="favourite.isFavourite(product.id)"
+                            class="fa-solid fa-heart"
+                        ></i>
+                        <i
+                            v-if="!favourite.isFavourite(product.id)"
+                            class="fa-regular fa-heart"
+                        ></i>
+                        </button>
+                    </div>
+                    </div>
+                </div>
+                </div>
+            </div>
+            </div>
+            <button class="btn-best-seller" @click="btnShowMoreBestSeller">
+            {{ showMoreBestSeller ? "Thu gọn" : "Xem thêm sản phẩm" }}
+            <i
+                :class="
+                showMoreBestSeller
+                    ? 'fa-solid fa-angle-up'
+                    : 'fa-solid fa-arrow-right'
+                "
+            ></i>
+            </button>
+        </div>
+        <div class="new-arrivals" v-if="productLatests.length > 0">
+            <span class="title">SẢN PHẨM MỚI RA MẮT</span>
+            <div
+            class="products-grid arrivals"
+            :class="showMoreNewArrivals ? 'flex-wrap' : 'no-flex-wrap'"
+            >
+            <div
+                v-for="(product, index) in displayedNewArrivalsProducts"
+                :key="index"
+                class="grid-item"
+                @click="
+                router.push({
+                    name: 'product-detail',
+                    params: { id: product.id },
+                })
+                "
+            >
+                <div class="grid-image">
+                <img :src="getImage(product.thumbnail!)" alt="" />
+                </div>
+                <div class="grid-description">
+                <div class="grid-logo-color">
+                    <span class="grid-logo">NAVA</span>
+                    <div class="grid-colors">
+                    <div
+                        v-for="(img, index) in product.images.slice(0, 6)"
+                        :key="index"
+                        class="grid-item-image"
+                    >
+                        <img :src="getImage(img)" alt="" />
+                    </div>
+                    </div>
+                </div>
+                <div class="grid-info">
+                    <div class="grid-name">
+                    <p>{{ product.name }}</p>
+                    </div>
+                    <div class="grid-bottom">
+                    <div class="grid-prices">
+                        <span class="grid-price-new">{{
+                        product.flash_price
+                            ? formatPrice(product.flash_price!)
+                            : formatPrice(product.min_price)
+                        }}</span>
+                        <span class="grid-price-old" v-if="product.flash_price">{{
+                        formatPrice(product.max_price)
+                        }}</span>
+                    </div>
+                    <div class="grid-action" @click.stop>
+                        <button @click="handleCart(product.id)">
+                        <i class="fa-solid fa-cart-shopping"></i>
+                        </button>
+                        <button @click.stop="toggleFavourite(product.id)">
+                        <i
+                            v-if="favourite.isFavourite(product.id)"
+                            class="fa-solid fa-heart"
+                        ></i>
+                        <i
+                            v-if="!favourite.isFavourite(product.id)"
+                            class="fa-regular fa-heart"
+                        ></i>
+                        </button>
+                    </div>
+                    </div>
+                </div>
+                </div>
+            </div>
+            </div>
+            <button class="btn-new-arrival" @click="btnshowMoreNewArrivals">
+            {{ showMoreNewArrivals ? "Thu gọn" : "Xem thêm sản phẩm" }}
+            <i
+                :class="
+                showMoreNewArrivals
+                    ? 'fa-solid fa-angle-up'
+                    : 'fa-solid fa-arrow-right'
+                "
+            ></i>
+            </button>
+        </div>
+        </div>
+        <div class="section-wrapper">
+        <div class="product-section">
+            <div class="container-image">
+            <img :src="PoLo" alt="" />
+            </div>
+            <div class="container-content">
+            <span class="title">POLO</span>
+            <span class="description">{{ textTmp }}</span>
+            <button class="view-now" @click="router.push('/CategoryGender?gender=Nam&name=Áo')">Xem ngay</button>
+            </div>
+        </div>
+        <div class="product-section two">
+            <div class="container-image">
+            <img :src="DoDa" alt="" />
+            </div>
+            <div class="container-content">
+            <span class="title">Đồ da</span>
+            <span class="description">{{ textAoda }}</span>
+            <button class="view-now" @click="router.push('/CategoryGender?gender=Nam&name=Ví')">Xem ngay</button>
+            </div>
+        </div>
+        </div>
+        <AddToCart
+        v-if="showFormAdd && productDetail"
+        :product="productDetail"
+        @close="showFormAdd = false" 
+        />
     </div>
-    <div class="section-wrapper">
-      <div class="product-section">
-        <div class="container-image">
-          <img :src="PoLo" alt="" />
-        </div>
-        <div class="container-content">
-          <span class="title">POLO</span>
-          <span class="description">{{ textTmp }}</span>
-          <button class="view-now">Xem ngay</button>
-        </div>
-      </div>
-      <div class="product-section two">
-        <div class="container-image">
-          <img :src="DoDa" alt="" />
-        </div>
-        <div class="container-content">
-          <span class="title">Đồ da</span>
-          <span class="description">{{ textAoda }}</span>
-          <button class="view-now">Xem ngay</button>
-        </div>
-      </div>
-    </div>
-    <AddToCart
-      v-if="showFormAdd && productDetail"
-      :product="productDetail"
-      @close="showFormAdd = false"
-    />
-  </div>
+
 </template>
 <style scoped>
 .product-action button:hover {
@@ -563,7 +565,7 @@ const toggleFavourite = async (id: number) => {
 }
 .container {
   width: 100%;
-  height: 100vh;
+  height: 100%;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -572,7 +574,7 @@ const toggleFavourite = async (id: number) => {
 }
 .banner-container {
   width: 99%;
-  height: 50%;
+  height: 50vh;
   position: relative;
 }
 .banner-image {
@@ -1236,6 +1238,7 @@ const toggleFavourite = async (id: number) => {
   vertical-align: middle;
 }
 .section-wrapper {
+    margin-bottom: 80px;
   width: 90%;
   /* min-height: 400px; */
   height: auto;
@@ -1299,6 +1302,9 @@ const toggleFavourite = async (id: number) => {
 }
 
 @media (max-width: 1200px) {
+    .banner-container {
+        height: 35vh;
+    }
   .flashsale-time .time-box {
     width: 45px;
     height: 55px;

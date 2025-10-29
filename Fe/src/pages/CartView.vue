@@ -213,7 +213,6 @@ import Voucher from '../components/Voucher.vue'
 
 const router = useRouter()
 const cartStore = useCartStore() 
-const token ="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwiZW1haWwiOiJvdm5ob2thQGdtYWlsLmNvbSIsInJvbGUiOiJzZWxsZXIiLCJpYXQiOjE3NjE1MjcxNDIsImV4cCI6MTc2MTUzMDc0Mn0.ew1U0qKpkVw4Y35nznF0m0Va_U8NfXZ7A-5UWwn_YS8"
 onMounted(async () => {
   await cartStore.getCart()
   await cartStore.checkSoldOut();

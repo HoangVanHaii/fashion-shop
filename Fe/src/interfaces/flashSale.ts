@@ -9,7 +9,17 @@ export interface FlashSale {
     created_by: number;
     created_at?: Date;
     Products: ProductSummary[]
-
+}
+export interface FlashSaleSeller {
+    id?: number;
+    title: string;
+    start_date: Date;
+    end_date: Date;
+    status?: 'active' | 'cancelled';  
+    created_by: number;
+    created_at?: Date;
+    shop_has_sale?: boolean;
+    items?: FlashSaleItem[];
 }
 
 export interface FlashSaleItem {

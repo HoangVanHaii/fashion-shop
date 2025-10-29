@@ -32,7 +32,7 @@ router.get(
     flashSaleController.getAllFlashSaleDetails
 );
 router.get("/seller", authMiddleware, isSeller, flashSaleController.getAllFlashSaleForSeller);
-router.get("/", authMiddleware, flashSaleController.getAllFlashSales);
+router.get("/" , authMiddleware, isSeller, flashSaleController.getAllFlashSales);
 router.get(
     "/:id",
     flashSaleValidate.validateId,
@@ -63,7 +63,7 @@ router.delete(
     validateRequest,
     flashSaleController.cancelFlashSale
 );
-router.delete("/allFlashItem/:id", authMiddleware, isSeller, flashSaleValidate.validateId, validateRequest, flashSaleController.cancelAllFlashSaleItemsBySeller)
+router.delete("/allFlashItem/:id", authMiddleware, isSeller, flashSaleValidate.validateId, validateRequest, flashSaleController.cancelAllFlashSaleItemsForSeller)
 router.delete(
     "/item/:id",
     authMiddleware,

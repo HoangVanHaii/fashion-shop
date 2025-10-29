@@ -30,6 +30,23 @@ export const getUserByEmail = async (email: string): Promise<User | null> => {
     }
 };
 
+export const getNameById = async (id: number): Promise<User | null> => {
+    try {
+        const pool = await connectionDB();
+        const result = await pool.request().input("id", id)
+            .query(`SELECT name
+                FROM users u
+                WHERE u.id = @id`);
+        if (result.recordset.length === 0) {
+            return null;
+        }
+        delete result.recordset[0].password
+        return result.recordset[0] || null;
+    } catch (err) {
+        console.error(err);
+        throw new AppError("Failed to getUserById", 500, false);
+    }
+};
 export const getUserById = async (id: number): Promise<User | null> => {
     try {
         const pool = await connectionDB();

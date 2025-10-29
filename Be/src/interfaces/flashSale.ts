@@ -3,9 +3,10 @@ export interface FlashSale {
     title: string;
     start_date: Date;
     end_date: Date;
-    status?: 'active' | 'cancelled';  
+    status?: string;  
     created_by: number;
     created_at?: Date;
+    shop_has_sale?: boolean;
     items?: FlashSaleItem[];
 }
 export interface FlashSaleItem {
@@ -18,7 +19,7 @@ export interface FlashSaleItem {
     flash_sale_price: number;
     stock: number;
     sold?: number;
-    status?: 'active' | 'cancelled';
+    status?: string;
     created_at?: Date;
     ImageProducts?: ImageProducts[];
 }
