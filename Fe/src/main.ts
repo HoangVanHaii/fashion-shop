@@ -1,12 +1,12 @@
- import { createApp } from 'vue';
+import { createApp } from 'vue';
 import App from './App.vue';
 import { createPinia } from 'pinia';
 import index from './routers/index'; 
 import piniaPluginPersistedstate from 'pinia-plugin-persistedstate'
-
-const pinia = createPinia()
 const app = createApp(App);
-app.use(createPinia()); 
-app.use(index);  
-pinia.use(piniaPluginPersistedstate)      
+const pinia = createPinia();
+pinia.use(piniaPluginPersistedstate);
+app.use(pinia);
+app.use(index);
+
 app.mount('#app');
