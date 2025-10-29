@@ -105,18 +105,21 @@ export const getCartItems = async (user_id: number): Promise<Cart> => {
         const result = await pool.request()
         .input("user_id", user_id)
             .query(`SELECT ci.id, ci.size_id, s.id as shop_id, s.name as shop_name,
-                     p.name, ci.quantity, ps.price, pc.color, 
-                    ps.size, pc.image_url, (ci.quantity * ps.price) AS total_price
+                     p.name, ci.quantity, ps.price, pc.color, ISNULL(fsi.flash_sale_price, ps.price) as price_after_reduction,
+                    ps.size, pc.image_url, (ci.quantity * ISNULL(fsi.flash_sale_price, ps.price)) AS total_price
                 FROM carts c
                     JOIN cart_items ci ON c.id = ci.cart_id
                     JOIN product_sizes ps ON ci.size_id = ps.id
                     JOIN product_colors pc ON ps.color_id = pc.id
                     JOIN products p ON pc.product_id = p.id
                     JOIN shops s ON s.id = p.shop_id
+                    LEFT JOIN flash_sale_items fsi ON fsi.size_id = ps.id
+                    LEFT JOIN flash_sales fs ON fs.id = fsi.flash_sale_id 
+                        AND fs.status = 'active' 
+                        AND GETDATE() BETWEEN fs.start_date AND fs.end_date
+                    
                 WHERE c.user_id = @user_id
-                GROUP BY ci.id, ci.size_id, s.id, s.name,
-                     p.name, ci.quantity, ps.price, pc.color, 
-                    ps.size, pc.image_url, (ci.quantity * ps.price)
+                
                 ORDER BY ci.id DESC
                 `);
         const items: CartItemDetail[] = result.recordset;
@@ -138,6 +141,7 @@ export const getCartItems = async (user_id: number): Promise<Cart> => {
                     name: element.name,
                     quantity: element.quantity,
                     price: element.price,
+                    price_after_reduction: element.price_after_reduction,
                     size: element.size,
                     color: element.color,
                     image_url: element.image_url,

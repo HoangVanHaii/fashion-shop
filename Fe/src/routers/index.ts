@@ -18,11 +18,16 @@ import HeaderSeller from '../components/sellers/Header.vue';
 import Navbar from '../components/sellers/Navbar.vue';
 import OrderSeller from '../pages/sellers/Order.vue';
 import Product from '../pages/sellers/Product.vue';
+import Pay from '../pages/Pay.vue';
+import CartView from '../pages/CartView.vue';
+import Footer from '../components/Footer.vue';
+
 const routes = [
   { path: '/', redirect: '/home' },
   { path: '/home', name: 'Home', component: Home },
   { path: '/auth/login', name: 'login', component: Auth },
   { path: '/header', name: 'header', component: Header },
+  { path: '/footer', name: 'footer', component: Footer },
   { path: '/auth/register', name: 'register-sendOTP', component: Auth },
   { path: '/nav', name: 'nav', component: Navbar },
   { path: '/verifyRegister', name: 'register-verify', component: VerifyOTP },
@@ -36,6 +41,8 @@ const routes = [
   { path: '/profile/me', name: 'profile', component: Profile },
   { path: '/profile/orderOfme/:id', name: 'order-detail', component: OrderDetail },
   { path: '/profile/favouriteOfme', name: 'favourite', component: Favourite },
+  { path: '/order/payment', name: 'payment', component: Pay },
+  { path: '/cart/cartOfme', name: 'cart-of-me', component: CartView },
   { path: '/shop/:id', name: 'shop', component: Shop },
 
   { path: '/seller/header', name: 'header-seller', component: HeaderSeller },

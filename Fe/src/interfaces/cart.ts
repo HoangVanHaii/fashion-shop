@@ -15,14 +15,21 @@ export interface CartItemDetail{
     color: string;
     image_url: string;
     total_price: number;
+    selected?: boolean;
+    sold_out?:boolean;
 }
 export interface ShopCart{
     shop_id: number;
     shop_name: string;
     carts?: CartItemDetail[];
+    total_shop?:number;
 }
+
 export interface Cart{
     shops: ShopCart[];
     total_quantity: number;
     total_amount: number;
+    voucher_discount?:number;
+    voucher_id?:number;
+    voucher_code?:string;
 }

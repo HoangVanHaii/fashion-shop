@@ -801,7 +801,6 @@ export const getProductPayloadOfShop = async (shop_id: number): Promise<ProductP
     const productsMap = new Map<number, ProductPayload>();
 
     for (const row of rows) {
-        // --- 1. Product ---
         let product = productsMap.get(row.product_id);
         if (!product) {
             product = {
@@ -813,7 +812,7 @@ export const getProductPayloadOfShop = async (shop_id: number): Promise<ProductP
                 description: row.description,
                 status: row.status,
                 colors: [],
-                sold_product: 0 // 👈 khởi tạo 0
+                sold_product: 0 
             };
             productsMap.set(row.product_id, product);
         }
@@ -844,14 +843,35 @@ export const getProductPayloadOfShop = async (shop_id: number): Promise<ProductP
             color.sizes.push(size);
         }
 
-        // --- 4. Cộng dồn sold_count theo màu ---
         color.sold_count += row.sold_count ?? 0;
     }
 
-    // --- 5. Tính tổng sold_product cho mỗi sản phẩm ---
     for (const product of productsMap.values()) {
         product.sold_product = product.colors.reduce((sum, color) => sum + (color.sold_count || 0), 0);
     }
 
     return Array.from(productsMap.values());
+};
+export const getProductIdBySizeId = async (size_id: number): Promise<number> => {
+    try {
+        const pool = await connectionDB();
+        const result = await pool.request()
+            .input('size_id', size_id)
+            .query(`
+                SELECT pc.product_id
+                FROM product_sizes ps
+                INNER JOIN product_colors pc ON ps.color_id = pc.id
+                WHERE ps.id = @size_id
+            `);
+
+        if (!result.recordset.length) {
+            throw new AppError('Size not found', 404, false);
+        }
+
+        return result.recordset[0].product_id;
+    } catch (error) {
+        console.error(error);
+        if (error instanceof AppError) throw error;
+        throw new AppError('Failed to fetch product id from size id', 500, false);
+    }
 };

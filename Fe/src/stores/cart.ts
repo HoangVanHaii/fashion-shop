@@ -1,47 +1,12 @@
+import { defineStore } from 'pinia'
 import { ref, reactive, computed, watch  } from 'vue'
-import { defineStore } from "pinia";
 import type { Cart, ShopCart, CartItemDetail } from '../interfaces/cart'
-import { getCartCount, addToCart, fetchCartAPI ,updateSizeCartItemAPI, removeCartItemAPI, updateCartItemQuantityAPI } from "../services/cart";
+import { fetchCartAPI ,updateSizeCartItemAPI, removeCartItemAPI, updateCartItemQuantityAPI} from '../services/cart'
 import type { ProductPayload,ProductColor,ProductSize } from '../interfaces/product'
 import { getProductIdBySize, getProductById,getProductSizesBySizeId } from '../services/product'
 
-export const useCartStore = defineStore('cart', () => {
-    const success = ref<boolean>(false);
-    const error = ref<string | null>(null);
-    const cartCount = ref<number>(0);
-    const loading = ref<boolean>(false);
 
-    const getCartCountStore = async () => {{
-        try {
-            const res = await getCartCount();
-            const count = typeof res.data === "number" ? res.data : (res.data?.count ?? 0);
-            cartCount.value = count;
-            return count;
-        } catch (error) {
-            console.error("Failed to fetch cart count:", error);
-            return 0;
-        }
-    }
-    }
-    const addToCartStore = async (size_id: number, quantity: number) => {
-        success.value = false;
-        error.value = null;
-        loading.value = true;
-        try {
-            const res = await addToCart(size_id, quantity); 
-            success.value = true;
-            loading.value = false;
-            cartCount.value += 1;
-            return res;
-        } catch (err: any) {
-            const message = err.response.data.message;
-            if (message == "your cart count is full size") {
-                error.value = "❌ Sản phẩm này đã đầy trong giỏ hàng rồi"
-            }
-            loading.value = false;
-        }
-    }
-
+export const useCartStore = defineStore('cart', () =>{
     const cartPay = ref<Cart|null>(null)
     const shops= reactive<ShopCart[]>([])
     const selectedShops= ref<ShopCart[]>([])
@@ -74,7 +39,8 @@ export const useCartStore = defineStore('cart', () => {
             sum + (shop.carts?.filter(item => !item.sold_out).length || 0),
             0
         )
-    })
+        })
+
 
     const totalSelectedItemCount = computed(() => {
         return shops.reduce((sum, shop) => {
@@ -85,21 +51,14 @@ export const useCartStore = defineStore('cart', () => {
     })
 
 
-    const getCart = async () => {
-        try {
-            const res = await fetchCartAPI()
-            const cart: Cart = res.data
-            // const cartShops = cart.shops ?? []
-            // shops.splice(0, shops.length, ...cartShops)
-            shops.splice(0, shops.length, ...cart.shops)
-            shops.forEach(shop => {
-                shop.carts?.forEach(product => {
-                    product.selected = selectAll.value
-                })
+    const getCart= async()=>{
+        const cart:Cart=await fetchCartAPI()
+        shops.splice(0,shops.length,...cart.shops)
+        shops.forEach(shop=>{
+            shop.carts?.forEach(product=>{
+                product.selected = selectAll.value
             })
-        } catch (error) {
-            console.error('Lấy giỏ hàng thất bại:', error)
-        }
+        })
     }
 
     const increase = (cartItem : CartItemDetail)=>{
@@ -130,41 +89,57 @@ export const useCartStore = defineStore('cart', () => {
         selectAll.value = shops.every(shop => shop.carts?.every(item => item.selected))
     },{deep: true})
 
+    // watch(shops,() =>{
+    //     shops.forEach(shop => {
+    //     shop.carts?.forEach(item => {if (item.sold_out && item.selected) item.selected = false  })
+    //     })
+    // },
+    // { deep: true }
+    // )
+
+
+
+
     const toggleSelectAll = () => {
+
         shops.forEach(shop => {
         shop.carts?.forEach(item => (item as CartItemDetail).selected = selectAll.value)
         })
     }
 
-    const removeCartItem = async (shop: ShopCart, cartItem: CartItemDetail) => {
-        try {
-            await removeCartItemAPI(cartItem.cart_item_id)
-            const index = shop.carts?.findIndex(i => i.cart_item_id === cartItem.cart_item_id) ?? -1
-            if(index !== -1) shop.carts?.splice(index,1)
+// const toggleSelectAll = async () => {
+//     await nextTick()
+//   shops.forEach(shop => {
+//     shop.carts?.forEach(item => {
+//       if (!item.sold_out) {
+//         item.selected = selectAll.value
+//       }
+//     })
+//   })
+// }
 
-            for (let i = shops.length - 1; i >= 0; i--) {
-                const currentShop = shops[i];
-                if (!currentShop || !currentShop.carts?.length) {
-                    shops.splice(i, 1);
-                }
+
+    const removeCartItem = async (shop : ShopCart, cartItem : CartItemDetail) =>{
+        await removeCartItemAPI(cartItem.cart_item_id)
+        const index = shop.carts?.findIndex(i=>i.cart_item_id===cartItem.cart_item_id) ?? -1
+        if(index!==-1) shop.carts?.splice(index,1)
+
+        for (let i = shops.length - 1; i >= 0; i--) {
+            const currentShop  = shops[i];
+            if (!currentShop  || !currentShop .carts?.length) {
+                shops.splice(i, 1);
             }
-        } catch (error) {
-            console.error('Xóa item giỏ hàng thất bại:', error)
         }
     }
 
-    const removeSelectedItemsApi = async () => {
+    const removeSelectedItemsApi = async() =>{
         for(const shop of shops){
             if(!shop.carts) continue
-            const selectItems = shop.carts.filter(item => item.selected)
+            const selectItems = shop.carts.filter(item=>item.selected)
             for(const item of selectItems){
-                try {
-                    await removeCartItemAPI(item.cart_item_id)
-                    const index = shop.carts.findIndex(i => i.cart_item_id === item.cart_item_id)
-                    if(index !== -1) shop.carts.splice(index,1)
-                } catch (error) {
-                    console.error(`Xóa item ${item.cart_item_id} thất bại:`, error)
-                }
+                await removeCartItemAPI(item.cart_item_id)
+                const index = shop.carts.findIndex(i=>i.cart_item_id === item.cart_item_id)
+                if(index !== -1) shop.carts.splice(index,1)
             }
         }
 
@@ -176,66 +151,32 @@ export const useCartStore = defineStore('cart', () => {
         }
     }
 
-    const removePaidItems = async () => {
-        if (!cartPay.value?.shops?.length) return
-
-        for (const shop of cartPay.value.shops) {
-            if (!shop.carts || shop.carts.length === 0) continue
-
-            for (const item of shop.carts) {
-                try {
-                    await removeCartItemAPI(item.cart_item_id) 
-                    const shopIndex = shops.findIndex(s => s.shop_id === shop.shop_id)
-                    if (shopIndex === -1) continue
-
-                    const currentShop = shops[shopIndex]
-                    if (!currentShop || !currentShop.carts) continue
-
-                    const itemIndex = currentShop.carts.findIndex(i => i.cart_item_id === item.cart_item_id)
-                    if (itemIndex !== -1) currentShop.carts.splice(itemIndex, 1)
-
-                    if (currentShop.carts.length === 0) shops.splice(shopIndex, 1)
-                } catch (err) {
-                    console.error(`❌ Xóa item ${item.cart_item_id} thất bại:`, err)
-                }
-            }
-        }
-        cartPay.value = null
-        localStorage.removeItem('selectedCart')
-    }
-
-
-    const checkSoldOut = async () => {
+    const checkSoldOut = async ()=>{
         console.log("da goi check")
         for(const shop of shops){
             if(!shop.carts) continue;
             for(const item of shop.carts){
-                try {
-                    const productSizeCheck: ProductSize = await getProductSizesBySizeId(item.size_id);
-                    if(productSizeCheck.stock > 0){
-                        item.sold_out=false;
-                        item.selected=false;
-                    } else {
-                        item.sold_out=true;
-                    }
-                } catch (error) {
-                    console.error(`Kiểm tra stock cho item ${item.cart_item_id} thất bại:`, error)
+                const productSizeCheck : ProductSize = await getProductSizesBySizeId(item.size_id);
+                if(productSizeCheck.stock > 0){
+                    item.sold_out=false;
+                    item.selected=false;
                 }
+                else  item.sold_out=true;
             }
         }
-    }
+    } 
     const selectedColor = ref<ProductColor | null>(null)
 
     const selectedProduct = ref<ProductPayload | null>(null)
-const getProductDetail = async (cartItem: CartItemDetail) => {
-  try {
-    const productId = await getProductIdBySize(cartItem.size_id) 
-    const product: ProductPayload = await getProductById(productId.product_id) 
-    selectedProduct.value = product || null
-  } catch (error) {
-    console.error('Lỗi khi lấy chi tiết sản phẩm:', error)
-  }
-}
+    const getProductDetail = async (cartItem: CartItemDetail) => {
+        try {
+            const productId = await getProductIdBySize(cartItem.size_id)
+            const product: ProductPayload = await getProductById(productId)            
+            selectedProduct.value = product || null // default lấy color đầu tiên nếu ko tìm thấy
+        } catch (error) {
+            console.error('Lỗi khi lấy chi tiết sản phẩm:', error)
+        }
+    }
 
     const updateCartItemSize = async (cartItem: CartItemDetail, newSizeId: number) => {
         try {
@@ -295,7 +236,10 @@ const getProductDetail = async (cartItem: CartItemDetail) => {
         })
     }
 
-    return { getCartCountStore , addToCartStore, success, error, loading, cartCount,shops, 
+
+    
+    return { 
+        shops, 
         total_price_after_reduction,
         total_price,
         totalQuantity, 
@@ -318,9 +262,8 @@ const getProductDetail = async (cartItem: CartItemDetail) => {
         selectedShops,
         filterSelectedItems,selectedProduct,
         checkSoldOut,
-        cartPay,
-        removePaidItems
-    };
+        cartPay
+    }
 },{
     persist:{
         paths: ['cartPay']

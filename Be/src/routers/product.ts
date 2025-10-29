@@ -49,4 +49,13 @@ router.get(
     productController.getProductById
 );
 
+
+router.get("/id-by-size/:id",productMiddleware.validateSearchById,validateRequest, productController.getProductIdBySize);
+
+router.get(
+    "/size-detail/:id",
+    productMiddleware.validateSearchById,
+    validateRequest,
+    productController.getProductSizesBySize
+);
 export default router;
