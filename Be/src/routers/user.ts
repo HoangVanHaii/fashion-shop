@@ -29,6 +29,8 @@ router.put("/changePassword", authMiddleware, userValidator.changePasswordValida
 router.put("/changeEmail", authMiddleware, userValidator.changeEmailValidator, validateRequest, userController.changeEmail);
 router.put("/verifyChangeEmail", authMiddleware, userValidator.verifyChangeEmailValidator, validateRequest, userController.verifyChangeEmail);
 
+router.get("/getName/:id", userController.getNameById);
+
 //
 router.put('/shop/:id', authMiddleware, isSeller, uploadLogo, userValidator.changeLogoValidator, validateRequest, userController.changeLogo)
 router.get('/shop/:id', userValidator.paramsShopId, validateRequest, userController.getShopDetailById);

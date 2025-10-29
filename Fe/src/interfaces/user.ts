@@ -30,7 +30,7 @@ export interface SellerRequest{
 export interface Shop {
     id: number;
     seller_id: number;
-    name: string;
+    shop_name: string;
     phone: string;
     address?: string | null;
     email: string;
