@@ -520,7 +520,7 @@ const toggleFavourite = async (id: number) => {
         <div class="container-content">
           <span class="title">POLO</span>
           <span class="description">{{ textTmp }}</span>
-          <button class="view-now">Xem ngay</button>
+          <button class="view-now" @click="router.push('/CategoryGender?gender=Nam&name=Áo')">Xem ngay</button>
         </div>
       </div>
       <div class="product-section two">
@@ -530,14 +530,14 @@ const toggleFavourite = async (id: number) => {
         <div class="container-content">
           <span class="title">Đồ da</span>
           <span class="description">{{ textAoda }}</span>
-          <button class="view-now">Xem ngay</button>
+          <button class="view-now" @click="router.push('/CategoryGender?gender=Nam&name=Ví')">Xem ngay</button>
         </div>
       </div>
     </div>
     <AddToCart
       v-if="showFormAdd && productDetail"
       :product="productDetail"
-      @close="showFormAdd = false"
+      @close="showFormAdd = false" 
     />
   </div>
 </template>

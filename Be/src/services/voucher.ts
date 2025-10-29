@@ -190,7 +190,7 @@ export const getVoucherByShopId = async (shop_id: number): Promise<Voucher[]> =>
 	}
 }
 export const getTopVouchers = async(top: number, scope: string): Promise<Voucher[]> => {
-	try {
+    try {
 		const pool = await connectionDB();
 		const result = await pool.request()
 			.input("scope", scope || "GLOBAL")

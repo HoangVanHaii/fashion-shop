@@ -21,6 +21,8 @@ import Product from '../pages/sellers/Product.vue';
 import Pay from '../pages/Pay.vue';
 import CartView from '../pages/CartView.vue';
 import Footer from '../components/Footer.vue';
+ import HomeSeller from '../pages/sellers/Home.vue';
+import FlashSaleSeller from '../pages/sellers/FlashSale.vue';
 
 const routes = [
   { path: '/', redirect: '/home' },
@@ -45,6 +47,8 @@ const routes = [
   { path: '/cart/cartOfme', name: 'cart-of-me', component: CartView },
   { path: '/shop/:id', name: 'shop', component: Shop },
 
+  { path: '/seller/home', name: 'home-seller', component: HomeSeller },
+  { path: '/seller/flashSale', name: 'flashsale-seller', component: FlashSaleSeller },
   { path: '/seller/header', name: 'header-seller', component: HeaderSeller },
   { path: '/seller/order', name: 'order-seller', component: OrderSeller },
   { path: '/seller/product', name: 'product-seller', component: Product },

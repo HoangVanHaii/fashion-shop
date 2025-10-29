@@ -45,7 +45,7 @@ onBeforeMount(async () => {
     avatar.value = storedAvatar;
   }
   isLogin.value = localStorage.getItem("user_id") ? true : false;
-  products.value = await useProduct.getAllProductActiveStore();
+//   products.value = await useProduct.getAllProductActiveStore();
 });
 
 const goToCart = () => {
@@ -58,11 +58,13 @@ const goToRegister = () => {
   router.push("/auth/register");
 };
 const goToLogout = () => {
-  localStorage.removeItem("accessToken");
-  localStorage.removeItem("refreshToken");
-  localStorage.removeItem("user_id");
-  localStorage.removeItem("avatar");
-  router.push("/home");
+    localStorage.removeItem("accessToken");
+    localStorage.removeItem("refreshToken");
+    localStorage.removeItem("user_id");
+    localStorage.removeItem("avatar");
+    avatar.value = "";
+    isLogin.value = false;
+    router.push("/home");
 };
 
 const goToProfile = () => {
@@ -91,11 +93,11 @@ const handleSearchClickOutside = (event: Event) => {
 };
 onMounted(() => {
   document.addEventListener("click", handleSearchClickOutside);
-  document.addEventListener("click", handleSearchClickOutside);
+//   document.addEventListener("click", handleSearchClickOutside);
 });
 onBeforeUnmount(() => {
   document.removeEventListener("click", handleSearchClickOutside);
-  document.removeEventListener("click", handleSearchClickOutside);
+//   document.removeEventListener("click", handleSearchClickOutside);
 });
 </script>
 
@@ -116,7 +118,7 @@ onBeforeUnmount(() => {
       <div class="container">
         <i
           class="fa-solid fa-bars"
-          @click="showMenuPhone = true"
+          @click="showMenuPhone = !showMenuPhone"
           ref="MenuPhone"
         ></i>
         <div class="menu-phone" v-if="showMenuPhone">
@@ -541,12 +543,15 @@ h4 {
   gap: 20px;
 }
 .user-icon {
-  border-radius: 50%;
-  width: 28px;
-  height: 28px;
-  object-fit: contain;
-  /* background-color: red; */
-}
+    border-radius: 50%;
+    width: 28px;
+    height: 28px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    object-fit: contain;
+        
+ }
 .user-icon img {
   width: 100%;
   height: 100%;
@@ -582,7 +587,7 @@ h4 {
 }
 
 .user-container {
-  /* top: 100%; */
+  top: 100%;
   background-color: rgb(255, 255, 255);
   width: 120px;
   height: auto;
@@ -595,6 +600,7 @@ h4 {
   /* top: 90px; */
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
   padding: 10px;
+  margin-top: -27px;
 }
 .guest-actions,
 .user-btn {
