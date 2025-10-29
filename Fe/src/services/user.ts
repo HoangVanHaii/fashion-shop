@@ -43,6 +43,10 @@ export const getUserById = async (id: number) => {
     const response = await api.get(`/admin/${id}`);
     return response.data;
 }
+export const getNameById = async (id: number) => {
+    const response = await api.get(`/user/getName/${id}`);
+    return response.data;
+}
 export const getShopByid = async (id: number) => {
     const response = await api.get(`/user/shop/${id}`)
     return response.data;

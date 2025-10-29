@@ -113,7 +113,24 @@ export const refreshToken = async (req: Request, res: Response, next: NextFuncti
         next(err);
     }
 }
+export const getNameById = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const id = parseInt(req.params.id);
 
+        const name = await userService.getNameById(id);
+        if (!name) {
+            throw new AppError("User not found", 404);
+        }
+        return res.status(200).json({
+            success: true,
+            message: "get userById successfully",
+            data: name
+        });
+
+    } catch (err) {
+        next(err);
+    }
+}
 export const getProfile = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const id = req.user!.id;

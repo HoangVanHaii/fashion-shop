@@ -23,6 +23,7 @@ export interface ProductPayload {
     description?: string;
     status?: string;
     colors: ProductColor[];
+    sold_product?: number;
 }
 
 export interface ProductColor {
@@ -32,11 +33,12 @@ export interface ProductColor {
     image_url: string;
     is_main?: boolean,
     sizes: ProductSize[];
-    images: string[];
+    images?: string[];
+    sold_count?: number
 
 }
 export interface ProductSize {
-    product_id: number;
+    product_id?: number;
     id?: number;
     size: string;
     stock: number;
