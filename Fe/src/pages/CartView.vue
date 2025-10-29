@@ -142,8 +142,8 @@
           -{{ ((cartStore.cartPay?.voucher_discount||0)/1000).toLocaleString() }}k
         </span>
         <a href="javascript:void(0)" @click.stop="openVoucherModal">
-  {{ selectedVoucherCode || 'Chọn hoặc nhập mã voucher' }}
-</a>
+          {{ selectedVoucherCode || 'Chọn hoặc nhập mã voucher' }}
+        </a>
 
       </div>
 
@@ -198,10 +198,10 @@
       </div>
     </div>
     <Voucher 
-  v-if="showVoucher"
-  @close="closeVoucherModal"
-  @selectVoucher="handleSelectVoucher"
-/>
+      v-if="showVoucher"
+      @close="closeVoucherModal"
+      @selected="handleSelectVoucher"
+    />
 
   </div>
 </template>
@@ -367,11 +367,51 @@ const closeVoucherModal = () => {
   showVoucher.value = false
 }
 
-const handleSelectVoucher = (code: string) => {
+const handleSelectVoucher = async (code: string, id_shop: number) => {
+  console.log("đã chạy1")
   selectedVoucherCode.value = code
+  cartStore.filterSelectedItems()
+  const cart = cartStore.cartPay
+  if (cart && cartStore.total_price_after_reduction > 0) {
+    console.log("đã chạy2")
+    try {
+      console.log("đã chạy3")
+      const discount = await validateVoucherByCode(code, cartStore.total_price_after_reduction,id_shop)
+      console.log("đã chạy4")
+      cart.voucher_discount = discount
+      cart.voucher_code = code
+      
+      
+    } catch (err: any) {
+      cart.voucher_discount = 0
+      console.error(err.message)
+    }
+  }
+  console.log("đóng luôn")
   closeVoucherModal()
 }
 
+// watch(
+//   () => cartStore.total_price_after_reduction,
+//   async (total) => {
+//     const cart = cartStore.cartPay
+//     if (!cart) return 
+
+//     if (total > 0) {
+//       try {
+//         const discount = await validateVoucherByCode(selectedVoucherCode.value, total)
+//         cart.voucher_discount = discount
+
+//         cart.voucher_code = selectedVoucherCode.value
+//       } catch (err: any) {
+//         cart.voucher_discount = 0
+//         console.error(err.message)
+//       }
+//     } else {
+//       cart.voucher_discount = 0
+//     }
+//   }
+// )
 </script>
 
 

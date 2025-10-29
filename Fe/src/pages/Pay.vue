@@ -100,8 +100,11 @@
                         <span>Voucher</span>
                     </div>
                     <div class="voucher-right">
-                        <span class="voucher-discount">-{{ ((cartStore.cartPay?.voucher_discount||0) / 1000).toLocaleString() }}k</span>
-                        <b class="choose-voucher">Chọn voucher</b>
+                        <span v-if="(cartStore.cartPay?.voucher_discount||0) > 0" class="voucher-discount">-{{ ((cartStore.cartPay?.voucher_discount||0) / 1000).toLocaleString() }}k</span>
+                        <!-- <b class="choose-voucher">Chọn voucher</b> -->
+                         <a href="javascript:void(0)" @click.stop="openVoucherModal">
+                            {{ cartStore.cartPay?.voucher_code || 'Chọn hoặc nhập mã voucher' }}
+                        </a>
                     </div>
                 </div>
 
@@ -155,10 +158,16 @@
                 </div>                
             </div>
         </div>  
+        <Voucher 
+            v-if="showVoucher"
+            @close="closeVoucherModal"
+            @selected="handleSelectVoucher"
+            />
     </div>
 </template>
 
 <script setup lang="ts">
+import Voucher from '../components/Voucher.vue'
 import { useCartStore } from '../stores/cartStore'
 import { useOrderStore } from '../stores/orderStore'
 import { onMounted,computed,ref,watch } from 'vue'
@@ -166,6 +175,14 @@ import {validateVoucherByCode} from '../utils/validateVoucher'
 import type { OderPayLoad,OrderItem,Order } from '../interfaces/order'
 const cartStore = useCartStore()
 const orderStore = useOrderStore()
+const showVoucher = ref(false)
+const openVoucherModal = () => {
+  showVoucher.value = true
+}
+
+const closeVoucherModal = () => {
+  showVoucher.value = false
+}
 
 onMounted(() => {
     if (cartStore.cartPay?.shops.length === 0) {
@@ -193,14 +210,37 @@ const totalBeforeDiscount = computed(() => {
         0
         ) || 0
     )
-    })
+})
 
+const handleSelectVoucher = async (code: string, id_shop: number) => {
+  console.log("đã chạy1")
+//   selectedVoucherCode.value = code
+  cartStore.filterSelectedItems()
+  const cart = cartStore.cartPay
+  if (cart && cartStore.total_price_after_reduction > 0) {
+    console.log("đã chạy2")
+    try {
+      console.log("đã chạy3")
+      const discount = await validateVoucherByCode(code, cartStore.total_price_after_reduction,id_shop)
+      console.log("đã chạy4")
+      cart.voucher_discount = discount
+      cart.voucher_code = code
+      
+      
+    } catch (err: any) {
+      cart.voucher_discount = 0
+      console.error(err.message)
+    }
+  }
+  console.log("đóng luôn")
+  closeVoucherModal()
+}
 
 //Phương thức pay
 const showPaymentOptions = ref(false)
 interface PaymentMethod {
-id: string
-label: string
+    id: string
+    label: string
 }
 
 const paymentMethods: PaymentMethod[] = [
@@ -235,20 +275,20 @@ const selectMethod = (method: PaymentMethod) => {
 // )
 
 
-watch(
-  () => cartStore.cartPay?.voucher_id,
-  async () => {
-    const cart = cartStore.cartPay
-    if (!cart || cart.voucher_code ==null) return
-      try {
-        const discount = await validateVoucherByCode(cart.voucher_code, cartStore.total_price_after_reduction)
-        cart.voucher_discount = discount
-      } catch (err: any) {
-        cart.voucher_discount = 0
-        console.error(err.message)
-      }
-  }
-)
+// watch(
+//   () => cartStore.cartPay?.voucher_id,
+//   async () => {
+//     const cart = cartStore.cartPay
+//     if (!cart || cart.voucher_code ==null) return
+//       try {
+//         const discount = await validateVoucherByCode(cart.voucher_code, cartStore.total_price_after_reduction)
+//         cart.voucher_discount = discount
+//       } catch (err: any) {
+//         cart.voucher_discount = 0
+//         console.error(err.message)
+//       }
+//   }
+// )
 
 const clickOrder = async () =>{
     if (!cartStore.cartPay) return
@@ -279,13 +319,16 @@ const clickOrder = async () =>{
     }
 
     try {
+    console.log("Payload gửi lên API:", payload);
     const res = await orderStore.createOrder(payload)
     await cartStore.removePaidItems()
     console.log('Order created:', res)
     // chuyển trang hoặc show modal thành công
-  } catch (err) {
-    console.error('Đặt hàng thất bại:', err)
-  }
+  } catch (err: any) {
+    const msg = err.response?.data?.message || err.message;
+    console.error("Đặt hàng thất bại:", msg);
+    }
+
 }
 
 
@@ -304,6 +347,9 @@ const clickOrder = async () =>{
     flex-direction: column;
     min-height: 100vh;
     background-color: #f0f0f0;
+    width: 90%;
+    margin: 0 auto;
+    overflow: hidden;
 }
 
 .cart-content {
@@ -311,6 +357,8 @@ const clickOrder = async () =>{
     padding: 16px;
     padding-bottom: 160px;
     overflow-y: auto;
+    overflow-x: hidden;
+    
 }
 
 .tab {
@@ -428,7 +476,7 @@ const clickOrder = async () =>{
     right: 0;
     top: 50%;
     transform: translateY(-50%);
-    font-size: 40px;
+    font-size: 30px;
     color: #dc2626;
 }
 
@@ -437,7 +485,7 @@ const clickOrder = async () =>{
     left: 0;
     top: 50%;
     transform: translateY(-50%);
-    font-size: 40px;
+    font-size: 30px;
     color: #dc2626;
     animation: truckRun 3s linear infinite;
 }
@@ -467,7 +515,7 @@ const clickOrder = async () =>{
     background-color: white;
     padding: 20px;
     border-radius: 8px;
-    border-bottom: 1px solid #0a0a0a;
+    border-bottom: 1px solid #494949;
 }
 
 .header-item {
@@ -477,7 +525,7 @@ const clickOrder = async () =>{
     /* border-bottom: 2px solid #0a0a0a; */
     font-weight: 500;
     border-radius: 8px 8px 0 0;
-    box-shadow: 0px 4px 8px rgba(0,0,0,0.5);
+    box-shadow: 0px 4px 8px rgba(0,0,0,0.2);
 }
 
 .header-item1 {
@@ -530,7 +578,7 @@ const clickOrder = async () =>{
     padding: 12px 20px;
     text-align: left;
     border-bottom: 1px solid #e0e0e0;
-    border-bottom: 2px solid #0a0a0a;
+    border-bottom: 1px solid #5f5f5f;
 }
 
 .shop-header i {
@@ -629,7 +677,7 @@ justify-content: flex-end;
 padding: 15px 25px 15px 15px;
 border-top: 1px solid #e0e0e0;
 background-color: #fafafa;
-font-size: 22px;
+font-size: 21px;
 text-align: right;
 }
 
@@ -688,12 +736,12 @@ border-bottom: 1px dashed #ccc;
 
 .voucher-left i {
     color: #ff6f00; 
-    font-size: 40px; 
+    font-size: 26px; 
 }
 
 .payment-left i { 
     color: #ff9f1c; 
-    font-size: 40px; 
+    font-size: 26px; 
 }
 
 /* Cột phải */
@@ -893,6 +941,9 @@ text-align: left;
 /*  Mobile (870px <=) */
 /* ----------------------------- */   
 @media (max-width: 870px) {
+    .cart-page{
+        width: 100%;
+    }
     .header2{
         display:none;
     }

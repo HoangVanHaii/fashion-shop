@@ -18,6 +18,7 @@ import { useAuthStore } from "../stores/authStore";
 import type { ShopDetal } from "../interfaces/user";
 import Loading from "../components/Loading.vue";
 import { useFavouriteStore } from "../stores/favourite";
+import type { Cart, CartItemDetail, ShopCart } from "../interfaces/cart";
 
 const favourite = useFavouriteStore();
 const auth = useAuthStore();
@@ -43,6 +44,37 @@ const copied = ref<Boolean>(false);
 const toastText = ref("");
 const shop = ref<ShopDetal>();
 
+const handleOrder = (size: ProductSize) => {
+  const carttmp = {
+    cart_item_id: 1,
+    size_id: size.id,
+    name: productId.value?.name,
+    quantity: quantity.value,
+    price: size.price,
+    price_after_reduction: size.flash_sale_price,
+    size: size.size,
+    color: colorChose.value?.color,
+    image_url: colorChose.value?.image_url,
+    total_price: size.flash_sale_price ? size.flash_sale_price * quantity.value : size.price * quantity.value,
+  } as CartItemDetail
+  const carts: CartItemDetail[] = [];
+  carts.push(carttmp);
+
+  const shop = {
+    shop_id: productId.value?.shop_id,
+    shop_name: productId.value?.shop_name,
+    carts: carts
+  } as ShopCart;
+  const shops: ShopCart[] = [];
+  shops.push(shop);
+  const cartPay = {
+    shops: shops,
+    total_quantity: 1,
+    total_amount: carttmp.total_price
+  } as Cart
+  cart.cartPay = cartPay;
+  router.push({ name: 'payment' });
+}
 const loadData = async () => {
   const id: number = parseInt(route.params.id as string);
 
@@ -67,10 +99,6 @@ const loadData = async () => {
   );
   productOfShop.value = shopStore.filter((p) => p.id !== productId.value?.id);
 };
-
-const handleOrder = () => {
-    alert(sizeChose.value?.id);
-}
 onMounted(async () => {
   await loadData();
   favourite.getFavouriteOfMeStore();
@@ -210,7 +238,7 @@ const copiedLink = () => {
         <img
           :src="
             getImage(
-              colorChose?.images[indexImage] || colorChose?.image_url || ''
+              colorChose?.images![indexImage] || colorChose?.image_url || ''
             )
           "
           class="auto-image"
@@ -454,13 +482,13 @@ const copiedLink = () => {
         <div class="detail-image">
           <img
             class="detail-1"
-            :src="getImage(colorChose?.images[1]!)"
+            :src="getImage(colorChose?.images![1] || '')"
             alt=""
           />
           <span>Chât liệu thoáng mát</span>
           <img
             class="detail-2"
-            :src="getImage(colorChose?.images[2]!)"
+            :src="getImage(colorChose?.images![2] || '')"
             alt=""
           />
         </div>
