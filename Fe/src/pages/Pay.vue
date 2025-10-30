@@ -1,4 +1,6 @@
 <template>
+    <Header />
+    <Loading :loading="loadingOrder" />
     <div class="cart-page">
         <div class="cart-content">
             <div class="tab">
@@ -172,10 +174,16 @@ import { useCartStore } from '../stores/cartStore'
 import { useOrderStore } from '../stores/orderStore'
 import { onMounted,computed,ref } from 'vue'
 import {validateVoucherByCode} from '../utils/validateVoucher'
-import type { OderPayLoad,OrderItem,Order } from '../interfaces/order'
+import type { OderPayLoad, OrderItem, Order } from '../interfaces/order'
+import Header from '../components/Header.vue'
+import Loading from '../components/Loading.vue'
+import router from '../routers'
+
 const cartStore = useCartStore()
 const orderStore = useOrderStore()
 const showVoucher = ref(false)
+
+const loadingOrder = ref<boolean>(false);
 const openVoucherModal = () => {
   showVoucher.value = true
 }
@@ -185,6 +193,7 @@ const closeVoucherModal = () => {
 }
 
 onMounted(() => {
+    console.log(cartStore.cartPay);
     if (cartStore.cartPay?.shops.length === 0) {
         // Handle empty cart
     }
@@ -253,7 +262,8 @@ const selectMethod = (method: PaymentMethod) => {
     showPaymentOptions.value = false
 }
 
-const clickOrder = async () =>{
+const clickOrder = async () => {
+    loadingOrder.value = true;
     if (!cartStore.cartPay) return
     const orderItems: OrderItem[] = []
     cartStore.cartPay.shops.forEach(shop => {
@@ -282,18 +292,24 @@ const clickOrder = async () =>{
     }
 
     try {
-    console.log("Payload gửi lên API:", payload);
         const res = await orderStore.createOrder(payload)
+        loadingOrder.value = false;
+        await cartStore.removePaidItems()
+
         if (order.payment_method == 'vnpay') {
-        console.log(res.paymentUrl)
-        window.location.href = res.paymentUrl;    
-    }
-    await cartStore.removePaidItems()
-    console.log('Order created:', res)
-    // chuyển trang hoặc show modal thành công
-  } catch (err: any) {
-    const msg = err.response?.data?.message || err.message;
-    console.error("Đặt hàng thất bại:", msg);
+            console.log(res.paymentUrl)
+            window.location.href = res.paymentUrl;    
+        } 
+        if (orderStore.error) {
+            router.push('/orderFailed');
+        }
+        else router.push('/orderSuccess')
+    } catch (err: any) {
+        loadingOrder.value = false;
+        const msg = err.response?.data?.message || err.message;
+        console.error("Đặt hàng thất bại:", msg);
+    } finally {
+        loadingOrder.value = false;
     }
 
 }
