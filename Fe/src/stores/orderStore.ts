@@ -96,9 +96,15 @@ export const useOrderStore = defineStore("order", () => {
     const currentOrder = ref<Order | null>(null) // order vừa tạo
 
     const createOrder = async (payload: OderPayLoad) => {
-        const res = await createOrderAPI(payload)
-        currentOrder.value = res
-        return res
+        error.value = null;
+        try {
+            const res = await createOrderAPI(payload)
+            currentOrder.value = res
+            return res;
+        } catch (err:any) {
+            console.log(err);
+            error.value = err;
+        }
     }
 
     return {

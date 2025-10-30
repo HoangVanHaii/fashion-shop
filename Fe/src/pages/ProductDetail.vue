@@ -103,7 +103,7 @@ onMounted(async () => {
   await loadData();
   favourite.getFavouriteOfMeStore();
 });
-watch(quantity, (newVal, oldVal) => {
+watch(quantity, (newVal) => {
   const max = sizeChose.value?.stock ?? Infinity;
 
   if (newVal < 1) {
@@ -163,14 +163,7 @@ const hanlderDecre = () => {
     indexImage.value = 3;
   }
 };
-// const handleAddToCart = async (size: ProductSize) => {
-//     await cart.addToCartStore(size.id!, quantity.value || 1);
-//     if (cart.success) {
-//         showNotification.value = true;
-//     } else if (cart.error) {
-//         alert(`Lỗi: ${cart.error}`);
-//     }
-// }
+
 
 const handleAddToCart = async (size: ProductSize) => {
   showNotification.value = false;

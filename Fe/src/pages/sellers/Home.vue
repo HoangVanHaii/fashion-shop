@@ -1,8 +1,6 @@
 <script setup lang="ts">
 import { computed, onMounted } from 'vue';
 import homeSeller from '../../assets/homeSeller.jpg';
-import homeSeller1 from '../../assets/homeSeller1.jpg';
-import homeSeller2 from '../../assets/homeSeller2.jpg';
 import Header from '../../components/Header.vue';
 import { flashSaleSellerStore } from '../../stores/sellers/flashSaleStore';
 import { formatDateTime, formatPrice } from '../../utils/format';
@@ -200,7 +198,7 @@ const conversionRate = computed(() =>{
                             <div class="task">
                                 <span class="text-task">Đăng mới sản phẩm</span>
                                 <div class="image">
-                                    <img :src="homeSeller1" alt="">
+                                    <img src="../../assets/homeSeller.jpg" alt="">
                                     <span class="text-process">Tiến hành đăng 1 vài sản phẩm</span>
                                 </div>
                                 <div class="btn"> 
@@ -217,7 +215,7 @@ const conversionRate = computed(() =>{
                     <span class="text">Xem thêmm</span>
                 </div>
                 <div v-if="useFlashSale.flashSaleHome.length === 0" class="no-content-sale">
-                    <img :src="homeSeller2" alt="">
+                    <img src="../../assets/homeseller2.jpg" alt="">
                     <span>Cửa hàng bạn chưa có chiến dịch giảm giá nào</span>
                     <button>Cùng xem chiến dịch giảm giá của hệ thống</button>
                 </div>
@@ -231,7 +229,7 @@ const conversionRate = computed(() =>{
                     </div>
                     <div class="list-flash-sale" >
 
-                        <div class="content-row" v-for="(flashSale, index) in useFlashSale.flashSaleHome">
+                        <div class="content-row" v-for="(flashSale) in useFlashSale.flashSaleHome">
                             <div class="date">
                                 <span class="long-date">{{ formatDateTime(flashSale.start_date) }} </span>
                                 <span class="long-date">{{ formatDateTime(flashSale.end_date) }}</span>

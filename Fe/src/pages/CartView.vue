@@ -1,4 +1,9 @@
 <template>
+    <Header />
+    <Notification 
+        :isSuccess="isNotification"
+        :text="toastText"
+    />
   <div class="cart-page" @click="closeAllDropdowns">
     <div class="cart-content">
       <div class="tab">
@@ -35,13 +40,13 @@
         <div v-for="product in shop.carts" :key="product.cart_item_id" class="cart-item" :class="{ disabled: product.sold_out }">
           <input class="checkbox" type="checkbox" v-model="product.selected" :disabled="product.sold_out" />
            
-          <img :src="`http://localhost:3000${product.image_url}`" alt="product" >
+          <img :src="getImage(product.image_url)" alt="product" >
             <span v-if="product.sold_out" class="soldout">Hết hàng</span>
           </img>
 
           <!-- <img :src="product.image_url" alt="product" /> -->
           <!-- <img src="../uploads/products/ao-polo-nam-xam-main.jpg" /> -->
-          <div class="item-info">
+          <div class="item-info">   
             <span class="item-name">{{ product.name }}</span>
 
             <!--  Chọn size -->
@@ -57,14 +62,14 @@
                 class="size-dropdown"
                 @click.stop
               >
-                <div class="size-option">
+                <div class="size-option" >
                   <span>{{ product.color }}</span>
                 </div>
-                <div class="colors-row">
+                <div class="colors-row" >
                   <img 
                     v-for="color in cartStore.selectedProduct?.colors" 
                     :key="color.id"
-                    :src="`http://localhost:3000${color.image_url}`" 
+                    :src="getImage(color.image_url)" 
                     alt="color"
                     :class="{ selected: color.color === product.color,disabled: !color.sizes?.some(s => s.stock > product.quantity) }"
                     @click="selectColor(product, cartStore.selectedProduct!, color)" 
@@ -156,7 +161,7 @@
           </div>
           <!-- <span @click="confirmDelete;cartStore.removeSelectedItemsApi()">Xóa</span> -->
           <span @click="confirmDelete()" :style="{cursor: 'pointer'}">Xóa</span>
-          <span :style="{cursor: 'pointer'}">Lưu vào mục yêu thích</span>
+          <span :style="{cursor: 'pointer'}" @click="handleSaveFavourite">Lưu vào mục yêu thích</span>
         </div>
 
         <div class="right">
@@ -203,13 +208,17 @@
 
 
 <script setup lang="ts">
-import { ref, onMounted, computed,watch} from 'vue'
+import { ref, onMounted, watch } from 'vue'
+import Header from '../components/Header.vue'
 import { useCartStore } from '../stores/cartStore'
 import type { ProductSize,ProductPayload,ProductColor } from '../interfaces/product' 
 import type { CartItemDetail } from '../interfaces/cart'
 import { useRouter } from 'vue-router'
-import {validateVoucherByCode, validateVoucherById} from '../utils/validateVoucher'
+import {validateVoucherByCode} from '../utils/validateVoucher'
 import Voucher from '../components/Voucher.vue'
+import { getImage } from '../utils/format'
+import Notification from '../components/Notification.vue'
+
 
 const router = useRouter()
 const cartStore = useCartStore() 
@@ -217,6 +226,49 @@ onMounted(async () => {
   await cartStore.getCart()
   await cartStore.checkSoldOut();
 })
+const toastText = ref<string>('')
+const isNotification = ref<boolean>(false);
+
+const handleSaveFavourite = async() => {
+    toastText.value = '';
+    // cartStore.shops.forEach(shop => {
+    //     const selectedItems = shop.carts?.filter(item => item.selected && !item.sold_out) || []
+    //     selectedItems.forEach(element => {
+    //         favourite.addFavouriteStore()
+    //     });
+    // })
+    setTimeout(() => {
+        isNotification.value = true;
+        toastText.value = 'Bạn đã thêm vào mục yêu thích'
+
+    }, 0)
+}
+const voucher_code = ref<string>("GLOBAL102225")
+watch(
+  () => cartStore.total_price_after_reduction,
+  async (total) => {
+    const cart = cartStore.cartPay
+    if (!cart) return 
+
+    if (total > 0) {
+      try {
+        const discount = await validateVoucherByCode(voucher_code.value, total)
+        cart.voucher_discount = discount
+
+        // Lưu voucher_id vào cartPay
+        cart.voucher_code = voucher_code.value
+      } catch (err: any) {
+        cart.voucher_discount = 0
+        console.error(err.message)
+      }
+    } else {
+      cart.voucher_discount = 0
+    }
+  }
+)
+
+
+
 
 const openDropdown = ref<number | null>(null)
 
@@ -227,7 +279,6 @@ const toggleDropdown = async (cartItem: CartItemDetail) => {
   }
   
   
-  console.log(cartItem.size_id)
   await cartStore.getProductDetail(cartItem) 
   const currentProduct = cartStore.selectedProduct
   if (currentProduct) {
@@ -242,7 +293,6 @@ const flagSize = ref<boolean>(true);
 const selectColor = async (cartItem: CartItemDetail, product: ProductPayload, itemcolor: ProductColor) =>{
   flagSize.value = cartItem.color === itemcolor.color
   cartItem.color=itemcolor.color;
-  console.log(itemcolor.color)
   afterColor.value = product.colors.find(c => c.color === itemcolor.color) || null
 }
 const selectSize = async (cartItem: CartItemDetail, size: ProductSize) => {
@@ -251,23 +301,25 @@ const selectSize = async (cartItem: CartItemDetail, size: ProductSize) => {
   openDropdown.value = null   
    flagSize.value = true;
   await cartStore.updateCartItemSize(cartItem,size.id!)    
-  console.log(`Đã cập nhật thành ${size.id}`);
 }
 
 const closeAllDropdowns = () => {
-  if(flagSize.value){
-    openDropdown.value = null;
-  }
-  else{
-    alert('Bạn chưa chọn size cho màu mới!');
-  }
+    toastText.value = '';
+    if (flagSize.value) {
+        openDropdown.value = null;
+    }
+    else {
+        setTimeout(() => {
+            isNotification.value = false;
+            toastText.value = 'Bạn chưa chọn size cho màu mới!';
+        }, 0);
+    }
 }
 //Xác nhận xóa
 const showDeleteConfirm = ref(false)
 
 const confirmDelete = () => {
   showDeleteConfirm.value = true
-  console.log("an thanh cong")
 }
 
 const handleDelete = async () => {
@@ -281,7 +333,6 @@ const cancelDelete = () => {
 
 const goToCheckout = () => {
   cartStore.filterSelectedItems() 
-  console.log(cartStore.cartPay)
   router.push({ name: 'payment' })
     
 }
@@ -315,16 +366,12 @@ const closeVoucherModal = () => {
 }
 
 const handleSelectVoucher = async (code: string, id_shop: number) => {
-  console.log("đã chạy1")
   selectedVoucherCode.value = code
   cartStore.filterSelectedItems()
   const cart = cartStore.cartPay
   if (cart && cartStore.total_price_after_reduction > 0) {
-    console.log("đã chạy2")
     try {
-      console.log("đã chạy3")
       const discount = await validateVoucherByCode(code, cartStore.total_price_after_reduction,id_shop)
-      console.log("đã chạy4")
       cart.voucher_discount = discount
       cart.voucher_code = code
       
@@ -334,7 +381,6 @@ const handleSelectVoucher = async (code: string, id_shop: number) => {
       console.error(err.message)
     }
   }
-  console.log("đóng luôn")
   closeVoucherModal()
 }
 
@@ -375,7 +421,10 @@ input:focus {
   display: flex;
   flex-direction: column;
   min-height: 100vh;
-  background-color: #f0f0f0;
+  padding-top: 110px;
+  background-color: #f6f3f3;
+  width: 90%;
+  margin: 0 auto;
 }
 
 .cart-content {
@@ -386,8 +435,8 @@ input:focus {
 
 .tab {
   display: flex;
-  border-radius: 10px;
-  background-color: #a9a7a7a2;
+  border-radius: 5px;
+  background-color: #d7d4d4a2;
   padding: 10px 20px 10px 50px;
   margin-bottom: 10px;
 }
@@ -401,6 +450,7 @@ input:focus {
 .checkbox {
   width: 24px;
   height: 24px;
+  cursor: pointer;
   accent-color: #f26b3a;
 }
 
@@ -414,7 +464,8 @@ input:focus {
   padding-bottom: 12px;
   font-weight: 600;
   margin-bottom: 15px;
-  box-shadow: 0px 4px 8px rgba(0,0,0,0.9);
+  border-radius: 6px;
+  box-shadow: 0px 3px 6px rgba(0,0,0,0.4);
 }
 
 .header1 {
@@ -452,7 +503,7 @@ input:focus {
   padding: 8px 16px;
   background-color: #fff;
   /* border-radius: 8px; */
-  box-shadow: 0px 4px 8px rgba(0,0,0,0.9);
+  box-shadow: 0px 4px 8px rgba(0,0,0,0.3);
   display: flex;
   flex-direction: column;
 }
@@ -470,6 +521,11 @@ input:focus {
 .shop-name {
   font-weight: 400;
 }
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
 
 .cart-item {
   display: flex;
@@ -478,7 +534,7 @@ input:focus {
   padding-left: 17px;
   padding-bottom: 10px;
   background-color: white;
-  border-bottom: 2px solid #000;
+  border-bottom: 0.5px solid #9d9b9b;
   position:relative;
 }
 
@@ -508,18 +564,20 @@ input:focus {
 }
 
 .cart-item.disabled .item-quantity{
-  opacity: 0.6;             
+  opacity: 0.6;           
   pointer-events: none; 
 }
 
+.item-quantity button{
+    cursor: pointer;
+}
 
 .cart-item img {
   width: 120px;
   height: 120px;
-  border-radius: 8px;
-  object-fit: cover;
+  border-radius: 5px;
   margin-top: 15px;
-  border: 1px solid #131212;
+  border: 0.3px solid #9c9a9a;
   position: relative;
 }
 
@@ -597,7 +655,7 @@ input:focus {
 .size-option {
   padding: 0 12 12 12px;
   margin-bottom: 12px;
-  border-bottom: 2px solid #f0f0f0;
+  border-bottom: 1px solid #d20d0d;
   font-weight: 600;
   font-size: 14px;
   color: #333;
@@ -608,6 +666,7 @@ input:focus {
   flex-wrap: wrap; /* xuống hàng khi quá nhiều */
   gap: 12px;       /* khoảng cách giữa ảnh */
   margin-bottom: 16px;
+  /* background-color: red; */
 }
 
 .size-dropdown > div:has(img) {
@@ -615,7 +674,7 @@ input:focus {
   gap: 12px;
   margin-bottom: 16px;
   padding-bottom: 16px;
-  border-bottom: 1px solid #f0f0f0;
+  border-bottom: 0.5px solid #f0f0f0;
 }
 
 .size-dropdown img {
@@ -658,6 +717,7 @@ input:focus {
   border-radius: 6px;
   background: white;
   color: #333;
+  /* background-color: red; */
 }
 
 .size-item:hover {

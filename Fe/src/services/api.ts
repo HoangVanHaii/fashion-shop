@@ -1,8 +1,7 @@
 import axios from "axios";
-import { useAuthStore } from "../stores/authStore";
 
 const api = axios.create({
-    baseURL: "http://localhost:3000/api",
+    baseURL: import.meta.env.VITE_API_URL || "http://localhost:3000/api",
 });
 
 // 🪶 Thêm accessToken vào mỗi request
@@ -30,7 +29,6 @@ const onRefreshed = (token: string) => {
 api.interceptors.response.use(
     (response) => response,
     async (error) => {
-        const auth = useAuthStore();
         const originalRequest = error.config;
 
         // Nếu lỗi là 401 (Unauthorized)
@@ -49,7 +47,7 @@ api.interceptors.response.use(
 
             try {
                 const refreshToken = localStorage.getItem("refreshToken");
-                const { data } = await axios.post("http://localhost:3000/api/user/refreshToken", {
+                const { data } = await axios.post(`${import.meta.env.VITE_API_URL}/user/refreshToken`, {
                     refreshToken,
                 });
 

@@ -95,9 +95,11 @@ export const createOrder = async (req: Request, res: Response, next: NextFunctio
                 listOrderId.slice(0, -1),
                 totalAmount
             );
+            await redisClient.del(`getOrderOfme:${user_id}`);
             return res.status(201).json({ paymentUrl });
         }
         await redisClient.del(`getOrderOfme:${user_id}`);
+
         return res.status(201).json({ message: 'Order created successfully (COD)' });
     } catch (error: any) {
         next(error);

@@ -6,7 +6,7 @@ import type {
   ProductPayload,
 } from "../interfaces/product";
 import { formatPrice } from "../utils/format";
-import { onMounted, watch, ref } from "vue";
+import { onMounted, ref } from "vue";
 import { useRouter } from "vue-router";
 import { useCartStore } from "../stores/cartStore";
 import Notification from "./Notification.vue";
@@ -40,7 +40,7 @@ const preImage = () => {
   if (ind.value < -1) {
     ind.value = 2;
   }
-  image_main.value = colorChose.value?.images[ind.value];
+  image_main.value = colorChose.value?.images![ind.value];
 };
 const nextImage = () => {
   ind.value = ind.value + 1;
@@ -49,7 +49,7 @@ const nextImage = () => {
     image_main.value = colorChose.value?.image_url;
     return;
   }
-  image_main.value = colorChose.value?.images[ind.value];
+  image_main.value = colorChose.value?.images![ind.value];
 };
 const handleFormatQuantity = () => {
   if (quantity.value < 1) {
@@ -138,7 +138,7 @@ const props = defineProps<{ product: ProductPayload }>();
             <span>Màu sắc: </span>
             <span class="text">{{ colorChose?.color }}</span>
           </div>
-          <div class="list-color">
+          <div class="list-color" >
             <div
               v-for="color in props.product.colors"
               class="color"

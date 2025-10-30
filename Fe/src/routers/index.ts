@@ -23,6 +23,7 @@ import CartView from '../pages/CartView.vue';
 import Footer from '../components/Footer.vue';
  import HomeSeller from '../pages/sellers/Home.vue';
 import FlashSaleSeller from '../pages/sellers/FlashSale.vue';
+import OrderFailed from '../pages/OrderFailed.vue';
 
 const routes = [
   { path: '/', redirect: '/home' },
@@ -38,6 +39,7 @@ const routes = [
   { path: '/dealHot', name: 'DealHot', component: DealHot },
   { path: '/addToCart', name: 'AddToCart', component: AddToCart },
   { path: '/orderSuccess', name: 'OrderSuccess', component: OrderSuccess },
+  { path: '/orderFailed', name: 'OrderFailed', component: OrderFailed },
   { path: '/profile/orderOfme', name: 'order-of-me', component: Order },
   { path: '/navbarProfile', name: 'nav-bar', component: NavbarProfile },
   { path: '/profile/me', name: 'profile', component: Profile },

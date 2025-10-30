@@ -8,19 +8,16 @@ import { getProductIdBySize, getProductById,getProductSizesBySizeId } from '../s
 export const useCartStore = defineStore('cart', () => {
     const success = ref<boolean>(false);
     const error = ref<string | null>(null);
-    const cartCount = ref<number>(0);
+    const cartCount = ref<number[]>([]);
     const loading = ref<boolean>(false);
-    const getCartCountStore = async () => {{
+    const getCartCountStore = async () => {
         try {
             const res = await getCartCount();
-            const count = typeof res.data === "number" ? res.data : (res.data?.count ?? 0);
-            cartCount.value = count;
-            return count;
+            cartCount.value = res.data.counts;
         } catch (error) {
             console.error("Failed to fetch cart count:", error);
             return 0;
         }
-    }
     }
     const addToCartStore = async (size_id: number, quantity: number) => {
         success.value = false;
@@ -28,9 +25,12 @@ export const useCartStore = defineStore('cart', () => {
         loading.value = true;
         try {
             const res = await addToCart(size_id, quantity); 
+            const isExist = cartCount.value.includes(size_id);
+            if (!isExist) {
+                cartCount.value.push(size_id);
+            }
             success.value = true;
             loading.value = false;
-            cartCount.value += 1;
             return res;
         } catch (err: any) {
             const message = err.response.data.message;
@@ -54,7 +54,6 @@ export const useCartStore = defineStore('cart', () => {
             } else {
                 shop.total_shop = 0;
             }
-            console.log(`shop ${shop.shop_id} ${shop.shop_name} total: ${shop.total_shop}`)
         });
     }, { deep: true });
 
@@ -70,7 +69,6 @@ export const useCartStore = defineStore('cart', () => {
         } else {
             shop.total_shop = 0;
         }
-        console.log(`shop ${shop.shop_id} ${shop.shop_name} total: ${shop.total_shop}`)
         });
     },
     { deep: true }
@@ -110,7 +108,6 @@ export const useCartStore = defineStore('cart', () => {
             } else {
                 shop.total_shop = 0;
             }
-            console.log(`shop ${shop.shop_id} ${shop.shop_name} total: ${shop.total_shop}`)
             });
         },
         { deep: true }
@@ -187,14 +184,14 @@ export const useCartStore = defineStore('cart', () => {
         try {
             await removeCartItemAPI(cartItem.cart_item_id)
             const index = shop.carts?.findIndex(i => i.cart_item_id === cartItem.cart_item_id) ?? -1
-            if(index !== -1) shop.carts?.splice(index,1)
-
+            if (index !== -1) shop.carts?.splice(index, 1)
             for (let i = shops.length - 1; i >= 0; i--) {
                 const currentShop = shops[i];
                 if (!currentShop || !currentShop.carts?.length) {
                     shops.splice(i, 1);
                 }
             }
+            await getCartCountStore();
         } catch (error) {
             console.error('Xóa item giỏ hàng thất bại:', error)
         }
@@ -221,6 +218,7 @@ export const useCartStore = defineStore('cart', () => {
                 shops.splice(i, 1);
             }
         }
+        await getCartCountStore();
     }
 
     const removePaidItems = async () => {
@@ -252,7 +250,6 @@ export const useCartStore = defineStore('cart', () => {
 
 
     const checkSoldOut = async () => {
-        console.log("da goi check")
         for(const shop of shops){
             if(!shop.carts) continue;
             for(const item of shop.carts){

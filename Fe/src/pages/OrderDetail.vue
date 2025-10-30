@@ -9,7 +9,11 @@ import { formatDateTime, formatPrice, getImage } from "../utils/format";
 import { useRouter } from "vue-router";
 import Notification from "../components/Notification.vue";
 import ConfirmDialog from "../components/ConfirmDialog.vue";
+import type { GetOrder } from "../interfaces/order";
+import type { Cart, CartItemDetail, ShopCart } from "../interfaces/cart";
+import { useCartStore } from "../stores/cartStore";
 
+const cart = useCartStore();
 const showFormConfirm = ref(false);
 const showNotification = ref<boolean>(false);
 const textToast = ref<string>("");
@@ -47,6 +51,44 @@ const handleCancelled = async () => {
         }
     }
 };
+
+const handleReOrder = async (getOrder: GetOrder, shop_name: string) => {
+  const cartItems: CartItemDetail[] = getOrder.items.map((item) => ({
+    cart_item_id: item.id ?? 0, // nếu không có id thì bạn có thể tự sinh
+    size_id: item.size_id,
+    name: item.product_name,
+    quantity: item.quantity,
+    price: item.price,
+    price_after_reduction: item.flash_price, // có thể null nếu không có giảm giá
+    size: item.size,
+    color: item.color,
+    image_url: item.image_url,
+    total_price: item.quantity * item.price,
+  }));
+
+  const totalShop = cartItems.reduce((sum, item) => sum + item.total_price, 0);
+
+  const shopCart: ShopCart = {
+    shop_id: getOrder.shop_id,
+    shop_name: shop_name ,
+    carts: cartItems,
+    total_shop: 23982934,
+  };
+
+  const totalQuantity = cartItems.reduce((sum, item) => sum + item.quantity, 0);
+
+  const carttpmp: Cart = {
+    shops: [shopCart],
+    total_quantity: totalQuantity,
+    total_amount: totalShop, // có thể dùng totalShop hoặc getOrder.total nếu cần khớp backend
+    voucher_discount: getOrder.discount_value,
+  };
+  cart.cartPay = carttpmp;
+  // console.log(cart.cartPay);
+  // return;/
+      router.push({ name: 'payment' });
+}
+
 const showNavbar = ref<boolean>(true);
 </script>
 <template>
@@ -247,7 +289,7 @@ const showNavbar = ref<boolean>(true);
               >
                 Trở lại
               </button>
-              <button
+              <button @click="handleReOrder(order.orderDetail, order.orderDetail.shop_name || '')"
                 class="re-order"
                 v-if="
                   order.orderDetail?.status === 'completed' ||
