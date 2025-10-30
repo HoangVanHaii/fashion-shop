@@ -82,7 +82,8 @@
             triggerShake();
             return;
         }
-        if(auth.success){
+        if (auth.success) {
+            password.value = '';
             showVerify.value = true;
             showNotification.value = true;
         }
