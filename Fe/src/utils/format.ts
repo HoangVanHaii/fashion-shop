@@ -5,7 +5,7 @@ export const getImage = (path: string) => {
     if (/^https?:\/\//.test(path)) {
         return path;
     }
-    return `http://localhost:3000${path}`;
+    return import.meta.env.VITE_API_URL + path; 
 }
 
 export const formatDateTime = (isoString: any): string =>{
