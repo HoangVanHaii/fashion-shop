@@ -164,7 +164,6 @@ const handleSubmit = async () => {
           {{ existingReview?.comment }}
         </div>
 
-        <!-- Hiển thị hình ảnh -->
         <div v-if="isReadonly && existingReview?.review_images && existingReview.review_images.length > 0" class="btn-upload">
           <div class="preview-images">
             <div v-for="(img, index) in existingReview?.review_images" :key="index" class="preview-item">
@@ -173,7 +172,6 @@ const handleSubmit = async () => {
           </div>
         </div>
 
-        <!-- Upload button chỉ hiển thị khi tạo mới -->
         <div v-if="!isReadonly" class="btn-upload">
           <button 
             @click="openFileDialog" 
