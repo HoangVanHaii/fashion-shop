@@ -19,7 +19,6 @@ const showNamDropdown = ref(false);
 const showNuDropdown = ref(false);
 const showPhuKienDropdown = ref(false);
 const showFormSearch = ref(false);
-const cartCount = ref<number>(0);
 const categoryMale = ref<string[]>([]);
 const categoryFemale = ref<string[]>([]);
 const searchBarRef = ref<HTMLElement | null>(null);
@@ -37,7 +36,7 @@ const listSearch = computed<ProductSummary[]>(() => {
 });
 
 onBeforeMount(async () => {
-  cartCount.value = await cart.getCartCountStore();
+await cart.getCartCountStore();
   categoryMale.value = await category.getCategoryNameStore("Nam");
   categoryFemale.value = await category.getCategoryNameStore("Nữ");
   const storedAvatar = localStorage.getItem("avatar");
@@ -246,8 +245,8 @@ onBeforeUnmount(() => {
         <div class="user-actions">
           <div class="cart-icon" @click="goToCart">
             <i class="fa-solid fa-cart-shopping"></i>
-            <span v-if="cartCount > 0" class="cart-badge">{{
-              cart.cartCount
+            <span class="cart-badge">{{
+              cart.cartCount.length || 0
             }}</span>
           </div>
           <div

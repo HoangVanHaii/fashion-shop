@@ -233,16 +233,17 @@ const isNotification = ref<boolean>(false);
 
 const handleSaveFavourite = async() => {
     toastText.value = '';
-    cartStore.shops.forEach(shop => {
-        const selectedItems = shop.carts?.filter(item => item.selected && !item.sold_out) || []
-        if (selectedItems.length > 0) {
-            selectedItems.forEach(element => {
-                console.log("vui", element);
-            });
-        }
-    })
-    toastText.value = 'Bạn đã thêm vào mục yêu thích'
-    isNotification.value = true;
+    // cartStore.shops.forEach(shop => {
+    //     const selectedItems = shop.carts?.filter(item => item.selected && !item.sold_out) || []
+    //     selectedItems.forEach(element => {
+    //         favourite.addFavouriteStore()
+    //     });
+    // })
+    setTimeout(() => {
+        isNotification.value = true;
+        toastText.value = 'Bạn đã thêm vào mục yêu thích'
+
+    }, 0)
 }
 const voucher_code = ref<string>("GLOBAL102225")
 watch(
@@ -280,7 +281,6 @@ const toggleDropdown = async (cartItem: CartItemDetail) => {
   }
   
   
-  console.log(cartItem.size_id)
   await cartStore.getProductDetail(cartItem) 
   const currentProduct = cartStore.selectedProduct
   if (currentProduct) {
@@ -295,7 +295,6 @@ const flagSize = ref<boolean>(true);
 const selectColor = async (cartItem: CartItemDetail, product: ProductPayload, itemcolor: ProductColor) =>{
   flagSize.value = cartItem.color === itemcolor.color
   cartItem.color=itemcolor.color;
-  console.log(itemcolor.color)
   afterColor.value = product.colors.find(c => c.color === itemcolor.color) || null
 }
 const selectSize = async (cartItem: CartItemDetail, size: ProductSize) => {
@@ -304,23 +303,25 @@ const selectSize = async (cartItem: CartItemDetail, size: ProductSize) => {
   openDropdown.value = null   
    flagSize.value = true;
   await cartStore.updateCartItemSize(cartItem,size.id!)    
-  console.log(`Đã cập nhật thành ${size.id}`);
 }
 
 const closeAllDropdowns = () => {
-  if(flagSize.value){
-    openDropdown.value = null;
-  }
-  else{
-    alert('Bạn chưa chọn size cho màu mới!');
-  }
+    toastText.value = '';
+    if (flagSize.value) {
+        openDropdown.value = null;
+    }
+    else {
+        setTimeout(() => {
+            isNotification.value = false;
+            toastText.value = 'Bạn chưa chọn size cho màu mới!';
+        }, 0);
+    }
 }
 //Xác nhận xóa
 const showDeleteConfirm = ref(false)
 
 const confirmDelete = () => {
   showDeleteConfirm.value = true
-  console.log("an thanh cong")
 }
 
 const handleDelete = async () => {
@@ -334,7 +335,6 @@ const cancelDelete = () => {
 
 const goToCheckout = () => {
   cartStore.filterSelectedItems() 
-  console.log(cartStore.cartPay)
   router.push({ name: 'payment' })
     
 }
@@ -368,16 +368,12 @@ const closeVoucherModal = () => {
 }
 
 const handleSelectVoucher = async (code: string, id_shop: number) => {
-  console.log("đã chạy1")
   selectedVoucherCode.value = code
   cartStore.filterSelectedItems()
   const cart = cartStore.cartPay
   if (cart && cartStore.total_price_after_reduction > 0) {
-    console.log("đã chạy2")
     try {
-      console.log("đã chạy3")
       const discount = await validateVoucherByCode(code, cartStore.total_price_after_reduction,id_shop)
-      console.log("đã chạy4")
       cart.voucher_discount = discount
       cart.voucher_code = code
       
@@ -387,7 +383,6 @@ const handleSelectVoucher = async (code: string, id_shop: number) => {
       console.error(err.message)
     }
   }
-  console.log("đóng luôn")
   closeVoucherModal()
 }
 
