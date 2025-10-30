@@ -231,7 +231,7 @@ const conversionRate = computed(() =>{
                     </div>
                     <div class="list-flash-sale" >
 
-                        <div class="content-row" v-for="(flashSale, index) in useFlashSale.flashSaleHome">
+                        <div class="content-row" v-for="(flashSale) in useFlashSale.flashSaleHome">
                             <div class="date">
                                 <span class="long-date">{{ formatDateTime(flashSale.start_date) }} </span>
                                 <span class="long-date">{{ formatDateTime(flashSale.end_date) }}</span>

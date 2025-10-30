@@ -15,7 +15,6 @@ import { formatPrice } from "../utils/format";
 import type { Voucher } from "../interfaces/voucher";
 import type { ProductSummary, ProductPayload } from "../interfaces/product";
 import type { FlashSale, FlashSaleProductSold } from "../interfaces/flashSale";
-import Footer from "../components/Footer.vue";
 
 import { onBeforeUnmount, onMounted, computed, ref, watch } from "vue";
 import { useProductStore } from "../stores/productStore";

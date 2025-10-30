@@ -1,5 +1,4 @@
 import api from "./api";
-import type { Voucher } from "../interfaces/voucher"
 
 export const getVoucherByIdAPI = async (id:number)=>{
     const res = await api.get(`/voucher/getVoucherById/${id}`)

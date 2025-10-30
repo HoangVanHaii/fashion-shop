@@ -103,7 +103,7 @@ onMounted(async () => {
   await loadData();
   favourite.getFavouriteOfMeStore();
 });
-watch(quantity, (newVal, oldVal) => {
+watch(quantity, (newVal) => {
   const max = sizeChose.value?.stock ?? Infinity;
 
   if (newVal < 1) {
@@ -317,7 +317,7 @@ const copiedLink = () => {
           </button>
           <button
             class="order"
-            @click="handleOrder()"
+            @click="handleOrder(sizeChose!)"
             :disabled="sizeChose?.stock == 0"
           >
             Mua ngay

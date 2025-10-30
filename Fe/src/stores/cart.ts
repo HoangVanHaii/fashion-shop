@@ -221,9 +221,9 @@ export const useCartStore = defineStore('cart', () =>{
 
     const filterSelectedItems = () => {
         if (!cartPay.value) {
-            cartPay.value = { shops: [], total_quantity: 0, total_amount: 0,voucher_discount:0, voucher_id: 0,voucher_code:"" }
+            cartPay.value = { shops: [], total_quantity: 0, total_amount: 0,voucher_discount:0,voucher_code:"" }
         }
-        cartPay.value.shops.splice(0, cartPay.value.shops.length)
+        cartPay.value?.shops.splice(0, cartPay.value?.shops.length)
 
         shops.forEach(shop => {
             const selectedItems = shop.carts?.filter(item => item.selected && !item.sold_out) || []
