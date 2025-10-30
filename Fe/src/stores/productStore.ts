@@ -1,5 +1,5 @@
 import { defineStore } from "pinia";
-import { getProductByCategory, searchByCategoryGender, getProductByName, getProductById, getProductBestSeller, getProductLatest, getProductByShop, getAllProductActive } from '../services/product'
+import { getProductIdBySize,getProductByCategory, searchByCategoryGender, getProductByName, getProductById, getProductBestSeller, getProductLatest, getProductByShop, getAllProductActive } from '../services/product'
 import { ref } from "vue";
 import type { ProductSummary, ProductPayload } from "../interfaces/product";
 export const useProductStore = defineStore('product', () => {
@@ -28,6 +28,14 @@ export const useProductStore = defineStore('product', () => {
             loading.value = false;
         }
         
+    }
+    const getProductIdBySizeStore = async(size_id:number)=>{
+         try {
+            const res = await getProductIdBySize(size_id);
+            return res.data;
+        } catch (error) {
+            console.log("Failed to get productId",error);
+        }
     }
     const getProductByIdStore = async (id: number) => {
         try {

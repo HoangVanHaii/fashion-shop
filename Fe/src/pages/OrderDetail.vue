@@ -9,6 +9,8 @@ import { formatDateTime, formatPrice, getImage } from "../utils/format";
 import { useRouter } from "vue-router";
 import Notification from "../components/Notification.vue";
 import ConfirmDialog from "../components/ConfirmDialog.vue";
+import type { OrderItemDetail } from "../interfaces/order";
+import ReviewPopup  from "../components/Review.vue"
 
 const showFormConfirm = ref(false);
 const showNotification = ref<boolean>(false);
@@ -16,6 +18,8 @@ const textToast = ref<string>("");
 const router = useRouter();
 const route = useRoute();
 const order = useOrderStore();
+const showReviewForm = ref(false);
+const selectedOrderItem = ref<OrderItemDetail | null>(null);
 
 onMounted(async () => {
   handleResize();
@@ -46,6 +50,11 @@ const handleCancelled = async () => {
           textToast.value = "✅ Hủy đơn hàng thành công";
         }
     }
+};
+
+const handleReview = (item: OrderItemDetail) => {
+  selectedOrderItem.value = item;
+  showReviewForm.value = true;
 };
 const showNavbar = ref<boolean>(true);
 </script>
@@ -170,7 +179,7 @@ const showNavbar = ref<boolean>(true);
                 </div>
               </div>
               <div class="detail-right">
-                <button v-if="order.orderDetail?.status == 'completed'">
+                <button v-if="order.orderDetail?.status == 'completed'" @click="handleReview(product)">
                   Đánh giá
                 </button>
                 <div class="price">
@@ -268,6 +277,11 @@ const showNavbar = ref<boolean>(true);
         </div>
       </div>
     </div>
+    <ReviewPopup 
+      v-if="showReviewForm && selectedOrderItem" 
+      :orderItem="selectedOrderItem" 
+      @close="showReviewForm = false" 
+    />
   </div>
 </template>
 <style scoped>

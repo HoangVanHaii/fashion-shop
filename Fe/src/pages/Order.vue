@@ -11,6 +11,9 @@ import { useRouter } from "vue-router";
 import Notification from "../components/Notification.vue";
 import ConfirmDialog from "../components/ConfirmDialog.vue";
 import { cancelledOrder } from "../services/order";
+import type { OrderItemDetail } from "../interfaces/order";
+import ReviewPopup  from "../components/Review.vue"
+
 const showFormConfirm = ref(false);
 const router = useRouter();
 const order = useOrderStore();
@@ -64,6 +67,14 @@ const handleCancelled = async () => {
         
     }
 };
+const showReviewForm = ref(false);
+const selectedOrderItem = ref<OrderItemDetail | null>(null);
+const handleReview = (item: OrderItemDetail | undefined) => {
+  if(!item) return
+  selectedOrderItem.value = item;
+  showReviewForm.value = true;
+};
+
 const showNavbar = ref<boolean>(true);
 </script>
 <template>
@@ -207,12 +218,7 @@ const showNavbar = ref<boolean>(true);
                 </div>
                 <button
                   v-if="order.status == 'completed'"
-                  @click="
-                    router.push({
-                      name: 'shop',
-                      params: { id: order?.shop_id },
-                    })
-                  "
+                  @click="handleReview( order.items[0])"
                 >
                   Đánh giá
                 </button>
@@ -256,6 +262,11 @@ const showNavbar = ref<boolean>(true);
         </div>
       </div>
     </div>
+    <ReviewPopup 
+      v-if="showReviewForm && selectedOrderItem" 
+      :orderItem="selectedOrderItem" 
+      @close="showReviewForm = false" 
+    />
   </div>
 </template>
 <style scoped>

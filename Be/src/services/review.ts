@@ -166,6 +166,60 @@ export const getReviewById = async (review_id: number): Promise<Review | null> =
     }
 }
 
+export const getReviewsByOrderItemIdOfMe = async (order_item_id: number,user_id: number): Promise<Review[]> => {
+    try {
+        const pool = await connectionDB();
+        const result = await pool.request()
+            .input("order_item_id",  order_item_id)
+            .input("user_id", user_id)
+            .query(`
+                SELECT 
+                    r.id AS review_id,
+                    r.order_item_id,
+                    r.user_id,
+                    r.rating,
+                    r.comment,
+                    r.created_at,
+                    ri.id AS review_image_id,
+                    ri.image_url
+                FROM reviews r
+                LEFT JOIN review_images ri ON ri.review_id = r.id
+                WHERE r.order_item_id = @order_item_id AND r.user_id = @user_id
+            `);
+
+        if (result.recordset.length === 0) return [];
+
+        const reviewsMap: { [key: number]: Review } = {};
+
+        result.recordset.forEach(row => {
+            if (!reviewsMap[row.review_id]) {
+                reviewsMap[row.review_id] = {
+                    id: row.review_id,
+                    order_item_id: row.order_item_id,
+                    user_id: row.user_id,
+                    rating: row.rating,
+                    comment: row.comment,
+                    created_at: row.created_at,
+                    review_images: []
+                };
+            }
+
+            if (row.review_image_id) {
+                reviewsMap[row.review_id].review_images.push({
+                    id: row.review_image_id,
+                    image_url: row.image_url
+                });
+            }
+        });
+
+        return Object.values(reviewsMap);
+
+    } catch (err) {
+        console.error(err);
+        throw new AppError("Failed to get your reviews for this order item", 500, false);
+    }
+};
+
 export const updateReview = async (review: Review): Promise<void> => {
     const pool = await connectionDB();
     const transaction = await pool.transaction();

@@ -33,6 +33,11 @@ export const review_idValidator = [
         .isInt({ gt: 0 })
         .withMessage("Review ID must be a positive integer")
 ]
+export const review_order_idValidator = [
+    param("order_id")
+        .isInt({ gt: 0 })
+        .withMessage("Review ID must be a positive integer")
+]
 export const product_idValidator = [
     param("product_id")
         .isInt({ gt: 0 })
