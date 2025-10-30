@@ -9,6 +9,7 @@ export const checkPayment = async (req: Request, res: Response, next: NextFuncti
         
         const verify: VerifyReturnUrl = vnpay.verifyReturnUrl(vnpParams);        
         if (!verify.isVerified) {
+            return res.redirect('http://localhost:5173/orderFailed?reason=invalid_signature');
             return res.status(400).json({ 
                 message: "Invalid signature",
                 details: verify.message 
@@ -20,19 +21,15 @@ export const checkPayment = async (req: Request, res: Response, next: NextFuncti
         console.log(orderId);
         if (responseCode === '00') {
             await paymentService.updatePaymentStatus(orderId, "success");
-            return res.json({ message: "Payment success", orderId });
+            return res.redirect(`http://localhost:5173/orderSuccess?orderId=${orderId}`);
         } else {
             await paymentService.updatePaymentStatus(orderId, "failed");
-            return res.status(400).json({ 
-                message: "Payment failed", 
-                orderId, 
-                code: responseCode 
-            });
+            return res.redirect(`http://localhost:5173/orderFailed?orderId=${orderId}&code=${responseCode}`);
         }
 
     } catch (error) {
         console.error("Error checking payment:", error);
-        next(error);
+        return res.redirect('http://localhost:5173/orderFailed?reason=server_error');
     }
 };
 export const createPaymentQR = async (req: Request, res: Response, next: NextFunction) => {
