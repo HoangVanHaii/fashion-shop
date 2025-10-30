@@ -286,7 +286,7 @@ const clickOrder = async () =>{
         const res = await orderStore.createOrder(payload)
         if (order.payment_method == 'vnpay') {
         console.log(res.paymentUrl)
-        // window.location.href = res.paymentUrl;    
+        window.location.href = res.paymentUrl;    
     }
     await cartStore.removePaidItems()
     console.log('Order created:', res)
