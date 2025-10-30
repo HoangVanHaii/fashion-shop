@@ -689,6 +689,7 @@ const toggleFavourite = async (id: number) => {
 }
 @media screen and (max-width: 1024px) and (min-width: 768px) {
   .filter-bar {
+    border:none;
   }
 }
 

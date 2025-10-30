@@ -53,9 +53,7 @@ const handleSubmit = async () => {
 const handleResendOTP = async () => {
     resending.value = true;
     err.value = "";
-    
-    const email: string = props.email;
-    
+        
     // TODO: Gọi API gửi lại OTP ở đây
     // await auth.resendOTPStore(email);
     
@@ -87,6 +85,7 @@ const handleResendOTP = async () => {
                         class="otp-input"
                         v-model="otp[index]"
                         ref="inputs"
+                        :disabled="digit=='khongsudung'"
                         @input="handleInput(index)"
                         @keydown="handleBackspace($event, index)"
                     />

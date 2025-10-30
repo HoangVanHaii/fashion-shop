@@ -5,7 +5,6 @@ import { ref, onMounted } from 'vue';
 import { formatPrice, getImage } from '../../utils/format';
 import { useRouter } from 'vue-router';
 import Loading from '../../components/Loading.vue';
-import ConfirmDialog from '../../components/ConfirmDialog.vue';
 import Notification from '../../components/Notification.vue';
 import { useProductSellerStore } from '../../stores/sellers/productStore';
 import type { ProductColor, ProductPayload } from '../../interfaces/product';

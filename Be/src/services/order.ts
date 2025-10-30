@@ -45,6 +45,7 @@ const baseQueryTmp = `SELECT
                     ps.size,
                     oi.quantity,
                     oi.price,
+                    oi.id as item_id,
                     o.status,
                     o.created_at,
                     o.total,

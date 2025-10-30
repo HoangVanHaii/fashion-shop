@@ -5,14 +5,12 @@ import { useCartStore } from "../stores/cartStore";
 import { useCategoryStore } from "../stores/categoryStore";
 import type { ProductSummary } from "../interfaces/product";
 import logo from "../assets/logo.jpg";
-import { useProductStore } from "../stores/productStore";
 import { getImage } from "../utils/format";
 import { formatPrice } from "../utils/format";
 
 const cart = useCartStore();
 const category = useCategoryStore();
 const router = useRouter();
-const useProduct = useProductStore();
 const products = ref<ProductSummary[]>([]);
 const searchQuery = ref("");
 const showNamDropdown = ref(false);

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onMounted, ref, watch } from "vue";
+import { computed, onMounted, ref } from "vue";
 import { voucherStore } from "../stores/voucherStore";
 import { formatDateTime, formatPrice, getImage } from "../utils/format";
 const useVoucher = voucherStore();
@@ -294,7 +294,6 @@ const isEligible = (voucher: Voucher) => {
 }
 .description .des {
   display: -webkit-box;
-  -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
 }

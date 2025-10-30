@@ -105,7 +105,7 @@ const handleCancelConfirm = () => {
                 </div>
                 <div class="list-flash-sale" >
 
-                    <div class="content-row" v-for="(flashSale, index) in useFlashSale.displayFlashSale">
+                    <div class="content-row" v-for="(flashSale) in useFlashSale.displayFlashSale">
                         <div class="date">
                             <span class="long-date">{{ formatDateTime(flashSale.start_date) }} </span>
                             <span class="long-date">{{ formatDateTime(flashSale.end_date) }}</span>
@@ -116,7 +116,7 @@ const handleCancelConfirm = () => {
                         <span class="short" v-else @click="handleShowFormConfirm(flashSale.id!)"><i class="fa-solid fa-toggle-on"></i></span>
                         <span class="short"><i class="fa-solid fa-pen-to-square"></i></span>
                     </div>
-                    <div class="content-row" v-for="(flashSale, index) in useFlashSale.displayFlashSale">
+                    <div class="content-row" v-for="(flashSale) in useFlashSale.displayFlashSale">
                         <div class="date">
                             <span class="long-date">{{ formatDateTime(flashSale.start_date) }} </span>
                             <span class="long-date">{{ formatDateTime(flashSale.end_date) }}</span>
@@ -127,7 +127,7 @@ const handleCancelConfirm = () => {
                         <span class="short" v-else @click="handleShowFormConfirm(flashSale.id!)"><i class="fa-solid fa-toggle-on"></i></span>
                         <span class="short"><i class="fa-solid fa-pen-to-square"></i></span>
                     </div>
-                    <div class="content-row" v-for="(flashSale, index) in useFlashSale.displayFlashSale">
+                    <div class="content-row" v-for="(flashSale) in useFlashSale.displayFlashSale">
                         <div class="date">
                             <span class="long-date">{{ formatDateTime(flashSale.start_date) }} </span>
                             <span class="long-date">{{ formatDateTime(flashSale.end_date) }}</span>

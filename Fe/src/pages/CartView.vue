@@ -208,19 +208,17 @@
 
 
 <script setup lang="ts">
-import { ref, onMounted, computed, watch } from 'vue'
+import { ref, onMounted, watch } from 'vue'
 import Header from '../components/Header.vue'
 import { useCartStore } from '../stores/cartStore'
 import type { ProductSize,ProductPayload,ProductColor } from '../interfaces/product' 
 import type { CartItemDetail } from '../interfaces/cart'
 import { useRouter } from 'vue-router'
-import {validateVoucherByCode, validateVoucherById} from '../utils/validateVoucher'
+import {validateVoucherByCode} from '../utils/validateVoucher'
 import Voucher from '../components/Voucher.vue'
-import { useFavouriteStore } from '../stores/favourite'
 import { getImage } from '../utils/format'
 import Notification from '../components/Notification.vue'
 
-const favourite = useFavouriteStore();
 
 const router = useRouter()
 const cartStore = useCartStore() 
