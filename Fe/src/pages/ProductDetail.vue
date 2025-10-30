@@ -317,7 +317,7 @@ const copiedLink = () => {
           </button>
           <button
             class="order"
-            @click="handleOrder(sizeChose!)"
+            @click="handleOrder()"
             :disabled="sizeChose?.stock == 0"
           >
             Mua ngay

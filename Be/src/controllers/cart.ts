@@ -33,11 +33,13 @@ export const getCartItems = async (req: Request, res: Response, next: NextFuncti
 export const getCartItemCount = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const user_id = req.user!.id;
-        const count: number = await cartService.countCartItems(user_id);
+        const counts = await cartService.countCartItems(user_id);
         return res.status(200).json({
             success: true,
             message: "Cart item count fetched successfully",
-            data: { count }
+            data: {
+                counts
+            }
         });
     } catch (err: any) {
         next(err);

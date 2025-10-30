@@ -2,19 +2,20 @@ import { connectionDB } from "../config/database";
 import { Cart, CartItem, CartItemDetail, ShopCart } from "../interfaces/cart";
 import { AppError } from "../utils/appError";
 
-export const countCartItems = async (user_id: number): Promise<number> => {
+export const countCartItems = async (user_id: number): Promise<number[]> => {
     try {
         const pool = await connectionDB();
         const result = await pool.request()
             .input("user_id", user_id)
             .query(`
-                SELECT ci.id
+                SELECT ci.size_id
                 FROM carts c
                 JOIN cart_items ci ON c.id = ci.cart_id
                 WHERE c.user_id = @user_id
-                GROUP BY ci.id
+                GROUP BY ci.size_id
             `);
-        return Number(result.recordset.length);
+        const itemIds: number[] = result.recordset.map((record: any) => record.size_id);
+        return itemIds;
     } catch (err: any) {
         if (err instanceof AppError) throw err;
         console.error(err);
