@@ -11,8 +11,8 @@ const config: mssql.config = {
     port: Number(process.env.DB_PORT),
 
     options: {
-        encrypt: false,
-        trustServerCertificate: true
+        encrypt: true,
+        trustServerCertificate: false
     }
 };
 
