@@ -24,10 +24,11 @@ import AddToCart from "../components/AddToCart.vue";
 import { useFavouriteStore } from "../stores/favourite";
 import { useRouter } from "vue-router";
 import { useVoucherStore } from "../stores/userVoucher";
+import Loading from "../components/Loading.vue";
 
 const favourite = useFavouriteStore();
 const router = useRouter();
-
+const loadingHome = ref(false);
 const banners = [bannerImage1, bannerImage2, bannerImage3];
 const useProduct = useProductStore();
 const useVoucher = voucherStore();
@@ -96,6 +97,10 @@ const handleCart = async (id: number) => {
 };
 
 onMounted(async () => {
+    loadingHome.value = true;
+    setTimeout(() => {
+        loadingHome.value = false;
+    }, 1000)
   vouchers.value = await useVoucher.getTop4VoucherGlobal();
   flashSaleHomes.value = await useFlashSale.getFlashSaleHome();
   localStorage.setItem(
@@ -193,7 +198,9 @@ const toggleFavourite = async (id: number) => {
 </script>
 <template>
   <Header />
-
+    <Loading 
+        :loading="loadingHome"
+    />
     <div class="container">
         <div class="banner-container">
         <button class="btn btn-prev" @click="prevImage"><</button>
