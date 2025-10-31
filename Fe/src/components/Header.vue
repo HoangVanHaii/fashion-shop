@@ -45,6 +45,12 @@ onBeforeMount(async () => {
     }
   categoryMale.value = await category.getCategoryNameStore("Nam");
   categoryFemale.value = await category.getCategoryNameStore("Nữ");
+  const storedAvatar = localStorage.getItem("avatar");
+  if (storedAvatar && storedAvatar.length > 10) {
+    avatar.value = storedAvatar;
+  }
+  // 
+  isLogin.value = localStorage.getItem("user_id") ? true : false;
   
 //   products.value = await useProduct.getAllProductActiveStore();
 });
