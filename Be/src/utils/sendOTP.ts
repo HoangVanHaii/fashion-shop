@@ -1,32 +1,33 @@
 import nodemailer from "nodemailer";
 import { AppError } from "./appError";
+
 export const sendMail = async (to: string, subject: string, html: string) => {
     try {
         const transporter = nodemailer.createTransport({
-            host: "smtp.gmail.com",
-            port: 587,             // Sử dụng cổng 587 (STARTTLS)
-            secure: false,         // 'false' khi sử dụng cổng 587
-            requireTLS: true,      // Đảm bảo sử dụng STARTTLS
+            host: "smtp.sendgrid.net",
+            port: 587,
+            secure: false,
+            requireTLS: true,
             auth: {
-                user: process.env.EMAIL_USER, // hoanggvanhaii0705@gmail.com
-                pass: process.env.EMAIL_PASS,  // Mật khẩu Ứng dụng
+                user: process.env.EMAIL_USER, // Phải là "apikey"
+                pass: process.env.EMAIL_PASS,  // Phải là API Key (SG.xxxx)
             },
-            // Thêm tùy chọn này để bỏ qua lỗi chứng chỉ tự ký (rất phổ biến khi deploy)
             tls: {
                 rejectUnauthorized: false
             }
         });
+
         const mailOptions = {
-            from: `"Fashion-shop" <${process.env.EMAIL_USER}>`,
+            from: `"Fashion-shop" <hoanggvanhaii0705@gmail.com>`,
             to: to,
             subject: subject,
-            html: html,
-
+            html: html, // Dùng 'html' vì tham số đầu vào là 'html'
         };
+
         await transporter.sendMail(mailOptions);
         return true;
     } catch (err) {
-        console.error(err);
+        console.error("Lỗi gửi mail với SendGrid:", err);
         throw new AppError("Failed to sendOtp", 500, false);
     }
 };
