@@ -6,7 +6,7 @@ const resend = new Resend(process.env.RESEND_API_KEY);
 export const sendMail = async (to: string, subject: string, html: string) => {
     try {
         await resend.emails.send({
-            from: 'Fashion Shop <onboarding@resend.dev>',
+            from: 'noreply@fashionshopvn.site',
             to: [to],
             subject: subject,
             html: html,
