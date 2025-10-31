@@ -60,7 +60,7 @@
                     <div class="shop-items">
                         <div v-for="item in shop.carts" :key="item.cart_item_id" class="item-row">
                             <div class="item-info">
-                                <img :src="`http://localhost:3000${item.image_url}`" alt="product" />
+                                <img :src="getImage(item.image_url)" alt="product" />
                                 <div class="item-details">
                                     <span class="item-name">{{ item.name }}</span> 
                                 </div>
@@ -70,15 +70,21 @@
                                         <span>Màu {{ item.color }} | Size {{ item.size }}</span>    
                                     </div>
                                 <div class="price">
-                                    <s>{{ item.price.toLocaleString() }}đ</s>
-                                    <span>{{ item.price_after_reduction?.toLocaleString() }}đ</span>
+                                    <s >{{ item.price.toLocaleString() }}đ</s>
+                                    <span >{{ item.price_after_reduction?.toLocaleString() }}đ</span>
                                 </div>
                                 
                                 <div class="quantity">
                                     {{ item.quantity }}
                                 </div>
                                 <div class="quantity-mobile">
-                                    <span>x{{ item.quantity }}</span>
+                                    <div class="quantity-mobile-in">
+                                        <span>x{{ item.quantity }}</span>
+                                        <div>
+                                            <span class="price2">{{ item.price_after_reduction?.toLocaleString() }}đ</span>
+                                            <s class="price1">{{ item.price.toLocaleString() }}đ</s>
+                                        </div> 
+                                    </div>        
                                 </div>
                                 
                                 <div class="total">
@@ -178,6 +184,7 @@ import type { OderPayLoad, OrderItem, Order } from '../interfaces/order'
 import Header from '../components/Header.vue'
 import Loading from '../components/Loading.vue'
 import router from '../routers'
+import { getImage } from '../utils/format'
 
 const cartStore = useCartStore()
 const orderStore = useOrderStore()
@@ -338,6 +345,7 @@ const clickOrder = async () => {
 .cart-content {
     flex: 1;
     padding: 16px;
+    padding-top:110px;
     padding-bottom: 160px;
     overflow-y: auto;
     overflow-x: hidden;
@@ -664,23 +672,19 @@ font-size: 21px;
 text-align: right;
 }
 
-/* label co giãn linh hoạt, không bị đẩy */
 .total-all-shop1 {
 
 text-align: right;
 color: #333;
 }
 
-/* value có độ rộng cố định, căn phải */
 .total-all-shop2 {
-width: 180px; /* có thể chỉnh nhỏ/lớn hơn tùy layout */
+width: 180px; 
 text-align: right;
 color: #dc2626;
 font-weight: 700;
 }
 
-
-/* --- Order Summary Section --- */
 .order-summary {
 background-color: #fff;
 margin-top: 20px;
@@ -689,7 +693,6 @@ border-radius: 8px;
 border-top: 1px dashed #ccc;
 }
 
-/* Layout chính: 2 cột ngang */
 .voucher-section{
 display: grid;
 grid-template-columns: 1fr 1fr;
@@ -709,7 +712,6 @@ gap: 40px;
 border-bottom: 1px dashed #ccc;
 }
 
-/* Cột trái */
 .voucher-left,
 .payment-left { 
     display: flex; 
@@ -727,7 +729,6 @@ border-bottom: 1px dashed #ccc;
     font-size: 26px; 
 }
 
-/* Cột phải */
 .voucher-right{ 
     display: flex; 
     justify-content: flex-end;
@@ -768,14 +769,12 @@ font-weight: 600;
     text-decoration: underline; 
 }
 
-/* Summary section - layout ngang */
 .summary-total {
 margin-top: 20px;
 padding-top: 15px;
 border-top: 1px dashed #ccc;
 }
 
-/* Grid layout cho phần summary */
 .summary-row {
 display: grid;
 grid-template-columns: 220px 120px;
@@ -792,24 +791,24 @@ text-align: left;
 }
 
 .road-line-sumary {
-grid-column: 1 / -1;   /* chiếm toàn bộ hàng grid */
+grid-column: 1 / -1;   
 height: 1px;
 background-color: #999;
 border-radius: 2px;
-margin: 6px 0;         /* khoảng cách trên/dưới */
+margin: 6px 0;        
 opacity: 0.7;
 width:400px;
 margin-left: auto;
 }
 
-/* Giá trị căn phải */
+
 .summary-value {
 text-align: right;
 font-weight: 600;
 min-width: 120px;
 }
 
-/* Nút đặt hàng cùng hàng */
+
 .order-btn {
 background-color: #dc2626;
 color: #fff;
@@ -825,7 +824,6 @@ white-space: nowrap;
     width: 200px;
 outline: none;
 box-shadow: none;
-
 }
 
 .order-btn:hover { 
@@ -833,12 +831,12 @@ box-shadow: none;
     transform: translateY(-1px); 
 }
 
-/* Trạng thái giảm giá */
+
 .discount { 
     color: #dc2626; 
 }
 
-/* Dòng tổng thanh toán */
+
 .total-pay {
 margin-top: 5px;
 }
@@ -853,7 +851,7 @@ margin-top: 5px;
     font-weight: 800; 
 }
 
-/* Note văn bản nhỏ */
+
 .note {
 margin-top: 15px;
 color: #555;
@@ -923,7 +921,7 @@ text-align: left;
 /* ----------------------------- */
 /*  Mobile (870px <=) */
 /* ----------------------------- */   
-@media (max-width: 870px) {
+@media (max-width: 870px) and (min-width: 680px) {
     .cart-page{
         width: 100%;
     }
@@ -944,7 +942,7 @@ text-align: left;
     .product-line {
         display: block;
         text-align: left;
-        font-size: 25px;
+        font-size: 18px;
         font-weight: 400;
     }
 
@@ -1032,6 +1030,205 @@ text-align: left;
         top:95px;
         color: #aaa;
         margin-left: 5px;
+    }
+}
+
+@media (max-width: 680px) {
+    .cart-page{
+        width: 100%;
+    }
+    .header2{
+        display:none;
+    }
+    .header-item{
+        display:none;
+    }
+    
+    .quantity{
+        display:none;
+    }
+    .item-size span:first-child {
+        display: inline;;
+        margin-bottom: 4px;
+    }
+    .product-line {
+        display: block;
+        text-align: left;
+        font-size: 18px;
+        font-weight: 400;
+    }
+
+    .cart-page {
+        font-size: 13px;
+    }
+
+    .cart-content {
+    flex: 1;
+    padding: 4px;
+    padding-top:90px;
+    padding-bottom: 160px;
+    overflow-y: auto;
+    overflow-x: hidden;
+    
+    }
+
+    .shipping-address {
+    position: relative;
+    padding: 25px 20px 25px 20px;
+    }
+    .shipping-address span{
+    font-size:15px;
+    }
+    .change-address {
+        position: absolute;
+        right: 45px  ;
+        top: 30px ;
+    }
+    .progress-bar-container {
+    width: 100%;
+    padding: 5px 0;
+    overflow: hidden;
+    }
+
+    .shop-block {
+    margin:10px 0px 0px 0px;
+    }
+
+    .shop-header i {
+        margin-right: 8px;
+        font-size: 20px;
+    }
+
+    .item-info {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+    background: white;
+    padding: 0px;
+    border-radius: 8px;
+    position: relative;
+    }
+
+    .item-info img {
+        width: 90px;
+        height: 90px;
+        object-fit: cover;
+        border-radius: 6px;
+        flex-shrink: 0; /* không co ảnh */
+    }
+
+    .item-details {
+        flex: 1;
+    }
+
+    .item-name {
+        position: absolute;
+        left: 125px;
+        top:25px;
+        font-weight: 500;
+        color: #333;
+    }
+    .item-size {
+        display:flex;
+        flex-direction: column;
+        position: absolute;
+        left: 125px;
+        top:50px;
+        color: #555;
+    }
+
+    .total{
+        display:none;
+    }
+    .price {
+        display:none;
+    }
+    .quantity-mobile{
+        display:block;
+        position: absolute;
+        left: 125px;
+        top:95px;
+        color: #f44336;
+    }
+    .quantity-mobile-in{
+        display: grid;
+        grid-template-columns: 0.5fr auto;
+        justify-content: space-between; 
+        gap:35px;
+    }
+
+    .price1{
+        color: #aaa;
+        margin-left: 5px;
+    }
+
+    .price2{
+        color: #f44336;
+        padding-right: 10px;
+    }
+
+    .total-all-shop1 {
+    text-align: right;
+    color: #333;
+    font-size:15px;
+    }
+
+    .total-all-shop2 {
+    width: 100px; 
+    text-align: right;
+    color: #dc2626;
+    font-weight: 700;
+    font-size:15px;
+    }
+
+    .order-summary {
+    padding: 20px 10px;
+    }
+
+    .voucher-section{
+    padding: 0px 0;
+    margin:0;
+    gap: 40px;
+    }    
+    
+    .payment-method {
+    padding: 15px 0;
+    gap: 10px;
+    }
+
+    .payment-right { 
+    gap:10px;
+    }   
+
+    .payment-popup {
+    position: absolute;
+    right: 60px;
+    top: 95%;
+    background: #fff;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+    padding: 10px 0;
+    z-index: 100;
+    width: 140px;
+    }
+
+    .summary-row {
+    grid-template-columns: 150px 120px;
+    }
+
+    .order-btn {
+    margin-top:15px;
+    padding: 10px 15px;
+        height: 35px;
+        width: 120px;
+    outline: none;
+    box-shadow: none;
+    }
+
+    .buy{
+    margin-top: 10px;
     }
 }
 

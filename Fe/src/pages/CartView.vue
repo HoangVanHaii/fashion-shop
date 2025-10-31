@@ -1381,9 +1381,9 @@ input[type="number"]::-webkit-inner-spin-button {
 /* ----------------------------- */
 /* 📱 Mobile (≤767px) */
 /* ----------------------------- */
-@media (max-width: 767px) {
+@media (max-width: 767px) and (min-width: 550px) {
   .cart-page {
-    font-size: 17px;
+    font-size: 16px;
     background-color: #ececec;
   }
 
@@ -1546,7 +1546,7 @@ input[type="number"]::-webkit-inner-spin-button {
   .left-right {
     flex-direction: row;
     flex-wrap: wrap;
-    gap: 16px;
+    gap: 0px;
   }
 
   .cart-footer .left {
@@ -1560,20 +1560,277 @@ input[type="number"]::-webkit-inner-spin-button {
     max-width: 100%;
     justify-content: flex-end;
      position: relative;
-     margin-bottom: 60px;
+     margin-bottom: 30px;
   }
 
   .checkout-btn {
     position:absolute;
+    font-size:15px;
     right: 0px;
-    top: 80px;
+    top: 60px;
     padding: 10px 24px;
-    width: auto;
+    width: 180px;
     margin: 0;
   }
 
   .size-dropdown {
   min-width: 220px;
+  }
+
+  .voucher span{
+    font-size:20px;
+  }
+}
+@media (max-width: 550px) {
+  .cart-page {
+    font-size: 11px;
+    padding-top: 85px;
+    background-color: #ececec;
+    width: 100%;
+  }
+
+  .cart-content {
+  flex: 1;
+  padding: 5px;
+  overflow-y: auto;
+  }
+
+  .tab {
+    padding: 8px 12px;
+    background-color: #d4d4d4;
+  }
+
+  /* Ẩn header hoàn toàn */
+  .cart-header {
+    display: none;
+  }
+
+  /* Shop container */
+  .shop-container {
+     position: relative;
+    background: white;
+    margin-bottom: 7px;
+    padding: 0;
+    box-shadow: none;
+   
+  }
+
+  /* Shop header */
+  .shop {
+    padding: 5px 12px;
+    font-weight: 400;
+    background: #FFF1E2;
+    border-bottom: none;
+  }
+  /* Cart item */
+  .cart-item {
+     width:94.5%;
+    margin-top:5px;
+    margin-bottom:5px;
+    margin-left: 1.5%;
+    position: relative;
+    flex-direction: row;
+    align-items: center;
+    padding: 5px;
+    gap: 5px;
+    background: white;
+    border-bottom: none;
+    border-radius: 8px;
+    box-shadow: 4px 4px 8px rgba(127, 125, 125, 0.5);
+  
+  }
+
+  .cart-item:last-child {
+    border-bottom: none;
+  }
+
+  .checkbox {
+    width: 15px;
+    height: 15px;
+    flex-shrink: 0;
+    margin-top: 4px;
+  }
+
+  .cart-item img {
+    width: 70px;
+    height:70px;
+    padding-top: 0;
+    flex-shrink: 0;
+    margin-left: 0;
+    margin-top: 0;
+  }
+
+  /* Item info */
+  .item-info {
+    flex: 1;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 3px;
+  }
+
+  .item-info > .item-name {
+    width: 100%;
+    font-weight: 400;
+    color: #000;
+    padding-right: 25px;
+  }
+
+  /* Size selector */
+  .size-selector {
+    width: 100%;
+  }
+
+  .size-header {
+    padding: 0px 4px;
+    border: 1px solid #191717;
+    width: 90px;
+    font-size:11px;
+    
+  }
+
+  .selected-size {
+    color: #666;
+    font-size:10px;
+    padding-bottom: 0;
+  }
+
+  /* Price */
+  .item-info > .item-price {
+    display: flex;
+    gap: 8px;
+    width: 100%;
+  
+    color: #e53935;
+  }
+
+  .item-info > .item-price s {
+    color: #999;
+
+  }
+
+  /* Quantity */
+  .item-info > .item-quantity {
+    margin-top: 2px;
+    position: absolute;
+    right: 10px;
+    bottom: 7px;
+  }
+
+  .item-quantity button {
+    width: 20px;
+    height: 18.5px;
+  }
+
+  .item-quantity input {
+    width: 20px;
+    height: 15px;
+    font-size: 11px;;
+
+  }
+
+  /* Ẩn total */
+  .item-info > .item-total {
+    display: none;
+  }
+
+  /* Icon delete */
+  .item-info > i {
+    position: absolute;
+    right: 10px;
+    top: 7px;
+    font-size: 15px;
+    color: #666;
+  }
+
+  /* Footer */
+  .cart-footer {
+    padding: 12px;
+  }
+
+  .cart-footer-voucher {
+    justify-content: flex-start;
+    gap: 12px;
+    margin-right: 0;
+    margin-bottom: 12px;
+  }
+
+  .cart-footer i {
+    font-size: 30px;
+  }
+
+  .left-right {
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 0px;
+  }
+
+  .cart-footer .left {
+    flex: 1;
+    min-width: 100%;
+    gap: 20px;
+  }
+
+  .cart-footer .right {
+    flex: 1;
+    max-width: 100%;
+    justify-content: flex-end;
+     position: relative;
+     margin-bottom: 30px;
+  }
+
+  .checkout-btn {
+    position:absolute;
+    font-size:15px;
+    right: 0px;
+    top: 60px;
+    padding: 10px 24px;
+    width: 180px;
+    margin: 0;
+  }
+
+  .size-dropdown {
+  top: 40%;
+  left: 0%;
+  min-width: 100px;
+  }
+
+  .size-option {
+  margin-bottom: 6px;
+  font-size: 11px;
+}
+
+.size-dropdown > div:has(img) {
+  gap: 6px;
+  margin-bottom: 16px;
+  padding-bottom: 6px;
+}
+
+.size-dropdown img {
+  width: 40px !important;
+  height: 40px !important;
+}
+
+.available-sizes {
+  padding: 0px 0;
+}
+
+.size-item {
+  padding: 5px 8px;
+  font-size: 11px;
+  width: 40px;
+
+}
+
+  .voucher span{
+    font-size:15px;
+  }
+
+  .checkout-btn {
+    position: absolute;
+    right:0;
+    top:45px;
+  width: 140px;
+  font-size: 12px; 
 }
 }
 </style>
