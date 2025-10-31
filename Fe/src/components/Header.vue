@@ -42,7 +42,7 @@ const u = useUserStore();
 const { avatar } = storeToRefs(u);
 onBeforeMount(async () => {
     isLogin.value = localStorage.getItem("user_id") ? true : false;
-    u.fetchProfile();
+    await u.fetchProfile();
     if (localStorage.getItem('accessToken')) {
         await cart.getCartCountStore();
     }
