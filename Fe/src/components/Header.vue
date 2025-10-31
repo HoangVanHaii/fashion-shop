@@ -8,7 +8,11 @@ import logo from "../assets/logo.jpg";
 import { getImage } from "../utils/format";
 import Notification from "./Notification.vue";
 import { formatPrice } from "../utils/format";
+import { storeToRefs } from "pinia";
+import { useUserStore } from "../stores/userStore";
+import { useProductStore } from "../stores/productStore";
 
+const productStore = useProductStore();
 const cart = useCartStore();
 const category = useCategoryStore();
 const router = useRouter();
@@ -21,7 +25,7 @@ const showFormSearch = ref(false);
 const categoryMale = ref<string[]>([]);
 const categoryFemale = ref<string[]>([]);
 const searchBarRef = ref<HTMLElement | null>(null);
-const avatar = ref<string>("");
+// const avatar = ref<string>("");
 const showFormUser = ref(false);
 const isLogin = ref(false);
 const showMenuPhone = ref(false);
@@ -33,13 +37,12 @@ const listSearch = computed<ProductSummary[]>(() => {
     product.name.toLowerCase().includes(query)
   );
 });
+const u = useUserStore();
 
+const { avatar } = storeToRefs(u);
 onBeforeMount(async () => {
     isLogin.value = localStorage.getItem("user_id") ? true : false;
-    const storedAvatar = localStorage.getItem("avatar");
-    if (storedAvatar && storedAvatar.length > 10) {
-        avatar.value = storedAvatar;
-    }
+    u.fetchProfile();
     if (localStorage.getItem('accessToken')) {
         await cart.getCartCountStore();
     }
@@ -52,7 +55,7 @@ onBeforeMount(async () => {
   // 
   isLogin.value = localStorage.getItem("user_id") ? true : false;
   
-//   products.value = await useProduct.getAllProductActiveStore();
+  products.value = await productStore.getAllProductActiveStore();
 });
 const toastText = ref("");
 const showNotification = ref<boolean>(false);

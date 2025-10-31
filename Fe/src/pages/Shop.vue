@@ -580,7 +580,7 @@ const handleSpace = async () => {
 }
 .voucher-container {
   margin-top: 20px;
-  width: 90%;
+  width: 95%;
   background-color: rgb(255, 255, 255);
   height: 170px;
   margin-bottom: 50px;
@@ -648,9 +648,13 @@ const handleSpace = async () => {
   /* background-color: blue; */
 }
 .description .des {
-  display: -webkit-box;
+  /* display: -webkit-box;
   -webkit-box-orient: vertical;
+  overflow: hidden; */
+  
+  white-space: nowrap;
   overflow: hidden;
+  text-overflow: ellipsis;
 }
 .description .des-min {
   white-space: nowrap;
@@ -669,6 +673,9 @@ const handleSpace = async () => {
   width: 100%;
   /* background-color: #e5e4e4; */
   font-size: 12px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 .expiry-terms .terms {
   font-size: 13px;
@@ -698,7 +705,7 @@ const handleSpace = async () => {
   flex-direction: column;
   justify-content: center;
   /* background-color: aqua; */
-  width: 90%;
+  width: 95%;
   height: auto;
   /* margin-top: 100px; */
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
@@ -753,6 +760,7 @@ const handleSpace = async () => {
 }
 .deal-product {
   width: 98%;
+  /* background-color: red; */
   display: flex;
   flex-direction: row;
   gap: 30px;
@@ -948,7 +956,7 @@ const handleSpace = async () => {
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  width: 90%;
+  width: 95%;
   /* background-color: #767575; */
 }
 .container-title {
@@ -1057,8 +1065,8 @@ const handleSpace = async () => {
     justify-content: space-between;
   }
   .deal-item-product {
-    width: 170px;
-    height: 300px;
+    width: 150px;
+    height: 240px;
   }
   .product-me {
     column-gap: 5px;
@@ -1068,5 +1076,27 @@ const handleSpace = async () => {
     font-size: 16px;
     width: 150px;
   }
+  .deal-info .deal-name p {
+    width: 100%;
+    font-size: 13px;
+  }
+  
+  .deal-prices span {
+        font-size: 13px;
+    }
+    
+    .deal-prices .deal-price-old {
+        font-size: 12px;
+    }
+    .deal-action i {
+        font-size: 15px;
+    }
+}
+@media(max-width: 370px){
+    .deal-item-product {
+        width: 130px;
+        height: 225px;
+    }
+    
 }
 </style>
