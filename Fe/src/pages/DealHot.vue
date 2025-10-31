@@ -583,8 +583,8 @@ const btnShowMoreHotDeal2 = () => {
     /* background-color: #ff6b35; */
   }
   .deal-item-product {
-    width: 175px;
-    height: 300px;
+    width: 150px;
+    height: 250px;
   }
   .deal-logo {
     font-size: 9px;
@@ -600,5 +600,11 @@ const btnShowMoreHotDeal2 = () => {
   .deal-prices span {
     font-size: 13px;
   }
+}
+@media(max-width: 350px){
+    .deal-item-product {
+        width: 130px;
+        height: 225px;
+    }
 }
 </style>

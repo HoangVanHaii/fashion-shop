@@ -113,7 +113,13 @@
             showNotification.value = true;
             toastText.value = "✅ Đăng nhập thành công!";
             setTimeout(() => {
-                router.push('/')
+                const redirectPath = router.currentRoute.value.query.redirect;
+                if (redirectPath) {
+                    router.push(redirectPath.toString());
+                }
+                else {
+                    router.push('/');
+                }
             }, 1500);
         }
     }
