@@ -298,12 +298,19 @@ const clickOrder = async () => {
 
         if (order.payment_method == 'vnpay') {
             console.log(res.paymentUrl)
-            window.location.href = res.paymentUrl;    
-        } 
-        if (orderStore.error) {
-            router.push('/orderFailed');
+            window.location.href = res.paymentUrl;
+            if (orderStore.error) {
+                router.push('/orderFailed');
+            }
+            else router.push('/orderSuccess')
         }
-        else router.push('/orderSuccess')
+        else {
+            if (orderStore.error) {
+                router.push('/orderFailed');
+            }
+            else router.push('/orderSuccess')
+        }
+       
     } catch (err: any) {
         loadingOrder.value = false;
         const msg = err.response?.data?.message || err.message;
