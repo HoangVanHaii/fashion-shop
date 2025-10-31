@@ -19,3 +19,10 @@ export interface ReviewOfProduct {
     average_rating: number;
     Reviews: Review[];
 }
+
+export interface CreateReviewPayload {
+    order_item_id: number;
+    rating: number;
+    comment: string;
+    review_images?: File[]; 
+}

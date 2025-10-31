@@ -115,21 +115,41 @@ const closeEmailModal = () => (showEmailModal.value = false);
 
 const sendChangeEmail = async () => {
   textToast.value=""
+
   if (!newEmail.value || !password.value) {
     textToast.value = "Vui lòng nhập đủ email mới và mật khẩu";
     showNotification.value = true;
     return;
   }
   try {
-    await userStore.changeEmail(newEmail.value, password.value);
+       await userStore.changeEmail(newEmail.value, password.value);
+    
     if (userStore.emailPending) {
       showOtpForm.value = true;
       textToast.value = "OTP đã được gửi, vui lòng kiểm tra email";
       showNotification.value = true;
     }
-  } catch {
-    textToast.value = "Gửi yêu cầu đổi email thất bại";
-    showNotification.value = true;
+  } catch(error:any) {
+    if(error?.response?.data?.message === "Email already exists"){
+      textToast.value = ''
+      textToast.value = "Email đã tồn tại, vui lòng chọn email khác.";
+      showNotification.value = false;
+    }
+    else if(error?.response?.data?.message === "Invalid password"){
+      textToast.value = ''
+      textToast.value = "Mật khẩu không chính xác";
+      showNotification.value = false;
+    }
+    
+    else{
+      console.log(1)
+    textToast.value = ''
+    textToast.value = "Email đã tồn tại hoặc sai mật khẩu";
+    showNotification.value = false;   
+    }
+    
+    // textToast.value = "Gửi yêu cầu đổi email thất bại";
+    // showNotification.value = true;
   }
 };
 
@@ -257,7 +277,7 @@ const verifyOtp = async () => {
 
     <div v-if="showOtpForm" class="otp-section">
       <input v-model="otp" type="text" placeholder="Nhập OTP" autocomplete="off" />
-      <button @click="verifyOtp">Xác nhận</button>
+      <button class="submit" @click="verifyOtp">Xác nhận</button>
     </div>
   </div>
 </div>
@@ -587,7 +607,7 @@ const verifyOtp = async () => {
   padding: 12px;
   font-size: 14px;
   margin-top:12px;
-  margin-left:45%;
+  margin-left:40%;
   cursor: pointer;
   transition: all 0.2s ease;
 }
@@ -659,7 +679,7 @@ const verifyOtp = async () => {
     min-width: 280px;
     }
 }
-@media (max-width: 960px) and (min-width: 400px){
+@media (max-width: 960px) and (min-width: 300px){
     .container {
     flex-direction: column;
     height: auto;
@@ -677,7 +697,7 @@ const verifyOtp = async () => {
   .body {
     margin-top: 270px;
     flex-direction: column;
-    padding: 20px;
+    padding: 10px;
     gap: 0;
     align-items: center;
 
@@ -772,5 +792,29 @@ const verifyOtp = async () => {
   .breadcrumb{
     display:none;
   }
+
+  .modal-content {
+  
+  width: 200px;
+}
+
+.modal-content h3 {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 600;
+  color: #333;
+  text-align: center;
+}
+
+.modal-content input {
+  margin-top:5px;
+  padding: 12px;
+  font-size: 14px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  outline: none;
+  transition: all 0.2s ease;
+}
+
 }
 </style>

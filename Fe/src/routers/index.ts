@@ -14,16 +14,15 @@ import Profile from '../pages/Profile.vue';
 import OrderDetail from '../pages/OrderDetail.vue';
 import Favourite from '../pages/Favourite.vue';
 import Shop from '../pages/Shop.vue'
-import HeaderSeller from '../components/sellers/Header.vue';
-import Navbar from '../components/sellers/Navbar.vue';
-import OrderSeller from '../pages/sellers/Order.vue';
-import Product from '../pages/sellers/Product.vue';
 import Pay from '../pages/Pay.vue';
 import CartView from '../pages/CartView.vue';
 import Footer from '../components/Footer.vue';
+<<<<<<< HEAD
  import HomeSeller from '../pages/sellers/Home.vue';
 import FlashSaleSeller from '../pages/sellers/FlashSale.vue';
 import OrderFailed from '../pages/OrderFailed.vue';
+=======
+>>>>>>> 3f0046b263cd1286add0233e47b1568b424b7712
 
 const routes = [
   { path: '/', redirect: '/home' },
@@ -32,7 +31,6 @@ const routes = [
   { path: '/header', name: 'header', component: Header },
   { path: '/footer', name: 'footer', component: Footer },
   { path: '/auth/register', name: 'register-sendOTP', component: Auth },
-  { path: '/nav', name: 'nav', component: Navbar },
   { path: '/verifyRegister', name: 'register-verify', component: VerifyOTP },
   { path: '/categoryGender', name: 'category-gender', component: CategoryGender },
   { path: '/product/:id', name: 'product-detail', component: ProductDetail },
@@ -48,12 +46,6 @@ const routes = [
   { path: '/order/payment', name: 'payment', component: Pay },
   { path: '/cart/cartOfme', name: 'cart-of-me', component: CartView },
   { path: '/shop/:id', name: 'shop', component: Shop },
-
-  { path: '/seller/home', name: 'home-seller', component: HomeSeller },
-  { path: '/seller/flashSale', name: 'flashsale-seller', component: FlashSaleSeller },
-  { path: '/seller/header', name: 'header-seller', component: HeaderSeller },
-  { path: '/seller/order', name: 'order-seller', component: OrderSeller },
-  { path: '/seller/product', name: 'product-seller', component: Product },
 ];
 const router = createRouter({ history: createWebHistory(import.meta.env.BASE_URL), routes });
 

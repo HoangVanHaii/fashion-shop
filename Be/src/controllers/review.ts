@@ -64,10 +64,30 @@ export const getReviewById = async (req: Request, res: Response, next: NextFunct
     }
 }
 
+export const getReviewsByOrderItemIdOfMe = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const order_item_id = parseInt(req.params.order_id);
+        const user_id = req.user!.id; 
+        if (isNaN(order_item_id)) {
+            throw new AppError("Invalid order_id", 400);
+        }
+
+        const reviews = await reviewService.getReviewsByOrderItemIdOfMe(order_item_id, user_id);
+
+        return res.status(200).json({
+            success: true,
+            message: "Your reviews for this order fetched successfully",
+            data: reviews
+        });
+
+    } catch (err: any) {
+        next(err);
+    }
+};
+
 export const updateReview = async (req: Request, res: Response, next: NextFunction): Promise<void> =>{
     try {
         const review_id = parseInt(req.params.review_id);
-        const user_id = req.user!.id;
         const existingReview = await reviewService.getReviewById(review_id);
         if (!existingReview) {
             throw new AppError("Review not found", 404);
