@@ -186,8 +186,8 @@ const verifyOtp = async () => {
       :show-address="false"
       :show-favourite="false"
       :show-notification="false"
-      :show-order="true"
-      :show-profile="false"
+      :show-order="false"
+      :show-profile="true"
       :show-register-seller="false"
       :show-reset-password="false"
       :show-voucher="false"
@@ -679,7 +679,7 @@ const verifyOtp = async () => {
     min-width: 280px;
     }
 }
-@media (max-width: 960px) and (min-width: 300px){
+@media (max-width: 960px){
     .container {
     flex-direction: column;
     height: auto;

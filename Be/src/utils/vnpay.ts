@@ -18,7 +18,7 @@ export const buildPaymentUrl = async (order_id: string, amount: number): Promise
         vnp_TxnRef: order_id,
         vnp_OrderInfo: `Thanhtoandonhang${order_id}`,
         vnp_OrderType: ProductCode.Other,
-        vnp_ReturnUrl: 'http://localhost:3000/api/payments/check-payment-vnpay',
+        vnp_ReturnUrl: 'https://fashion-shop-jd0k.onrender.com/api/payments/check-payment-vnpay',
         vnp_Locale: VnpLocale.VN,
         vnp_CreateDate: dateFormat(new Date()),
         vnp_ExpireDate: dateFormat(tomorrow),

@@ -293,8 +293,8 @@ const clickOrder = async () => {
 
     try {
         const res = await orderStore.createOrder(payload)
-        loadingOrder.value = false;
         await cartStore.removePaidItems()
+        loadingOrder.value = false;
 
         if (order.payment_method == 'vnpay') {
             console.log(res.paymentUrl)

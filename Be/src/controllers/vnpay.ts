@@ -1,19 +1,15 @@
 import { VerifyReturnUrl, ReturnQueryFromVNPay } from 'vnpay';
-import { vnpay,buildPaymentUrl } from '../utils/vnpay';
+import { vnpay, buildPaymentUrl } from '../utils/vnpay';
 import { Request, Response, NextFunction } from 'express';
 import * as paymentService from '../services/payment';
 
 export const checkPayment = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const vnpParams = req.query as unknown as ReturnQueryFromVNPay;
-        
-        const verify: VerifyReturnUrl = vnpay.verifyReturnUrl(vnpParams);        
+
+        const verify: VerifyReturnUrl = vnpay.verifyReturnUrl(vnpParams);
         if (!verify.isVerified) {
             return res.redirect('https://fashion-shop-1-wacu.onrender.com/orderFailed?reason=invalid_signature');
-            return res.status(400).json({ 
-                message: "Invalid signature",
-                details: verify.message 
-            });
         }
 
         const orderId = verify.vnp_TxnRef;
