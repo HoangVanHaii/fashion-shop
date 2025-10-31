@@ -30,7 +30,8 @@ const showRegisterSeller = ref<boolean>(props.showRegisterSeller);
 const showProfile = ref<boolean>(props.showProfile);
 const showAddress = ref<boolean>(props.showAddress);
 const showResetPassword = ref<boolean>(props.showResetPassword);
-
+import { useUserStore } from '../stores/userStore'
+const u = useUserStore();
 onMounted(async () => {
   if (auth.user == null) {
     const res = await auth.getUserByIdStore(
@@ -47,6 +48,8 @@ const handleResize = () => {
     showMenu.value = false;
   }
 };
+const { avatar } = storeToRefs(u);
+import { storeToRefs } from "pinia";
 const reset = (
   a: Ref<boolean>,
   b: Ref<boolean>,
@@ -198,7 +201,7 @@ const handleShow = () => {
   <div class="menu" v-if="props.showMenu">
     <div class="profile">
       <div class="infor">
-        <img :src="getImage(auth.user?.avatar!)" alt="" />
+        <img :src="getImage(avatar)" alt="" />
       </div>
       <div class="user-name">
         <span class="title">{{ auth.user?.name }}</span>

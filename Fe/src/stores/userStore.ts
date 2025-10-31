@@ -11,11 +11,13 @@ export const useUserStore = defineStore('user', () => {
     phone: '',
     avatar: ''
   })
+    const avatar = ref('');
+    avatar.value = localStorage.getItem('avatar') || '';
 
   const loading = ref(false)
 
   const fetchProfile = async () => {
-    try {
+      try {
       loading.value = true
       const res = await getProfile()
       const data = res.data
@@ -24,7 +26,8 @@ export const useUserStore = defineStore('user', () => {
         data.date_of_birth = new Date(data.date_of_birth)
       }
 
-      user.value = data
+          user.value = data
+          avatar.value = user.value?.avatar || '';
     } finally {
       loading.value = false
     }
@@ -73,7 +76,8 @@ export const useUserStore = defineStore('user', () => {
   const updateAvatar = async (file: File) => {
     try {
       loading.value = true
-      const res = await updateAvatarAPI(file)
+        const res = await updateAvatarAPI(file)
+        avatar.value = res.data.avatar;
       user.value!.avatar = res.data.avatar
       return res.message
     } finally {
@@ -96,6 +100,7 @@ export const useUserStore = defineStore('user', () => {
     verifyChangeEmail,
     otpSent,
     emailPending,
-    updateAvatar
+      updateAvatar,
+      avatar
   }
 })

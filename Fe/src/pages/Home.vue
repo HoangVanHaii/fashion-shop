@@ -345,7 +345,7 @@ const toggleFavourite = async (id: number) => {
             </div>
             </div>
         </div>
-        <button class="btn-best-seller" @click="btnShowMoreProductSale">
+        <button class="btn-best-seller promo-sale" @click="btnShowMoreProductSale" >
             {{ showAll ? "Thu gọn" : "Xem thêm sản phẩm" }}
             <i
             :class="showAll ? 'fa-solid fa-angle-up' : 'fa-solid fa-arrow-right'"
@@ -1299,7 +1299,13 @@ const toggleFavourite = async (id: number) => {
   border-radius: 3px;
   background-color: transparent;
 }
+.promo-product.row-mode {
+    padding-bottom: 1px;
+}
 
+.promo-sale{
+    margin: 5px;
+}
 @media (max-width: 1200px) {
     .banner-container {
         height: 35vh;
@@ -1425,6 +1431,9 @@ const toggleFavourite = async (id: number) => {
   .container-content button {
     font-size: 14px;
   }
+  .promo-sale{
+    margin: 5px;
+}
 }
 @media (max-width: 768px) {
 
@@ -1618,6 +1627,9 @@ const toggleFavourite = async (id: number) => {
         /* justify-content: space-around; */
         gap: 7px;
         justify-content: space-between;
+    }
+    .promo-sale{
+        margin: 5px;
     }
 }
 @media(max-width: 350px){
