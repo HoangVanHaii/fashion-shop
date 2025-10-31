@@ -41,6 +41,6 @@ export const getProductByShop = async (id: number) => {
     return result.data;
 }
 export const getAllProductActive = async () => {
-    const result = await api.get(`http://localhost:3000/api/product/actives`);
+    const result = await api.get(`/product/actives`);
     return result.data;
 }

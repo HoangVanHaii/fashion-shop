@@ -255,7 +255,7 @@ const verifyOtp = async () => {
         </div>
 
         <div class="avatar">
-           <img :src=" getImage(userStore.user.avatar || '') ||previewImage || avatarUrl" alt="avatar" />
+           <img :src=" getImage(userStore.avatar || '') ||previewImage || avatarUrl" alt="avatar" />
           <input ref="fileInput" type="file" accept="image/*" @change="handleFileChange" style="display: none" />
           <button @click="triggerFileInput">Chọn ảnh</button>
         </div>

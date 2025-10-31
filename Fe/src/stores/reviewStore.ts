@@ -1,6 +1,6 @@
 import { defineStore } from "pinia";
 import { getReviewsByProductId,createReview,getReviewsByOrderItemIdOfMe } from "../services/review";
-import type { CreateReviewPayload, Review, ReviewOfProduct } from "../interfaces/review";
+import type { CreateReviewPayload, ReviewOfProduct } from "../interfaces/review";
 export const useReviewStore = defineStore('review', () => {
     const getReviewsByProductIdStore = async (product_id: number) => {
         try {
