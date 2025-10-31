@@ -4,8 +4,6 @@ import type { Ref } from "vue";
 import { useAuthStore } from "../stores/authStore";
 import { getImage } from "../utils/format";
 import { useRouter } from "vue-router";
-import { useUserStore } from "../stores/userStore";
-
 const userStore = useUserStore();
 const props = defineProps<{
   showMenu: boolean;
