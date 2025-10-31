@@ -6,14 +6,15 @@ import Header from "../components/Header.vue";
 import Loading from "../components/Loading.vue";
 import Notification from "../components/Notification.vue";
 import type { User } from "../interfaces/user";
+import { getImage } from "../utils/format";
 
 const userStore = useUserStore();
 const showNavbar = ref(true);
-const BASE_URL = "http://localhost:3000"; 
+// const BASE_URL = "http://localhost:3000"; 
 const avatarUrl = computed(() => {
   const avatar = userStore.user?.avatar;
   if (!avatar) return "";
-  return avatar.startsWith("http") ? avatar : `${BASE_URL}${avatar}`;
+  return avatar.startsWith("http") ? avatar : `${import.meta.env.VITE_API_URL}${avatar}`;
 });
 
 // Lưu dữ liệu gốc để so sánh
@@ -229,17 +230,17 @@ const verifyOtp = async () => {
                 }"
               />
             </div>
+            <button class="btnSave" @click="change" :disabled="!hasChanges">Lưu thay đổi</button>
           </div>
         </div>
 
         <div class="avatar">
-           <img :src="previewImage || avatarUrl" alt="avatar" />
+           <img :src=" getImage(userStore.user.avatar || '') ||previewImage || avatarUrl" alt="avatar" />
           <input ref="fileInput" type="file" accept="image/*" @change="handleFileChange" style="display: none" />
           <button @click="triggerFileInput">Chọn ảnh</button>
         </div>
       </div>
 
-      <button class="btnSave" @click="change" :disabled="!hasChanges">Lưu thay đổi</button>
     </div>
   </div>
 
@@ -500,8 +501,8 @@ const verifyOtp = async () => {
 }
 
 .btnSave {
-  position: absolute;
-  bottom: 40px;
+  /* position: absolute; */
+  /* bottom: 40px;   */
   left: 30%;
   transform: translateX(-50%);
   background-color: #ee4d2d;
@@ -511,6 +512,10 @@ const verifyOtp = async () => {
   border-radius: 4px;
   cursor: pointer;
   font-size: 14px;
+  margin-top: 20px;
+  margin-left: 60px;
+  /* text-align: center; */
+  /* align-items: center; */
   transition: all 0.2s ease;
 }
 
@@ -691,7 +696,9 @@ const verifyOtp = async () => {
     padding-right: 0;
     font-size: 13px;
   }
-
+.btnSave {
+  width: 120px !important;
+}
   .body-header span {
     height: 50px;
     padding: 0;

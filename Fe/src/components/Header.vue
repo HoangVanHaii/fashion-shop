@@ -6,8 +6,13 @@ import { useCategoryStore } from "../stores/categoryStore";
 import type { ProductSummary } from "../interfaces/product";
 import logo from "../assets/logo.jpg";
 import { getImage } from "../utils/format";
+import Notification from "./Notification.vue";
 import { formatPrice } from "../utils/format";
+import { storeToRefs } from "pinia";
+import { useUserStore } from "../stores/userStore";
+import { useProductStore } from "../stores/productStore";
 
+const productStore = useProductStore();
 const cart = useCartStore();
 const category = useCategoryStore();
 const router = useRouter();
@@ -20,7 +25,7 @@ const showFormSearch = ref(false);
 const categoryMale = ref<string[]>([]);
 const categoryFemale = ref<string[]>([]);
 const searchBarRef = ref<HTMLElement | null>(null);
-const avatar = ref<string>("");
+// const avatar = ref<string>("");
 const showFormUser = ref(false);
 const isLogin = ref(false);
 const showMenuPhone = ref(false);
@@ -32,22 +37,44 @@ const listSearch = computed<ProductSummary[]>(() => {
     product.name.toLowerCase().includes(query)
   );
 });
+const u = useUserStore();
 
+const { avatar } = storeToRefs(u);
 onBeforeMount(async () => {
-await cart.getCartCountStore();
+    isLogin.value = localStorage.getItem("user_id") ? true : false;
+    u.fetchProfile();
+    if (localStorage.getItem('accessToken')) {
+        await cart.getCartCountStore();
+    }
   categoryMale.value = await category.getCategoryNameStore("Nam");
   categoryFemale.value = await category.getCategoryNameStore("Nữ");
-  const storedAvatar = localStorage.getItem("avatar");
-  if (storedAvatar && storedAvatar.length > 10) {
-    avatar.value = storedAvatar;
-  }
-  // 
+  
   isLogin.value = localStorage.getItem("user_id") ? true : false;
-//   products.value = await useProduct.getAllProductActiveStore();
+  
+  products.value = await productStore.getAllProductActiveStore();
 });
-
+const toastText = ref("");
+const showNotification = ref<boolean>(false);
 const goToCart = () => {
-  router.push("/cart/cartOfme");
+    toastText.value = "";
+    showNotification.value = false;
+    const login = localStorage.getItem('accessToken') ? true : false;
+    if (!login) {
+        setTimeout(() => {
+            toastText.value = "❌ Vui lòng đăng nhập để thêm vào giỏ hàng!";
+        }, 0) 
+        setTimeout(() => {
+            router.push({
+                path: '/auth/login',
+                query: {
+                    redirect: "/cart/cartOfme" 
+                }
+            })
+        }, 2000);
+    }
+    else {
+        router.push("/cart/cartOfme");
+    }
 };
 const goToLogin = () => {
   router.push("/auth/login");
@@ -55,14 +82,15 @@ const goToLogin = () => {
 const goToRegister = () => {
   router.push("/auth/register");
 };
-const goToLogout = () => {
+const goToLogout = async() => {
     localStorage.removeItem("accessToken");
     localStorage.removeItem("refreshToken");
     localStorage.removeItem("user_id");
     localStorage.removeItem("avatar");
     avatar.value = "";
     isLogin.value = false;
-    router.push("/home");
+    router.push("/home");   
+    cart.resetCartCount()
 };
 
 const goToProfile = () => {
@@ -100,6 +128,7 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
+  <Notification :text="toastText" :isSuccess="showNotification" />
   <header class="header">
     <div class="top-bar">
       <div class="contact-info">
@@ -245,7 +274,7 @@ onBeforeUnmount(() => {
           <div class="cart-icon" @click="goToCart">
             <i class="fa-solid fa-cart-shopping"></i>
             <span class="cart-badge">{{
-              cart.cartCount.length || 0
+              cart.cartCount.length > 0 ? cart.cartCount.length : 0
             }}</span>
           </div>
           <div
@@ -254,7 +283,7 @@ onBeforeUnmount(() => {
             @mouseleave="showFormUser = false"
           >
             <i v-if="!avatar" class="fa-solid fa-user"></i>
-            <img v-else :src="getImage(avatar)" alt="" />
+            <img v-else :src="getImage(avatar)" class="avt" alt="" />
             <div class="user-container" v-if="showFormUser">
               <div v-if="!isLogin" class="guest-actions">
                 <span @click="goToLogin" class="login">Đăng nhập</span>
@@ -548,11 +577,13 @@ h4 {
     justify-content: center;
     align-items: center;
     object-fit: contain;
+    border: 0.5px solid #b1afaf;
         
  }
-.user-icon img {
-  width: 100%;
-  height: 100%;
+.avt {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
 }
 
 .cart-icon {

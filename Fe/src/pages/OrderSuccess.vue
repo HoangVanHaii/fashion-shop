@@ -137,7 +137,7 @@ const displayProduct = computed(() => {
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  /* justify-content: space-between; */
+  padding-top: 5px;
   gap: 15px;
 }
 .top-content i {
@@ -253,7 +253,7 @@ const displayProduct = computed(() => {
 .grid-item-image {
   width: 26px;
   height: 26px;
-  border: 1px solid;
+  border: 0.5px solid #706f6f;
 }
 .grid-item-image img {
   width: 100%;
@@ -352,6 +352,23 @@ const displayProduct = computed(() => {
   color: #fff;
 }
 @media (max-width: 768px) {
+
+    .top-content {
+        height: 200px;
+        gap: 10px;
+    }
+    .top-content i {
+        font-size: 35px;
+    }
+    .content1 {
+        font-size: 27px;
+        display: flex;
+        gap: 10px;
+        align-items: center;
+    }
+    .content2 {
+       font-size: 19px;
+    }
   .product-like {
     width: 97%;
   }
@@ -359,16 +376,70 @@ const displayProduct = computed(() => {
     row-gap: 40px;
     /* background-color: aqua; */
     column-gap: 5px;
+    justify-content: space-between;
   }
   .grid-item {
     flex: 0 0 auto;
-    width: 175px;
-    height: 330px;
+    width: 150px;
+    height: 250px;
     border-radius: 2px;
     display: flex;
     flex-direction: column;
     align-items: center;
     box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.9);
   }
+  .grid-item-image{
+    width: 20px;
+    height: 20px;
+  }
+  .grid-info .grid-name p {
+    font-size: 13px;
+    }
+  
+  .grid-prices span {
+        font-size: 13px;
+    }
+    .grid-action i {
+        font-size: 15px;
+    }  
+}
+@media (max-width: 350px) {
+    .top-content {
+        height: 200px;
+        gap: 10px;
+    }
+    .top-content i {
+        font-size: 25px;
+    }
+    .content1 {
+        font-size: 22px;
+        display: flex;
+        gap: 10px;
+        align-items: center;
+    }
+    .btn-top button {
+        padding-top: 5px;
+        padding-bottom: 5px;
+        padding-left: 10px;
+        padding-right: 10px;
+        border: 0.5px solid white;
+        border-radius: 3px;
+        font-size: 12px;
+    }
+    .content2 {
+       font-size: 15px;
+    }
+    
+  .grid-item {
+    flex: 0 0 auto;
+    width: 140px;
+    height: 230px;
+    border-radius: 2px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.9);
+  }
+  
 }
 </style>

@@ -19,6 +19,9 @@ export const useCartStore = defineStore('cart', () => {
             return 0;
         }
     }
+    const resetCartCount = () => {
+        cartCount.value = [];
+    };
     const addToCartStore = async (size_id: number, quantity: number) => {
         success.value = false;
         error.value = null;
@@ -36,6 +39,9 @@ export const useCartStore = defineStore('cart', () => {
             const message = err.response.data.message;
             if (message == "your cart count is full size") {
                 error.value = "❌ Sản phẩm này đã đầy trong giỏ hàng rồi"
+            }
+            if (err.response.status === 401 || err.response.status === 400) {
+                error.value = '❌vui lòng đăng nhập trước';
             }
             loading.value = false;
         }
@@ -362,7 +368,8 @@ export const useCartStore = defineStore('cart', () => {
         filterSelectedItems,selectedProduct,
         checkSoldOut,
         cartPay,
-        removePaidItems
+        removePaidItems,
+        resetCartCount
     };
 },{
     persist:{

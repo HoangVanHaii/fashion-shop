@@ -58,19 +58,26 @@ const handleFormatQuantity = () => {
 };
 const toastText = ref("");
 const handleAddToCart = async (size: ProductSize) => {
-  showNotification.value = false;
-  toastText.value = "";
-  await cart.addToCartStore(size.id!, quantity.value || 1);
-  if (cart.success) {
-    showNotification.value = true;
-    toastText.value = "🛒 Thêm vào giỏ hàng thành công!";
-    setTimeout(() => {
-      handleClose();
-    }, 2100);
-  } else {
-    toastText.value = "❌ Thêm vào giỏ hàng thất bại!";
     showNotification.value = false;
-  }
+    toastText.value = "";
+    const login = localStorage.getItem('accessToken') ? true : false;
+    if (!login) {
+        setTimeout(() => {
+            toastText.value = "❌ Vui lòng đăng nhập để thêm vào giỏ hàng!";
+        }, 0)        
+        return;
+    }
+    await cart.addToCartStore(size.id!, quantity.value || 1);
+    if (cart.success) {
+        showNotification.value = true;
+        toastText.value = "🛒 Thêm vào giỏ hàng thành công!";
+        setTimeout(() => {
+            handleClose();
+        }, 2100);
+    } else {
+        toastText.value = cart.error || "❌ Thêm vào giỏ hàng thất bại!";
+        showNotification.value = false;
+    }
 };
 
 const props = defineProps<{ product: ProductPayload }>();
@@ -217,8 +224,6 @@ const props = defineProps<{ product: ProductPayload }>();
   left: 0;
   width: 100%;
   height: 100%;
-  /* box-shadow: 0 2px 4px rgba(120, 118, 118, 0.2); */
-  /* background-color: rgba(132, 132, 132, 0.6); */
   background-color: rgba(0, 0, 0, 0.4);
   display: flex;
   justify-content: center;
@@ -545,8 +550,8 @@ input:focus {
   .container {
     flex-direction: column;
     /* align-items: center; */
-    width: 350px;
-    height: 700px;
+    width: 330px;
+    height: 550px;
   }
   .item-images {
     display: none;
@@ -564,16 +569,14 @@ input:focus {
   }
 
   .product-content {
-    width: 99%;
+    width: 94%;
     height: 40%;
-    gap: 5px;
+    /* background-color: aquamarine; */
+    gap: 2px;
   }
   .product-description {
-    width: 100%;
-    height: 15%;
-    display: flex;
-    flex-direction: column;
-    /* background-color: red; */
+    gap: 2px;
+    /* background-color: #333; */
   }
   .product-description .name {
     font-size: 19px;
@@ -583,6 +586,7 @@ input:focus {
   }
   .product-prices {
     width: 100%;
+    /* background-color: #ccc; */
     height: 15%;
     justify-content: flex-start;
     /* background-color: #007bff; */
@@ -592,7 +596,8 @@ input:focus {
   }
   .product-sizes {
     width: 100%;
-    height: 20%;
+    height: 10%;
+    /* background-color: antiquewhite; */
     /* background-color: aqua; */
   }
   .list-size {
@@ -613,8 +618,11 @@ input:focus {
   .text-size {
     font-size: 16px;
   }
+  .list-size{
+    gap: 8px;
+  }
   .size {
-    width: 40px;
+    width: 30px;
     height: 15px;
   }
   .product-colors {
@@ -626,8 +634,98 @@ input:focus {
     height: 10%;
   }
   .color {
-    width: 40px;
-    height: 40px;
+    width: 25px;
+    height: 25px;
+  }
+  .share {
+    display: none;
+  }
+
+  .btn-close {
+    display: flex;
+    background-color: rgb(224, 221, 221);
+    color: rgb(210, 141, 141);
+    font-size: 15px;
+  }
+  .btn-bottom {
+    margin-top: 4px;
+    height: 25%;
+    gap: 5px;
+    }
+    .btn-addtocart button {
+        font-size: 12px;
+        width: 50%;
+        height: 23px;
+    }
+    .size{
+        font-size: 13px;
+    }
+    .btn-detail {
+        font-size: 10px;
+    }
+}
+@media (max-width: 420px) {
+  .container {
+    width: 240px;
+    height: 400px;
+  }
+  .product-image {
+    width: 100%;
+    height: 55%;
+  }
+  .product-content {
+    height: 45%;
+  }
+  .product-description {
+    gap: 2px;
+  }
+  .product-description .name {
+    font-size: 14px;
+  }
+  .product-prices span{
+    font-size: 12px;
+  }
+  input {
+    border: 0.5px solid #5b5959;
+  }
+  .product-sizes {
+    width: 100%;
+    height: 10%;
+  }
+  .list-size {
+    column-gap: 20px;
+    row-gap: 10px;
+  }
+  .product-colors {
+    height: 40%;
+    /* background-color: greenyellow; */
+  }
+  .text-color {
+    height: 25%;
+    /* background-color: red; */
+  }
+  .product-description span {
+    font-size: 12px;
+  }
+  .text-size {
+    font-size: 16px;
+  }
+  .list-size {
+    column-gap: 6px;
+    row-gap: 2px;
+    }
+  .size {
+    width: 20px;
+    height: 12px;
+  }
+  .product-colors {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+  }
+  .color {
+    width: 25px;
+    height: 25px;
   }
   .share {
     display: none;
@@ -636,5 +734,19 @@ input:focus {
   .btn-close {
     display: flex;
   }
+  .btn-bottom {
+    margin-top: 10px;
+    height: 20%;
+    gap: 1px;
+}
+.btn-addtocart button {
+    font-size: 9px;
+    width: 45%;
+    height: 15px;
+    /* padding: 1px; */
+}
+.btn-detail {
+    font-size: 8px;
+}
 }
 </style>
