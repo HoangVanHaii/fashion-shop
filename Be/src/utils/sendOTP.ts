@@ -1,33 +1,21 @@
-import nodemailer from "nodemailer";
-import { AppError } from "./appError";
+import { Resend } from 'resend';
+import { AppError } from './appError';
+
+const resend = new Resend(process.env.RESEND_API_KEY);
 
 export const sendMail = async (to: string, subject: string, html: string) => {
     try {
-        const transporter = nodemailer.createTransport({
-            host: "smtp.sendgrid.net",
-            port: 587,
-            secure: false,
-            requireTLS: true,
-            auth: {
-                user: process.env.EMAIL_USER, // Phải là "apikey"
-                pass: process.env.EMAIL_PASS,  // Phải là API Key (SG.xxxx)
-            },
-            tls: {
-                rejectUnauthorized: false
-            }
+        await resend.emails.send({
+            from: 'Fashion Shop <onboarding@resend.dev>',
+            to: [to],
+            subject: subject,
+            html: html,
         });
 
-        const mailOptions = {
-            from: `"Fashion-shop" <hoanggvanhaii0705@gmail.com>`,
-            to: to,
-            subject: subject,
-            html: html, // Dùng 'html' vì tham số đầu vào là 'html'
-        };
-
-        await transporter.sendMail(mailOptions);
+        console.log(`✅ Mail đã gửi đến: ${to}`);
         return true;
     } catch (err) {
-        console.error("Lỗi gửi mail với SendGrid:", err);
-        throw new AppError("Failed to sendOtp", 500, false);
+        console.error('❌ Lỗi gửi mail:', err);
+        throw new AppError('Failed to sendOtp', 500, false);
     }
 };
