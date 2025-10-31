@@ -1,8 +1,9 @@
 <script setup lang="ts">
-import { ref, nextTick } from "vue";
+import { ref, nextTick, onMounted } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { useAuthStore } from "../stores/authStore";
 import iconLock from '../assets/iconLock.jpg'
+import Notification from "./Notification.vue";
 
 const props = defineProps(['email']);
 const emit = defineEmits(['close']);
@@ -14,6 +15,9 @@ const otpLength = 6;
 const otp = ref<string[]>(Array(otpLength).fill(""));
 const resending = ref<boolean>(false);
 const inputs = ref<(HTMLInputElement | null)[]>([]);
+
+const showNotification = ref<boolean>(false);
+const toastText = ref('');
 const handleInput = (index: number) => {
     err.value = "";
     const current = otp.value[index];
@@ -21,7 +25,11 @@ const handleInput = (index: number) => {
         nextTick(() => inputs.value[index + 1]?.focus());
     }
 };
-
+onMounted(() => {
+    if (inputs) {
+        nextTick(() => inputs.value?.[0]?.focus());
+    }
+})
 const handleBackspace = (event: KeyboardEvent, index: number) => {
     if (event.key === "Backspace" && !otp.value[index] && index > 0) {
         nextTick(() => inputs.value[index - 1]?.focus());
@@ -37,11 +45,16 @@ const handleSubmit = async () => {
         return;
     }
     const email: string = props.email
-    if(route.path == '/auth/register'){
+    if (route.path == '/auth/register') {
         await auth.verifyRegisterStore(email, otpCode)
         if(auth.success){
-              emit('close');
-            router.push('/auth/login')
+            showNotification.value = true;
+            toastText.value = "✅ Xác thực thành công!";
+            setTimeout(() => {
+                emit('close');
+                router.push('/auth/login')
+            }, 1200);  
+            
         }
         if(auth.error){
             err.value = auth.error;
@@ -49,7 +62,6 @@ const handleSubmit = async () => {
     }
     auth.loading = false;
 }
-
 const handleResendOTP = async () => {
     resending.value = true;
     err.value = "";
@@ -64,11 +76,16 @@ const handleResendOTP = async () => {
         
     }, 1500);
 }
+const handleClose = () => {
+    emit('close');
+}
 </script>
 
 <template>
-    <div class="otp-wrapper">
-        <div class="otp-card">
+    <Notification :text="toastText" :isSuccess="showNotification" />
+
+    <div class="otp-wrapper" @click="handleClose" >
+        <div class="otp-card" @click.stop>
             <img :src="iconLock" alt="otp" class="otp-logo" />
             <h2>XÁC THỰC OTP</h2>
             <p class="otp-desc">
@@ -119,8 +136,14 @@ const handleResendOTP = async () => {
     display: flex;
     justify-content: center;
     align-items: center;
-    height: 100vh;
-    background-color: rgba(126, 126, 126, 0.5); 
+    height: 100%;
+    position: fixed;
+    width: 100%;
+    top: 0;
+    left: 0;
+    z-index: 99999;
+    background-color: rgba(0,0,0, 0.4) 
+    /* background-color: red; */
 }
 
 .otp-card {

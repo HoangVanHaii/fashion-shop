@@ -4,7 +4,9 @@ import type { Ref } from "vue";
 import { useAuthStore } from "../stores/authStore";
 import { getImage } from "../utils/format";
 import { useRouter } from "vue-router";
+import { useUserStore } from "../stores/userStore";
 
+const userStore = useUserStore();
 const props = defineProps<{
   showMenu: boolean;
   showDetail: boolean;
@@ -38,7 +40,8 @@ onMounted(async () => {
     );
     auth.user = res.data;
   }
-  window.addEventListener("resize", handleResize);
+  await userStore.fetchProfile();
+    window.addEventListener("resize", handleResize);
 });
 const handleResize = () => {
   if (window.innerWidth > 768) {
@@ -284,8 +287,10 @@ const handleShow = () => {
   justify-content: center;
 }
 .profile .infor img {
-  width: 100%;
+  width: 70px;
+  height: 70px;
   margin: 0 auto;
+  border-radius: 50%;
 }
 .navbar {
   width: 65%;

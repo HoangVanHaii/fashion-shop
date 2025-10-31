@@ -1,5 +1,5 @@
 <script setup lang="ts">
-    import { ref } from 'vue';
+    import { ref, onMounted } from 'vue';
     import { useRouter, useRoute } from 'vue-router';
     import logo from "../assets/logo.jpg"
     import { useAuthStore } from '../stores/authStore';
@@ -27,7 +27,13 @@
     const passwordInput = ref<HTMLInputElement | null>(null);
     const dobInput = ref<HTMLInputElement | null>(null);
     const showPassword = ref(false)
+    const showRegisteruser = ref<boolean>(false);
 
+onMounted(() => {
+        if (route.path == '/auth/register') {
+            showRegisteruser.value = true;  
+        }
+    })
 
     const openRegister = () => {
         email.value = '';
@@ -127,8 +133,9 @@
 <template>
      <Header />
      <Notification :text="toastText" :isSuccess="showNotification" />
+     <VerifyOTP :email="email" v-if="showVerify" @close="showVerify = false"/>
     <div class="container">
-        <div class="slogan">
+        <div class="slogan" :class="{render: showRegisteruser}">
             <img :src="logo" alt="">
             <p class="welcome">Chào mừng bạn đến với Nava </p>
             <p class="shopping"> Thiên đường mua sắm</p>
@@ -205,24 +212,24 @@
                     {{ auth.loading ? 'Đang đăng nhập...' : 'Đăng nhập' }}
                 </button>
             </div>
-            <span id="or">————— Hoặc —————</span>
-            <div class="other-login">
-                <button class="facebook"><i class="fa-brands fa-facebook"></i> Facebook</button>
-                <button class="google"><i class="fa-brands fa-google"></i> Google</button>
-                
-            </div>
             <p 
                 :class="{ shake: isShaking }" 
                 style="color: red; transition: all 0.2s;">
                 {{ auth.error }}
             </p>
+            <span id="or">————— Hoặc —————</span>
+            <div class="other-login">
+                <button class="facebook"><i class="fa-brands fa-facebook"></i> Facebook</button>
+                <button class="google"><i class="fa-brands fa-google"></i> Google</button>
+            </div>
+            
         </div>
     </div>
-    <div v-if="showVerify" class="modal-overlay" @click="showVerify = false">
+    <!-- <div v-if="showVerify" class="modal-overlay" @click="showVerify = false">
         <div class="modal-content" @click.stop>
             <VerifyOTP :email="email" :phone="phone" @close="showVerify = false" />
         </div>
-    </div>
+    </div> -->
 </template>
 <style scoped>
 .loading-button {
@@ -234,23 +241,22 @@
     font-size: 15px;
 }
 .container {
-    margin-top: 9%; 
-    width: 96%;
-    height: 100vh;
+    margin-top: 9%;     
+    width: 100%;
+    height: 90vh;
     display: flex;
     flex-direction: row;
     justify-content: space-between;
-    padding: 1rem;    
+    align-items: center;
 }
 .slogan {
-    height: 60%;
     width: 40%;
     margin-left: 2rem;
     display: flex;
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    font-size: 30px;
+     font-size: 30px;
 }
 img{
     width: 30%;
@@ -273,7 +279,7 @@ img{
 }
 
 .form-register, .form-login  {
-    height: 85%;
+    height: auto;
     width: 32%;
     border: 1px solid rgb(153, 153, 153);
     margin-right: 4%;
@@ -283,7 +289,7 @@ img{
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
     transform: translateX(250px);
     animation: slideIn 1s ease-out forwards;
-
+    padding-bottom: 4px;
 }
 @keyframes shake {
   0%, 100% { transform: translateX(0); }
@@ -408,7 +414,7 @@ button:hover{
     color: rgb(232, 51, 51);
 }
 .form-login {
-    height: 56%;
+    /* height: 56%; */
 }
 .forgetPass{
     font-size: 13px;
@@ -442,17 +448,40 @@ button:hover{
     font-size: 13px;
 }
 
+.register-container {
+    transition: filter 0.3s ease;
+}
+.register-container.blurred {
+    filter: blur(3px);
+    pointer-events: none;
+}
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5); /* Background đen mờ */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+}
+
+.modal-content {
+    position: relative;
+    z-index: 10000;
+}
+.loading-button {
+    cursor: wait !important;
+    opacity: 0.7;
+}
 @media screen and (max-width: 1024px) and (min-width: 768px) {
     .slogan {
         width: 40%;
     }
-    .form-register {
-        width: 44%;
-        height: 85%;
-    }
-    .form-login {
-        width: 40%;
-        height: 55%;
+    .container{
+        height: 50vh;
     }
     .content{
         width: 90%;
@@ -485,61 +514,45 @@ button:hover{
     .container{
         display: flex;
         flex-direction: column;
-        justify-content: start;
+        justify-content: space-evenly;
         align-items: center;
-        padding: 3px;
-        top:8%;
         height: 90vh;
+        /* padding: 3px;
+        top:8%;
+        height: 90vh; */
     }
     .slogan{
         width: 90%;
-        margin: 0;
         height: 10%;
+        margin:  0 auto;
     }
     .form-register {
-        width: 90%;
+        width: 100%;
         margin: 0;
-        height: 64%;
+         margin: 0 auto;
         transform: translateY(80px);
 
     }
     .form-login {
-        width: 90%;
-        margin: 0;
-        height: 44%;
+        width: 100%;
+        margin: 0 auto;
         transform: translateY(80px);
     }
     .shopping, .welcome {
         font-size: 20px;
     }
 }
+@media (max-width: 380px) {
+    .container {
+        height: 100vh;
+        /* margin-top: 30[]; */
+    }
+    .slogan{
+        margin-top: 100px;
+    }
+    /* .render{
+        margin-top: 100px;
+    } */
 
-.register-container {
-    transition: filter 0.3s ease;
-}
-.register-container.blurred {
-    filter: blur(3px);
-    pointer-events: none;
-}
-.modal-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.5); /* Background đen mờ */
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    z-index: 9999;
-}
-
-.modal-content {
-    position: relative;
-    z-index: 10000;
-}
-.loading-button {
-    cursor: wait !important;
-    opacity: 0.7;
 }
 </style>

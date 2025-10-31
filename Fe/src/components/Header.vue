@@ -41,6 +41,7 @@ await cart.getCartCountStore();
   if (storedAvatar && storedAvatar.length > 10) {
     avatar.value = storedAvatar;
   }
+  // 
   isLogin.value = localStorage.getItem("user_id") ? true : false;
 //   products.value = await useProduct.getAllProductActiveStore();
 });

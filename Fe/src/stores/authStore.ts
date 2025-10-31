@@ -168,6 +168,7 @@ export const useAuthStore = defineStore('auth', () => {
             console.error("Failed to get user by ID:", error);
         }
     }
+    
     return {
         OTP,
         loading,

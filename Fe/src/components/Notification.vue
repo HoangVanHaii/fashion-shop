@@ -32,7 +32,7 @@ watch(() => props.text, (newVal) => {
     padding: 10px 20px;
     border-radius: 6px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
-    z-index: 9999;
+    z-index: 9999999;
     font-size: 18px;
     max-width: 300px;
     text-align: center;
