@@ -1,30 +1,21 @@
-import nodemailer from "nodemailer";
-import { AppError } from "./appError";
+import { Resend } from 'resend';
+import { AppError } from './appError';
+
+const resend = new Resend(process.env.RESEND_API_KEY);
+
 export const sendMail = async (to: string, subject: string, html: string) => {
-  try {
-      const transporter = nodemailer.createTransport({
-          host: "smtp.gmail.com",
-          port: 587,
-          secure: false,
-          requireTLS: true,
-          auth: {
-              user: process.env.EMAIL_USER,
-              pass: process.env.EMAIL_PASS,
-          },
-          tls: {
-              rejectUnauthorized: false
-          }
-      });
-    const mailOptions = {
-      from: `"Fashion-shop" <${process.env.EMAIL_USER}>`,
-      to: to,
-      subject: subject,
-      text: html,
-    };
-    await transporter.sendMail(mailOptions);
-    return true;
-  } catch (err) {
-    console.error(err);
-    throw new AppError("Failed to sendOtp", 500, false);
-  }
+    try {
+        await resend.emails.send({
+            from: 'Fashion Shop <onboarding@resend.dev>',
+            to: [to],
+            subject: subject,
+            html: html,
+        });
+
+        console.log(`✅ Mail đã gửi đến: ${to}`);
+        return true;
+    } catch (err) {
+        console.error('❌ Lỗi gửi mail:', err);
+        throw new AppError('Failed to sendOtp', 500, false);
+    }
 };
