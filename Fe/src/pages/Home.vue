@@ -1427,6 +1427,15 @@ const toggleFavourite = async (id: number) => {
   }
 }
 @media (max-width: 768px) {
+
+    .grid-item, .promo-product .product-item {
+        width: 150px;
+        height: 240px;
+    }
+    .grid-info{
+        gap: 6px;
+        justify-content: space-evenly;
+    }
   .banner-container {
     height: 30%;
   }
@@ -1457,6 +1466,13 @@ const toggleFavourite = async (id: number) => {
     padding: 1px;
     line-height: 1.3em;
   }
+  .products-grid.arrivals.flex-wrap{
+    gap: 7px;
+        justify-content: space-between;
+    /* gap: 16px;
+    justify-content: space-around; */
+
+  }
   .btn-voucher {
     gap: 10px;
   }
@@ -1473,6 +1489,9 @@ const toggleFavourite = async (id: number) => {
     width: 98%;
     /* background-color: aqua; */
   }
+  .progress-bar {
+    height: 4.5px;
+    }
   .promo-product {
     height: 300px;
     /* background-color: red; */
@@ -1484,12 +1503,6 @@ const toggleFavourite = async (id: number) => {
   .flashsale-time .time-box {
     width: 20px;
     height: 16px;
-  }
-  .promo-product .product-item {
-    width: 170px;
-    height: 300px;
-    margin-bottom: 5px;
-    /* background-color: aqua; */
   }
   .time-box .time {
     font-size: 9px;
@@ -1527,23 +1540,32 @@ const toggleFavourite = async (id: number) => {
     width: 20px;
     height: 20px;
   }
-
-  .promo-product .product-bottom {
-    height: 35%;
-    gap: 20px;
+  .grid-prices{
+    gap: 1px;
   }
-  .featured-products .title {
+  .grid-prices span{
+    font-size: 13px;
+  }
+  .product-action button i{
     font-size: 15px;
   }
+  .promo-product .product-bottom {
+    height: 35%;
+    gap: 10px;
+  }
+  .featured-products .title {
+    font-size: 13px;
+  }
   .product-bottom .product-prices span {
-    font-size: 14px;
+    font-size: 13px;
   }
   .product-sold {
     margin-top: 4px;
   }
   .product-sold span {
-    font-size: 13px;
+    font-size: 12px;
   }
+  
   .section-wrapper {
     gap: 20px;
   }
@@ -1579,5 +1601,33 @@ const toggleFavourite = async (id: number) => {
     padding: 2px;
     width: 70px;
   }
+  .grid-action i {
+        font-size: 15px;
+        color: black;
+    }
+    .grid-bottom .grid-prices span {
+        font-size: 13px;
+    }
+    .btn-new-arrival, .btn-best-seller {
+        padding: 3px;
+        font-size: 13px;
+        border-radius: 4px;
+        margin: 30px 0;
+    }
+    .products-grid.bestseller.flex-wrap {
+        /* justify-content: space-around; */
+        gap: 7px;
+        justify-content: space-between;
+    }
+}
+@media(max-width: 350px){
+    .grid-item, .promo-product .product-item {
+        width: 130px;
+        height: 225px;
+    }
+    .progress-bar {
+        height: 3px;
+    }
+    
 }
 </style>

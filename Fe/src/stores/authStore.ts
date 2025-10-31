@@ -174,6 +174,7 @@ export const useAuthStore = defineStore('auth', () => {
         user,
         error,
         success,
+        isLogin,
         registerSendOtpStore,
         verifyRegisterStore,
         loginStore,

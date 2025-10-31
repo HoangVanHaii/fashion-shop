@@ -34,7 +34,7 @@ watch(() => props.text, (newVal) => {
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
     z-index: 9999;
     font-size: 18px;
-    max-width: 300px;
+    max-width: 350px;
     text-align: center;
 }
 .toast-success{
