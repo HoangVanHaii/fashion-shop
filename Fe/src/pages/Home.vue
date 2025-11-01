@@ -108,7 +108,7 @@ onMounted(async () => {
     flashSaleHomes.value?.id ? flashSaleHomes.value.id.toString() : ""
   );
 
-  totalSolds.value = await useFlashSale.getTotalSoldFlashSaleByIdStore();
+  totalSolds.value = await useFlashSale.getTotalSoldFlashSaleByIdStore(flashSaleHomes.value?.id || 3);
 
   productBestSeller.value = await useProduct.getProductBestSellerStore();
 
