@@ -161,6 +161,8 @@ const gotoAddProduct = () => {
     );
         handleResize();    
     showManagermentProduct.value = true;
+    showAddProduct.value = true;
+    router.push({name: 'add-product-seller'})
 }
 const goToStatistical = () => {
     reset(

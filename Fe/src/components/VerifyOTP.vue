@@ -94,7 +94,7 @@ const handleResendOTP = async () => {
     otp.value = Array(otpLength).fill("");
     nextTick(() => inputs.value[0]?.focus());
 
-    countdown.value = 10;
+    countdown.value = 120;
     timer = setInterval(() => {
         countdown.value--;
         if (countdown.value <= 0) {

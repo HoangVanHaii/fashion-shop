@@ -101,8 +101,9 @@ const goToLogout = async() => {
     router.push("/home");   
 };
 
+
 const goToProfile = () => {
-  router.push("/profile/orderOfme");
+  router.push("/profile/me");
 };
 const getDiscountPercent = (
   originalPrice: number,

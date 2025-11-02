@@ -121,13 +121,20 @@ showForgot.value = false;
         if(auth.success) {
             showNotification.value = true;
             toastText.value = "✅ Đăng nhập thành công!";
+
             setTimeout(() => {
                 const redirectPath = router.currentRoute.value.query.redirect;
                 if (redirectPath) {
                     router.push(redirectPath.toString());
                 }
                 else {
-                    router.push('/');
+                    if (auth.user?.role === 'seller') {
+                        router.push({ name: 'home-seller' });
+                    } else if (auth.user?.role === 'admin') {
+                        router.push({name: 'accountPermission-admin'})
+                    } else {
+                        router.push('/');
+                    }
                 }
             }, 1500);
         }

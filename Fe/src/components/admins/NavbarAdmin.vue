@@ -57,8 +57,8 @@ const showAllOrder = ref<boolean>(false);
 const showAllProduct = ref<boolean>(false);
 const showAddProduct = ref<boolean>(false);
 const showReview = ref<boolean>(false);
-const showProfile = ref<boolean>(false);
-const showProfileShop = ref<boolean>(false);
+const showProfile = ref<boolean>(true);
+const showProfileShop = ref<boolean>(true);
 const showStatistical = ref<boolean>(false);
 
 const reset = (...args: Ref<boolean>[]) => {

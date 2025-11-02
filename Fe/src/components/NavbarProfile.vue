@@ -88,6 +88,7 @@ const goToFavourite = () => {
     showAddress,
     showResetPassword
   );
+
   router.push({
     name: "favourite",
   });
@@ -180,7 +181,7 @@ const goToAddress = () => {
     name: "address",
   });
     // );
-    // showDetail.value = true;
+    showDetail.value = true;
 };
 const goToResetPass = () => {
   reset(
@@ -198,7 +199,7 @@ const goToResetPass = () => {
     name: "changePassword",
   });
     // );
-    // showDetail.value = true;
+    showDetail.value = true;
 };
 const emit = defineEmits(["update:show-menu"]);
 

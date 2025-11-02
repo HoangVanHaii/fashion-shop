@@ -23,6 +23,21 @@ import emitter from "../../utils/eventBus";
 const toggleNavbar = () => {
   emitter.emit("toggle-navbar");
 };
+
+const isDropdownOpen = ref(false);
+
+const toggleDropdown = () => {
+  isDropdownOpen.value = !isDropdownOpen.value;
+};
+
+const handleLogout = () => {
+  localStorage.removeItem("accessToken");
+    localStorage.removeItem("refreshToken");
+    localStorage.removeItem("user_id");
+  localStorage.removeItem("avatar");
+
+  router.push('/auth/login')
+}
 </script>
 
 <template>
@@ -53,14 +68,24 @@ const toggleNavbar = () => {
             <div class="header-right">
                 <i class="fa-solid fa-grip"></i>
                 <hr>
-                <img :src="getImage(shop?.logo || '')" alt="">
-                <span class="shop-name">{{ shop?.shop_name }}</span>
-                <span><i class="fa-solid fa-chevron-down"></i></span>
+                <div class="user-dropdown" @click="toggleDropdown">
+                    <img :src="getImage(shop?.logo || '')" alt="">
+                    <span class="shop-name">{{ shop?.shop_name }}</span>
+                    <span><i class="fa-solid fa-chevron-down"></i></span>
+                </div>
                 <i class="fa-solid fa-bars" @click.stop="toggleNavbar"></i>
+                
+                <!-- Dropdown Menu -->
+                <div v-if="isDropdownOpen" class="dropdown-menu">
+                    <button class="dropdown-item">Thông tin tài khoản</button>
+                    <hr class="dropdown-divider">
+                    <button class="dropdown-item danger" @click="handleLogout">Đăng xuất</button>
+                </div>
             </div>
         </div>
     </header>
 </template>
+
 <style scoped>
 .fa-bars{
     display: none;
@@ -120,20 +145,34 @@ header{
     display: flex;
     font-size: 27px;
     gap: 10px;
-
     justify-content: center;
     align-items: center;
+    position: relative;
 }
+
+.user-dropdown {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+    padding: 5px;
+    border-radius: 8px;
+    transition: background-color 0.2s;
+}
+
+.user-dropdown:hover {
+    background-color: #f5f5f5;
+}
+
 hr{
     height: 25px;
 }
 .header-right img{
-    width: 55px;
-    height: 55px;
+    width: 40px;
+    height: 40px;
     border-radius: 50%;
 }
 .navbar{
-
     color: rgb(124, 124, 124);
     display: flex;
     gap: 20px;
@@ -150,13 +189,57 @@ hr{
 .logo{
     display: none;
 }
+
+/* Dropdown Menu Styles */
+.dropdown-menu {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    margin-top: 8px;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    min-width: 200px;
+    overflow: hidden;
+    z-index: 1001;
+}
+
+.dropdown-item {
+    width: 100%;
+    padding: 12px 16px;
+    border: none;
+    background: white;
+    text-align: left;
+    font-size: 16px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.dropdown-item:hover {
+    background-color: #f5f5f5;
+}
+
+.dropdown-item.danger {
+    color: #dc3545;
+}
+
+.dropdown-item.danger:hover {
+    background-color: #fff5f5;
+}
+
+.dropdown-divider {
+    margin: 0;
+    border: none;
+    border-top: 1px solid #e0e0e0;
+    height: 1px;
+}
+
 @media(max-width: 767px){
     .header-left{
         display: none;
     }
     .logo{
         display: flex;
-        /* width: 50%; */
         height: 45px;
         margin-top: 5px;
         margin-right: 15px;

@@ -197,7 +197,7 @@ const verifyOtp = async () => {
   <div class="container" @click="handleHideNavbar">
     <NavbarProfile
       v-model:show-menu="showNavbar"
-      :show-detail="false"
+      :show-detail="true"
       :show-address="false"
       :show-favourite="false"
       :show-notification="false"

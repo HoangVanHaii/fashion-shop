@@ -1,11 +1,20 @@
 <script setup lang="ts">
 import { ref } from 'vue';
+import router from '../../routers';
 
 const isDropdownOpen = ref(false);
 
 const toggleDropdown = () => {
   isDropdownOpen.value = !isDropdownOpen.value;
 };
+const handleLogout = () => {
+  localStorage.removeItem("accessToken");
+    localStorage.removeItem("refreshToken");
+    localStorage.removeItem("user_id");
+  localStorage.removeItem("avatar");
+
+  router.push('/auth/login')
+}
 </script>
 
 <template>
@@ -34,7 +43,7 @@ const toggleDropdown = () => {
         <button class="dropdown-item">Thông tin tài khoản</button>
         <!-- <button class="dropdown-item">Cài đặt</button> -->
         <hr class="dropdown-divider">
-        <button class="dropdown-item danger">Đăng xuất</button>
+        <button class="dropdown-item danger" @click="handleLogout">Đăng xuất</button>
       </div>
     </div>
   </header>
