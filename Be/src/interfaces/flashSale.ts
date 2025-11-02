@@ -30,5 +30,6 @@ export interface ImageProducts {
 export interface FlashSaleProductSold {
     product_id: number;
     total_flash_sale_sold: number;
+    total_stock: number;
   }
   

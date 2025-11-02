@@ -682,7 +682,8 @@ export const getTotalSoldFlashSaleById = async(id: number): Promise<FlashSalePro
             .query(`
                 SELECT 
                     p.id AS product_id,
-                    SUM(fsi.sold) AS total_flash_sale_sold
+                    SUM(fsi.sold) AS total_flash_sale_sold,
+                    SUM(fsi.stock) as total_stock
                 FROM products p
                 INNER JOIN product_colors pc ON pc.product_id = p.id
                 INNER JOIN product_sizes ps ON ps.color_id = pc.id
