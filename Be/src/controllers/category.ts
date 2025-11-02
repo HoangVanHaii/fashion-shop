@@ -5,7 +5,20 @@ import redisClient from "../config/redisClient";
 
 export const getAllActiveCategories = async (req: Request, res: Response, next: NextFunction) => {
     try {
+        const cacheKey = `category:active`;
+        const cachedData = await redisClient.get(cacheKey);
+        if (cachedData) {
+            res.json({
+                success: true,
+                message: "Get active categories successfully",
+                data: JSON.parse(cachedData)
+            });      
+        }
         const categories = await categoryService.getAllActiveCategories();
+        await redisClient.set(cacheKey, JSON.stringify(categories), {
+            EX: 60 * 50
+        });
+
         res.json({
             success: true,
             message: "Get active categories successfully",
