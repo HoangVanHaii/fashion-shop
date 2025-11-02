@@ -2,7 +2,7 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
 import type { User } from '../interfaces/user'
-import { getProfile, updateInfoAPI , verifyChangeEmailAPI, changeEmailAPI,updateAvatarAPI } from '../services/user'
+import { getProfile, updateInfoAPI , verifyChangeEmailAPI, changeEmailAPI,updateAvatarAPI, changePassword } from '../services/user'
 
 export const useUserStore = defineStore('user', () => {
   const user = ref<User | null>({
@@ -73,6 +73,16 @@ export const useUserStore = defineStore('user', () => {
     }
   }
 
+  const changePasswordStore= async (password: string,newPassword: string)=>{
+    try {
+      loading.value = true
+      const res = await changePassword(password, newPassword)
+      return res.message
+    } finally {
+      loading.value = false
+    }
+  }
+
   const updateAvatar = async (file: File) => {
     try {
       loading.value = true
@@ -101,6 +111,7 @@ export const useUserStore = defineStore('user', () => {
     otpSent,
     emailPending,
       updateAvatar,
-      avatar
+      avatar,
+      changePasswordStore
   }
 })

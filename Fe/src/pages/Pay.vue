@@ -1,6 +1,10 @@
 <template>
-    <Header />
-    <Loading :loading="loadingOrder" />
+    <Header></Header>
+    <Notification
+        :isSuccess="isNotification"
+        :text="toastText"
+    />
+    <Loading :loading="addressStore.loadingAddress" />
     <div class="cart-page">
         <div class="cart-content">
             <div class="tab">
@@ -20,10 +24,10 @@
                         <span>Địa Chỉ Nhận Hàng</span>
                     </div>
                     <div class="address">
-                        <span>Nguyễn Hải Đăng | </span>
-                        <span>0768533364 | </span>
-                        <span>Tổ 11, ấp Tân Điền, xã Lý Nhơn, huyện Cần Giờ, TP HCM</span>
-                        <b class="change-address">Thay đổi</b>
+                        <span>{{ addressStore.addressDefault.name }} | </span>
+                        <span>{{ addressStore.addressDefault.phone }} | </span>
+                        <span>{{displayAddress (addressStore.addressDefault.address) }}</span>
+                        <b class="change-address" @click="showAddress">Thay đổi</b>
                     </div>
                 </div>
                 <div class="header2">
@@ -171,6 +175,144 @@
             @close="closeVoucherModal"
             @selected="handleSelectVoucher"
             />
+        <div v-if="showListAddress" class="container-wrapper">
+            <div class="container-main">
+                <!-- Header -->
+                <div class="header">
+                <h1 class="header-title">Địa Chỉ Của Tôi</h1>
+                </div>
+
+                <!-- Address List -->
+                <div class="address-list">
+                    <div
+                        v-for="address in addressStore.listAddress"
+                        :key="address.id"
+                        class="address-item"
+                        >
+                        <div class="address-wrapper">
+                        <!-- Radio Button -->
+                            <div class="radio-group">
+                                <input
+                                type="radio"
+                                :id="`address-${address.id}`"
+                                :value="address.id"
+                                v-model="selectedAddress"
+                               
+                                class="radio-input"
+                                />
+                            </div>
+
+                            <!-- Address Info -->
+                            <div class="address-info">
+                                <div class="info-header">
+                                <h3 class="info-name">{{ address.name }}</h3>
+                                <span class="info-phone"> |  {{ address.phone }}</span>
+                                </div>
+
+                                <p class="info-address">{{ displayAddress(address.address) }}</p>
+
+
+                                <span v-if="address.is_default" class="badge-default">
+                                Mặc định
+                                </span>
+                            </div>
+
+                        
+                            <div class="action-edit">
+                                <a href="#" class="link-update" @click="handleUpdate(address)">Cập nhật</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Add New Address -->
+                <div class="add-address-section">
+                <button @click="openAddAddressForm" class="btn-add-address">
+                    <span> + Thêm địa chỉ mới</span>
+                </button>
+                </div>
+
+                <!-- Footer Buttons -->
+                <div class="footer-actions">
+                <button @click="handleCancel" class="btn-cancel">
+                    Hủy
+                </button>
+                <button @click="handleConfirm" class="btn-confirm">
+                    Xác nhận
+                </button>
+                </div>
+            </div>
+        </div>
+        <!-- Thêm vào template, bên cạnh container-wrapper -->
+
+ <!-- Thêm vào template, bên cạnh container-wrapper -->
+
+        <div v-if="showAddAddressForm" class="container-wrapper">
+            <div class="container-main">
+                <!-- Header -->
+                <div class="header">
+                    <h1 class="header-title">Thêm Địa Chỉ</h1>
+                </div>
+
+                <!-- Form -->
+                <form @submit.prevent="handleSubmitAddress" class="add-address-form">
+                    <!-- Hàng 1: Tên và SĐT -->
+                    <div class="form-row">
+                        <div class="form-group">
+                            <input 
+                                v-model="newAddress.name"
+                                type="text" 
+                                id="name" 
+                                class="form-input"
+                                required
+                            />
+                            <label for="name" class="form-label">Họ và tên</label>
+                        </div>
+
+                        <div class="form-group">
+                            <input 
+                                v-model="newAddress.phone"
+                                type="tel" 
+                                id="phone" 
+                                class="form-input phone"
+                                required
+                            />
+                            <label for="phone" class="form-label">Số điện thoại</label>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <input v-model="province" type="text" id="province" class="form-input" required />
+                        <label for="province" class="form-label">Tỉnh/Thành phố, Quận huyện, Phường/Xã</label>
+                    </div>
+
+                    <div class="form-group">
+                        <input v-model="address" type="text" id="address" class="form-input" required />
+                        <label for="address" class="form-label">Tên đường, Số nhà</label>
+                    </div>
+                    
+                    <div class="form-group checkbox">
+                        <input 
+                            v-model="newAddress.is_default"
+                            type="checkbox" 
+                            id="is_default" 
+                            class="form-checkbox"
+                        />
+                        <label for="is_default" class="checkbox-label">Đặt làm địa chỉ mặc định</label>
+                    </div>
+
+                    <!-- Footer Buttons -->
+                    <div class="footer-actions">
+                        <button type="button" @click="handleCancelAddAddress" class="btn-cancel">
+                            Trở lại
+                        </button>
+                        <button type="submit" class="btn-confirm">
+                            Hoàn thành
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
     </div>
 </template>
 
@@ -185,10 +327,18 @@ import Header from '../components/Header.vue'
 import Loading from '../components/Loading.vue'
 import router from '../routers'
 import { getImage } from '../utils/format'
+import { useAddressStore } from '../stores/addressStore'
+import type { Address } from '../interfaces/address'
+import Notification from '../components/Notification.vue'
+const toastText = ref<string>('')
+const isNotification = ref<boolean>(false);
+
+const addressStore = useAddressStore();
 
 const cartStore = useCartStore()
 const orderStore = useOrderStore()
 const showVoucher = ref(false)
+const selectedAddress = ref<number>(0)
 
 const loadingOrder = ref<boolean>(false);
 const openVoucherModal = () => {
@@ -199,13 +349,17 @@ const closeVoucherModal = () => {
   showVoucher.value = false
 }
 
-onMounted(() => {
+onMounted(async() => {
     console.log(cartStore.cartPay);
     if (cartStore.cartPay?.shops.length === 0) {
         // Handle empty cart
     }
     console.log('Voucher in cartPay:', cartStore.cartPay?.voucher_discount)
-
+    
+    await addressStore.getAddressesByUserStore();
+    if(addressStore.addressDefault.id){
+        selectedAddress.value = addressStore.addressDefault.id
+    }
 })
 
 
@@ -287,9 +441,9 @@ const clickOrder = async () => {
 
     const order: Order={
         voucher_code:cartStore.cartPay.voucher_code,
-        shipping_name:'Nguyễn Hải Đăng', 
-        shipping_address:'Tổ 11, ấp Tân Điền, xã Lý Nhơn, huyện Cần Giờ, TP HCM',
-        shipping_phone: '0768533364',
+        shipping_name:addressStore.addressDefault.name, 
+        shipping_address:addressStore.addressDefault.address,
+        shipping_phone:addressStore.addressDefault.phone,
         payment_method:selectedMethod.value?.id as Order['payment_method']
     }
 
@@ -329,6 +483,140 @@ const clickOrder = async () => {
 }
 
 
+// address
+const showListAddress = ref<Boolean>(false)
+
+const showAddress = () =>{
+    if(addressStore.addressDefault.id){
+        selectedAddress.value = addressStore.addressDefault.id
+    }
+    showListAddress.value = true;
+}
+const handleConfirm = async () => {
+  const selected = addressStore.listAddress.find(a => a.id === selectedAddress.value
+  );
+
+  if (!selected) {
+    return;
+  }
+  toastText.value=""
+  try {
+    const address:Address={
+        ...selected,
+         is_default: true
+    }
+    await addressStore.updateAddressStore(address);
+    await addressStore.getAddressesByUserStore();
+    
+    toastText.value="Đã cập nhật địa chỉ mặc định"
+    isNotification.value = true
+    showListAddress.value = false;
+
+
+  } catch (err) {
+    toastText.value=""
+    toastText.value="Cập nhật địa chỉ mặc định thất bại"
+    isNotification.value = false
+  }
+};
+
+
+const handleCancel = () => {
+  showListAddress.value=false;
+}
+
+
+
+// add address
+const showAddAddressForm = ref<boolean>(false)
+const openAddAddressForm = ()=>{
+    newAddress.value = {
+        name: '',
+        phone: '',
+        address: '',
+        is_default: false
+    }
+    showListAddress.value = false
+    showAddAddressForm.value = true
+}
+const address = ref<String>("")
+const province = ref<String>("")
+
+const newAddress = ref<Address>({
+    name: '',
+    phone: '',
+    address:'',
+    is_default: false
+})
+
+
+const handleCancelAddAddress = () => {
+    showAddAddressForm.value = false
+    showListAddress.value = true
+}
+
+const handleSubmitAddress = async () => {
+    newAddress.value.address = `${address.value.trim()},- ${province.value.trim()}`
+    try {
+        const addressPayload: Address = {
+            name: newAddress.value.name,
+            phone: newAddress.value.phone,
+            address: newAddress.value.address,
+            is_default: newAddress.value.is_default
+        }
+        await addressStore.addAddressStore(addressPayload)
+        await addressStore.getAddressesByUserStore()
+        if(addressStore.addressDefault.id){
+            selectedAddress.value = addressStore.addressDefault.id
+        }
+        showAddAddressForm.value = false
+        showListAddress.value = true
+        toastText.value=""
+        toastText.value="Đã thêm địa chỉ mới thành công"
+        isNotification.value = true
+        console.log("Đã thêm địa chỉ mới thành công")
+    } catch (err) {
+        toastText.value=""
+        toastText.value="Lỗi khi thêm địa chỉ"
+        isNotification.value = false
+        console.error("Lỗi khi thêm địa chỉ:", err)
+    }
+}
+
+const handleUpdate = async (addr: Address) => {
+  toastText.value = "";
+
+  if (addr) {
+    let addressPart = "";
+    let provincePart = "";
+
+    if (addr.address.includes(",-")) {
+      const parts = addr.address.split(",-");
+      addressPart = parts[0]?.trim() || "";
+      provincePart = parts[1]?.trim() || "";
+    } else {
+      addressPart = addr.address;
+      provincePart = "";
+    }
+
+    newAddress.value = {
+      id: addr.id,
+      name: addr.name,
+      phone: addr.phone,
+      address: addressPart,
+      is_default: addr.is_default,
+    };
+    address.value = addressPart;
+    province.value = provincePart;
+
+    showAddAddressForm.value = true;
+  }
+};
+const displayAddress = (addr: string) => {
+  if (!addr) return "";
+  const parts = addr.split(",-");
+  return parts.join(", ");
+};
 </script>
 
 <style scoped>
@@ -911,6 +1199,303 @@ text-align: left;
     }
 
 
+
+    /* adress */
+.container-wrapper {
+  position: fixed;          
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  padding: 1rem;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;   
+}
+
+.container-main {
+  width: 100%;
+  max-width: 28rem;
+  background-color: white;
+  border-radius: 0.5rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+}
+
+/* Header */
+.header {
+  background-color: white;
+  border-bottom: 1px solid #e5e7eb;
+  padding: 1rem 1.5rem;
+}
+
+.header-title {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: #1f2937;
+  margin: 0;
+}
+
+/* Address List */
+.address-list {
+  border-top: 1px solid #e5e7eb;
+   max-height: 300px;
+  overflow-y: auto;
+}
+
+.address-list::-webkit-scrollbar {
+  display: none; 
+}
+.address-list {
+  -ms-overflow-style: none; 
+  scrollbar-width: none;    
+}
+
+.address-item {
+  padding: 1rem;
+  border-bottom: 1px solid #e5e7eb;
+  transition: background-color 0.2s ease;
+}
+
+.address-item:hover {
+  background-color: #fafafa;
+}
+
+.address-item:last-child {
+  border-bottom: none;
+}
+
+.address-wrapper {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.radio-group {
+  flex-shrink: 0;
+  padding-top: 0.25rem;
+}
+
+.radio-input {
+  width: 1.25rem;
+  height: 1.25rem;
+  cursor: pointer;
+  accent-color: #ef4444;
+}
+
+.address-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.info-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.25rem;
+}
+
+.info-name {
+  font-weight: 500;
+  color: #1f2937;
+  margin: 0;
+  font-size: 0.95rem;
+}
+
+.info-phone {
+  color: #6b7280;
+  font-size: 0.85rem;
+}
+
+.info-address {
+  font-size: 0.875rem;
+  color: #4b5563;
+  margin: 0.25rem 0;
+}
+
+
+.badge-default {
+  display: inline-block;
+  padding: 0.25rem 0.5rem;
+  background-color: #fef2f2;
+  color: #dc2626;
+  font-size: 0.75rem;
+  border-radius: 0.25rem;
+  border: 1px solid #fecaca;
+}
+
+
+.action-edit {
+  flex-shrink: 0;
+  padding-top: 0.25rem;
+}
+
+.link-update {
+  color: #3b82f6;
+  font-size: 0.875rem;
+  font-weight: 500;
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.link-update:hover {
+  color: #2563eb;
+}
+
+.add-address-section {
+  border-top: 1px solid #e5e7eb;
+  padding: 1rem;
+}
+
+.btn-add-address {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: none;
+  border: none;
+  color: #dc2626;
+  font-weight: 500;
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: color 0.2s ease;
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.25rem;
+  border: 1px solid #fecaca;
+}
+
+.btn-add-address:hover {
+  color: #b91c1c;
+}
+
+.footer-actions {
+  background-color: #f9fafb;
+  border-top: 1px solid #e5e7eb;
+  padding: 1rem;
+  display: flex;
+  gap: 0.75rem;
+}
+
+.btn-cancel,
+.btn-confirm {
+  flex: 1;
+  padding: 0.5rem 1rem;
+  font-weight: 500;
+  border-radius: 0.375rem;
+  border: none;
+  cursor: pointer;
+  font-size: 0.95rem;
+  transition: all 0.2s ease;
+}
+
+.btn-cancel {
+  border: 1px solid #d1d5db;
+  color: #4b5563;
+  background-color: white;
+}
+
+.btn-cancel:hover {
+  background-color: #f3f4f6;
+}
+
+.btn-confirm {
+  background-color: #ef4444;
+  color: white;
+}
+
+.btn-confirm:hover {
+  background-color: #dc2626;
+}
+
+/* 
+add address */
+.add-address-form {
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.form-group {
+  position: relative;
+  display: flex;
+  flex-direction: column-reverse;
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.form-row .form-group {
+  margin: 0;
+}
+
+.form-input {
+  padding: 0.875rem;
+  border: 1px solid #ccc;
+  border-radius: 0.375rem;
+  font-size: 0.95rem;
+  transition: all 0.2s ease;
+  font-family: inherit;
+  background-color: white;
+}
+
+.form-input:focus {
+  outline: none;
+  border-color: #333;
+}
+
+.form-input:placeholder-shown {
+  border-color: #ccc;
+}
+
+.form-label {
+  position: absolute;
+  top: -0.6rem;
+  left: 0.875rem;
+  background-color: white;
+  padding: 0 0.3rem;
+  color: #999;
+  font-size: 0.8rem;
+  font-weight: 400;
+  transition: all 0.2s ease;
+  pointer-events: none;
+}
+
+/* Khi input có value hoặc focus */
+.form-input:not(:placeholder-shown) ~ .form-label,
+.form-input:focus ~ .form-label {
+  top: -0.6rem;
+  color: #666;
+  font-size: 0.8rem;
+}
+
+.form-group.checkbox {
+  flex-direction: row;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.form-checkbox {
+  width: 1.25rem;
+  height: 1.25rem;
+  cursor: pointer;
+  accent-color: #999;
+  flex-shrink: 0;
+}
+
+.checkbox-label {
+  color: #666;
+  font-size: 0.95rem;
+  cursor: pointer;
+  position: relative;
+}
+
+.phone{
+    width: 81%;
+}
 /* ----------------------------- */
 /*  Tablet (870px – 1000px) */
 /* ----------------------------- */        
@@ -929,6 +1514,12 @@ text-align: left;
 /*  Mobile (870px <=) */
 /* ----------------------------- */   
 @media (max-width: 870px) and (min-width: 680px) {
+    .price1{
+        display: none;
+    }
+    .price2{
+        display: none;
+    }
     .cart-page{
         width: 100%;
     }
@@ -1237,6 +1828,27 @@ text-align: left;
     .buy{
     margin-top: 10px;
     }
-}
+
+       /* adress */
+    .container-wrapper {
+    padding: 0rem;
+    }
+
+    .container-main {
+    width: 100%;
+    max-width: 20rem;
+    }
+
+    .form-row {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    }
+
+    .phone{
+        width: 89%;
+    }
+        
+    }
 
 </style>

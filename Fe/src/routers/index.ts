@@ -17,12 +17,11 @@ import Shop from '../pages/Shop.vue'
 import Pay from '../pages/Pay.vue';
 import CartView from '../pages/CartView.vue';
 import Footer from '../components/Footer.vue';
-<<<<<<< HEAD
+import Address from '../pages/Address.vue'
  import HomeSeller from '../pages/sellers/Home.vue';
 import FlashSaleSeller from '../pages/sellers/FlashSale.vue';
 import OrderFailed from '../pages/OrderFailed.vue';
-=======
->>>>>>> 3f0046b263cd1286add0233e47b1568b424b7712
+import ChangePassword from '../pages/ChangePassword.vue'
 
 const routes = [
   { path: '/', redirect: '/home' },
@@ -41,6 +40,8 @@ const routes = [
   { path: '/profile/orderOfme', name: 'order-of-me', component: Order },
   { path: '/navbarProfile', name: 'nav-bar', component: NavbarProfile },
   { path: '/profile/me', name: 'profile', component: Profile },
+  { path: '/profile/address', name: 'address', component: Address },
+  { path: '/profile/changePassword', name: 'changePassword', component: ChangePassword },
   { path: '/profile/orderOfme/:id', name: 'order-detail', component: OrderDetail },
   { path: '/profile/favouriteOfme', name: 'favourite', component: Favourite },
   { path: '/order/payment', name: 'payment', component: Pay },

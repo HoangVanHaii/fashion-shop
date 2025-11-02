@@ -10,15 +10,14 @@ import { formatPrice } from "../utils/format";
 import { useRouter } from "vue-router";
 import Notification from "../components/Notification.vue";
 import ConfirmDialog from "../components/ConfirmDialog.vue";
-<<<<<<< HEAD
+
 import type { GetOrder } from "../interfaces/order";
 import type { Cart, CartItemDetail, ShopCart } from "../interfaces/cart";
 import { useCartStore } from "../stores/cartStore";
-=======
+
 import { cancelledOrder } from "../services/order";
 import type { OrderItemDetail } from "../interfaces/order";
 import ReviewPopup  from "../components/Review.vue"
->>>>>>> 3f0046b263cd1286add0233e47b1568b424b7712
 
 const showFormConfirm = ref(false);
 const cart = useCartStore();
@@ -74,7 +73,7 @@ const handleCancelled = async () => {
         
     }
 };
-<<<<<<< HEAD
+
 const handleReOrder = async (getOrder: GetOrder, shop_name: string) => {
   const cartItems: CartItemDetail[] = getOrder.items.map((item) => ({
     cart_item_id: item.id ?? 0, // nếu không có id thì bạn có thể tự sinh
@@ -111,7 +110,7 @@ const handleReOrder = async (getOrder: GetOrder, shop_name: string) => {
   // return;/
       router.push({ name: 'payment' });
 }
-=======
+
 const showReviewForm = ref(false);
 const selectedOrderItem = ref<OrderItemDetail | null>(null);
 const handleReview = (item: OrderItemDetail | undefined) => {
@@ -119,7 +118,7 @@ const handleReview = (item: OrderItemDetail | undefined) => {
   selectedOrderItem.value = item;
   showReviewForm.value = true;
 };
->>>>>>> 3f0046b263cd1286add0233e47b1568b424b7712
+
 
 const showNavbar = ref<boolean>(true);
 </script>

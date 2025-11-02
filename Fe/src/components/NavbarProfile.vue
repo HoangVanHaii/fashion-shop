@@ -175,6 +175,9 @@ const goToAddress = () => {
     showOrder,
     showResetPassword
   );
+   router.push({
+    name: "address",
+  });
 };
 const goToResetPass = () => {
   reset(
@@ -188,6 +191,9 @@ const goToResetPass = () => {
     showProfile,
     showOrder
   );
+  router.push({
+    name: "changePassword",
+  });
 };
 const emit = defineEmits(["update:show-menu"]);
 
