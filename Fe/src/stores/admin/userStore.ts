@@ -13,7 +13,6 @@ export const useAdminStore = defineStore("admin", () => {
         try {
             const data = await getAllUser();
             ListUser.value = data.data;
-            return data as User[];
         } catch (err) {
             console.log(err);
             error.value = "Không thể tải danh sách người dùng";
@@ -27,7 +26,6 @@ export const useAdminStore = defineStore("admin", () => {
         try {
             const data = await getAllSellerRequest();
             ListSellerRequest.value = data.data;
-            return data as SellerRequest[];
         } catch (err) {
             console.log(err);
             error.value = "Không thể tải danh sách sellerRequest";
@@ -39,9 +37,9 @@ export const useAdminStore = defineStore("admin", () => {
     return {            
         getAllUserStore,
         getAllSellerRequestStore,
-        ListSellerRequest,
         loading,
         error,
-        ListUser
+        ListUser,
+        ListSellerRequest
     };
 });
