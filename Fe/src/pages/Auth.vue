@@ -420,9 +420,6 @@ button:hover{
 #policy, #clause{
     color: rgb(232, 51, 51);
 }
-.form-login {
-    /* height: 56%; */
-}
 .forgetPass{
     font-size: 13px;
     display: flex;

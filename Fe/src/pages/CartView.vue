@@ -209,7 +209,7 @@
 
 
 <script setup lang="ts">
-import { ref, onMounted, watch } from 'vue'
+import { ref, onMounted } from 'vue'
 import Header from '../components/Header.vue'
 import { useCartStore } from '../stores/cartStore'
 import type { ProductSize,ProductPayload,ProductColor } from '../interfaces/product' 
@@ -231,7 +231,6 @@ onMounted(async () => {
   await cartStore.getCart()
   await cartStore.checkSoldOut();
   const res = await addressStore.getAddressesByUserStore();
-  console.log(res)
 })
 const toastText = ref<string>('')
 const isNotification = ref<boolean>(false);
