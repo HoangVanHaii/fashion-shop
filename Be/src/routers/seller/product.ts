@@ -42,6 +42,7 @@ router.delete(
 );
 router.post("/product-image", uploadProductImages, async (req, res) => {
     try {
+        console.log(1);
         const files = req.files as Express.Multer.File[];
         if (!files || files.length === 0) {
             return res.status(400).json({ message: "No files uploaded" });
@@ -55,7 +56,7 @@ router.post("/product-image", uploadProductImages, async (req, res) => {
         });
     } catch (error) {
         console.log("Error uploading product image:", error);
-        return res.status(500).json({
+        return res.status(501).json({
             message: "Internal server error",
             error: error instanceof Error ? error.message : String(error)
         });
