@@ -199,13 +199,7 @@ onBeforeUnmount(() => {
   clearInterval(countdown);
 });
 
-const toggleFavourite = async (id: number) => {
-  if (favourite.isFavourite(id)) {
-    await favourite.deleteFavouriteStore(id);
-  } else {
-    await favourite.addFavouriteStore(id);
-  }
-};
+
 const checkSoldOut = (product_id: number) => {
     if (product_id) {
         const soldItem = totalSolds.value.find((item) => item.product_id === product_id);
@@ -342,7 +336,7 @@ const checkSoldOut = (product_id: number) => {
                     <button @click="handleCart(product.id)">
                         <i class="fa-solid fa-cart-shopping"></i>
                     </button>
-                    <button @click.stop="toggleFavourite(product.id)">
+                    <button @click.stop="favourite.toggleFavouriteInstant(product.id)">
                         <i
                         v-if="favourite.isFavourite(product.id)"
                         class="fa-solid fa-heart"
@@ -434,7 +428,7 @@ const checkSoldOut = (product_id: number) => {
                         <button @click="handleCart(product.id)">
                         <i class="fa-solid fa-cart-shopping"></i>
                         </button>
-                        <button @click.stop="toggleFavourite(product.id)">
+                        <button @click.stop="favourite.toggleFavouriteInstant(product.id)">
                         <i
                             v-if="favourite.isFavourite(product.id)"
                             class="fa-solid fa-heart"
@@ -513,7 +507,7 @@ const checkSoldOut = (product_id: number) => {
                         <button @click="handleCart(product.id)">
                         <i class="fa-solid fa-cart-shopping"></i>
                         </button>
-                        <button @click.stop="toggleFavourite(product.id)">
+                        <button @click.stop="favourite.toggleFavouriteInstant(product.id)">
                         <i
                             v-if="favourite.isFavourite(product.id)"
                             class="fa-solid fa-heart"

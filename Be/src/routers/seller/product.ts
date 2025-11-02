@@ -22,10 +22,11 @@ router.post(
     "/addProduct", 
     authMiddleware, 
     isSeller, 
-    uploadProductImages,
-    productMiddleware.AddProduct, 
-    validateRequest,
-    productController.addProduct
+    // uploadProductImages,
+    // upload.none(),
+    // productMiddleware.AddProduct, 
+    // validateRequest,
+    productController.addProduct,
 );
 router.put("/updateStatus", authMiddleware, isSeller, productController.updateProductStatus);
 router.put("/updateSizes", authMiddleware, isSeller, productController.updateSizes);
@@ -39,5 +40,28 @@ router.delete(
     validateRequest,
     productController.softDeleteProduct
 );
+router.post("/product-image", uploadProductImages, async (req, res) => {
+    try {
+        console.log(1);
+        const files = req.files as Express.Multer.File[];
+        if (!files || files.length === 0) {
+            return res.status(400).json({ message: "No files uploaded" });
+        }
+
+        const urls = files.map(f => `/uploads/products/${f.filename}`);
+
+        return res.status(200).json({
+            message: "Upload successful",
+            urls
+        });
+    } catch (error) {
+        console.log("Error uploading product image:", error);
+        return res.status(501).json({
+            message: "Internal server error",
+            error: error instanceof Error ? error.message : String(error)
+        });
+    }
+});
+
 
 export default router;

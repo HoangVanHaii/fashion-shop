@@ -1,11 +1,10 @@
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted, computed } from "vue";
+import { ref, onMounted } from "vue";
 import { useUserStore } from "../stores/userStore";
 import NavbarProfile from "../components/NavbarProfile.vue";
 import Header from "../components/Header.vue";
 import Loading from "../components/Loading.vue";
 import Notification from "../components/Notification.vue";
-import type { User } from "../interfaces/user";
 
 const userStore = useUserStore();
 const textToast = ref("");
@@ -93,14 +92,14 @@ const handleChangePassWord = async ()=>{
     <div class="container" @click="handleHideNavbar">
          <NavbarProfile
         v-model:show-menu="showNavbar"
-        :show-detail="false"
+        :show-detail="true"
         :show-address="false"
         :show-favourite="false"
         :show-notification="false"
-        :show-order="true"
+        :show-order="false"
         :show-profile="false"
         :show-register-seller="false"
-        :show-reset-password="false"
+        :show-reset-password="true"
         :show-voucher="false"
       />
 

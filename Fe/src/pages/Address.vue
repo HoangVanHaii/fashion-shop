@@ -191,11 +191,11 @@ const displayAddress = (addr: string) => {
     <div class="container" @click="handleHideNavbar">
         <NavbarProfile
         v-model:show-menu="showNavbar"
-        :show-detail="false"
-        :show-address="false"
+        :show-detail="true"
+        :show-address="true"
         :show-favourite="false"
         :show-notification="false"
-        :show-order="true"
+        :show-order="false"
         :show-profile="false"
         :show-register-seller="false"
         :show-reset-password="false"

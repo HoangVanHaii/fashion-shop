@@ -90,7 +90,7 @@ const conversionRate = computed(() =>{
         :isSuccess="isNotification" 
      />
     <div class="container">
-            <Navbar class="navbar"
+        <Navbar 
                 :isShow='false'
                 :showManagermentOrder= 'true'
                 :showManagermentProduct= 'false'
@@ -107,7 +107,8 @@ const conversionRate = computed(() =>{
                 :showProfileShop= 'false'
                 :showProfile= 'false'
                 :showStatistical= 'false'
-            />
+                class="abs"
+        />
         <div class="container-content">
             <div class="top-content">
                 <div class="left-content">
@@ -271,13 +272,7 @@ const conversionRate = computed(() =>{
 </template>
 
 <style scoped>
-    .navbar{
-        z-index: 9;
-        margin-top: 5px;
-        background-color: white;
-        border-radius: 5px;
-        height: 82vh;
-    }
+
     .fa-toggle-on{
         color: rgb(24, 206, 55);
         font-size: 25px;
@@ -299,14 +294,14 @@ const conversionRate = computed(() =>{
         margin-top: 60px;
         /* padding-top: 110px; */
         width: 100%;
-        background-color: rgb(195, 191, 191);
+        /* background-color: rgb(195, 191, 191); */
         height: 85vh;
         display: flex;
         flex-direction: row;
         justify-content: space-between;
     }
     .container-content{
-        width: 82%;
+        width: 81.5%;
         height: 85vh;
         overflow-y: auto;
         /* background-color: red; */
@@ -315,6 +310,12 @@ const conversionRate = computed(() =>{
         align-items: center;
         gap: 4px;
         /* justify-content: space-between; */
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+
+
+    }
+    .sales-analysis {
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
 
     }
     .top-content{
@@ -383,6 +384,17 @@ const conversionRate = computed(() =>{
         align-items: center;
         justify-content: space-around;
         gap: 5px;
+    }
+    .container-todo {
+                box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+    .bottom-content {
+                        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+
+    }
+    .right-content{
+                        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+
     }
     .list-todo .todo, .list-sales-analysis .analysis{
         display: flex;
@@ -716,6 +728,13 @@ const conversionRate = computed(() =>{
     @media(max-width: 768px){
         .analysis .text-question p{
             font-size: 12px;
+        }
+        .abs{
+            position: fixed;
+            z-index: 99999;
+            background-color: white;
+            right: 0;
+            width: 200px;
         }
         .bottom-content .content-sale{
             width: 100%;

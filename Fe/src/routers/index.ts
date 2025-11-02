@@ -23,6 +23,9 @@ import OrderFailed from '../pages/OrderFailed.vue';
 import HeaderSeller from '../components/sellers/Header.vue'
 import OrderSeller from '../pages/sellers/Order.vue'
 import Product from '../pages/sellers/Product.vue';
+import AddProduct from '../pages/sellers/AddProduct.vue';
+import RePassSenOTP from '../components/RePassSenOTP.vue';
+import RePassConfirm from '../components/RePassConfirm.vue';
 import HeaderAdmin from '../components/admins/Header.vue'
 import NavbarAdmin from '../components/admins/NavbarAdmin.vue';
 import AccountPermission from '../pages/admins/AccountPermission.vue';
@@ -52,14 +55,18 @@ const routes = [
     { path: '/order/payment', name: 'payment', component: Pay },
     { path: '/cart/cartOfme', name: 'cart-of-me', component: CartView },
     { path: '/shop/:id', name: 'shop', component: Shop },
-        { path: '/profile/address', name: 'address', component: Address },
-  { path: '/profile/changePassword', name: 'changePassword', component: ChangePassword },
+    { path: '/repass', name: 'repass', component: RePassSenOTP },
+
+    { path: '/repassOtp', name: 'repassOtp', component: RePassConfirm },
+    { path: '/profile/address', name: 'address', component: Address },
+    { path: '/profile/changePassword', name: 'changePassword', component: ChangePassword },
 
     { path: '/seller/home', name: 'home-seller', component: HomeSeller },
     { path: '/seller/flashSale', name: 'flashsale-seller', component: FlashSaleSeller },
     { path: '/seller/header', name: 'header-seller', component: HeaderSeller },
     { path: '/seller/order', name: 'order-seller', component: OrderSeller },
     { path: '/seller/product', name: 'product-seller', component: Product },
+    { path: '/seller/product/addProduct', name: 'add-product-seller', component: AddProduct },
     
     { path: '/admin/header', name: 'header-admin', component: HeaderAdmin },
     { path: '/admin/header1', name: 'header-admin', component: NavbarAdmin },

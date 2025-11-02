@@ -94,7 +94,7 @@ export const getFlashSaleHome = async (req: Request, res: Response, next: NextFu
         }
         const { flash_sale, products } = await FlashSaleService.getFlashSaleHome();
         const dataToCache = { flash_sale, products };
-        await redisClient.setEx(cacheKey, 600, JSON.stringify(dataToCache));
+        await redisClient.setEx(cacheKey, 1200, JSON.stringify(dataToCache));
 
         return res.status(200).json({
             success: true,
@@ -129,7 +129,7 @@ export const getFlashSaleHotDeal = async (req: Request, res: Response, next: Nex
         }
         const { flash_sale, products } = await FlashSaleService.getFlashSaleHotDeal(excludeIds);
         const dataToCache = { flash_sale, products };
-        await redisClient.setEx(cacheKey, 600, JSON.stringify(dataToCache));
+        await redisClient.setEx(cacheKey, 1200, JSON.stringify(dataToCache));
 
         return res.status(200).json({
             success: true,

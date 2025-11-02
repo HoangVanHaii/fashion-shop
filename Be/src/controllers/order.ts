@@ -118,7 +118,7 @@ export const getOrderOfme = async (req: Request, res: Response, next: NextFuncti
 
         const orders = await orderService.getOrderOfme(user_id)
         console.log('miss -> save new data')
-        await redisClient.setEx(cacheKey, 3600, JSON.stringify(orders));
+        await redisClient.setEx(cacheKey, 1200, JSON.stringify(orders));
 
         res.status(200).json(orders);
     } catch (error) {
@@ -162,7 +162,7 @@ export const getOrderById = async (req: Request, res: Response, next: NextFuncti
         if (!order) {
             throw new AppError(`Order id ${order_id} not found`, 404);
         }
-        await redisClient.setEx(cacheKey, 3600, JSON.stringify(order));
+        await redisClient.setEx(cacheKey, 1200, JSON.stringify(order));
 
         res.status(200).json(order);
     } catch (error) {

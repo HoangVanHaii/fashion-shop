@@ -170,13 +170,7 @@ const formatIsoToDate = (
   const formattedMonth = String(month).padStart(2, "0");
   return `${formattedDay}/${formattedMonth}/${year}`;
 };
-const toggleFavourite = async (id: number) => {
-  if (favourite.isFavourite(id)) {
-    await favourite.deleteFavouriteStore(id);
-  } else {
-    await favourite.addFavouriteStore(id);
-  }
-};
+
 const handleSaveVoucher = async (voucher: Voucher) => {
     listSaveVoucher.value[voucher.id!] = true;
     userVoucher.listUserVoucher.push({
@@ -354,7 +348,7 @@ const handleSpace = async () => {
                     <button @click="handleCart(product.id)">
                       <i class="fa-solid fa-cart-shopping"></i>
                     </button>
-                    <button @click.stop="toggleFavourite(product.id)">
+                    <button @click.stop="favourite.toggleFavouriteInstant(product.id)">
                       <i
                         v-if="favourite.isFavourite(product.id)"
                         class="fa-solid fa-heart"
@@ -432,7 +426,7 @@ const handleSpace = async () => {
                   <button @click="handleCart(product.id)">
                     <i class="fa-solid fa-cart-shopping"></i>
                 </button>
-                    <button @click.stop="toggleFavourite(product.id)">
+                    <button @click.stop="favourite.toggleFavouriteInstant(product.id)">
                       <i
                         v-if="favourite.isFavourite(product.id)"
                         class="fa-solid fa-heart"

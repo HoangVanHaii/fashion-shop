@@ -191,7 +191,7 @@ const handleType = (value: string) => {
                                 <button class="option" @click="showFormConfirm = true, messageAction='Bật/Tắt hàng loạt', checkButton = false">Bật/Tắt</button>
                             </ul>
                         </div>
-                        <button class="add-product"> <i class="fa-solid fa-plus"></i> Thêm sản phẩm mới</button>
+                        <button class="add-product" @click="router.push({name: 'add-product-seller'})"> <i class="fa-solid fa-plus"></i> Thêm sản phẩm mới</button>
                     </div>
                 </div>
                 <div class="list-product">

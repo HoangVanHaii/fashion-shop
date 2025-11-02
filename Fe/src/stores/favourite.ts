@@ -78,7 +78,48 @@ export const useFavouriteStore = defineStore("favourite", () => {
             .toLowerCase()
             .trim();
     }
+    const toggleLocalFavourite = (productId: number, isFav: boolean) => {
+        if (isFav) {
+            listFavourite.value = listFavourite.value
+                .map(shop => ({
+                    ...shop,
+                    products: shop.products.filter(p => p.product_id !== productId),
+                }))
+                .filter(shop => shop.products.length > 0);
+        } else {
+            listFavourite.value.push({
+                shop_id: 0,
+                user_id : 0,
+                shop_name: "",
+                products: [
+                    {
+                        product_id: productId,
+                        product_name: "",
+                        image_url: "",
+                        price: 0,
+                        flash_price: 0
+                    }
+                ],
+            });
+        }
+    };
 
+    const toggleFavouriteInstant = async (productId: number) => {
+        const currentStatus = isFavourite(productId);
+
+        toggleLocalFavourite(productId, currentStatus);
+
+        try {
+            if (currentStatus) {
+                await deleteFavouriteStore(productId);
+            } else {
+                await addFavouriteStore(productId);
+            }
+        } catch (err) {
+            console.log("API lỗi → rollback");
+            toggleLocalFavourite(productId, !currentStatus);
+        }
+    };
     return {            
         listFavourite,
         searchText,
@@ -88,6 +129,8 @@ export const useFavouriteStore = defineStore("favourite", () => {
         getFavouriteOfMeStore,
         deleteFavouriteStore,
         isFavourite,
-        addFavouriteStore
+        addFavouriteStore,
+        toggleFavouriteInstant,
+        toggleLocalFavourite
     };
 });

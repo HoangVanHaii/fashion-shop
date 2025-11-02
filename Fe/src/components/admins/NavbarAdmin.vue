@@ -57,8 +57,8 @@ const showAllOrder = ref<boolean>(false);
 const showAllProduct = ref<boolean>(false);
 const showAddProduct = ref<boolean>(false);
 const showReview = ref<boolean>(false);
-const showProfile = ref<boolean>(false);
-const showProfileShop = ref<boolean>(false);
+const showProfile = ref<boolean>(true);
+const showProfileShop = ref<boolean>(true);
 const showStatistical = ref<boolean>(false);
 
 const reset = (...args: Ref<boolean>[]) => {
@@ -98,54 +98,54 @@ const goToOrder = () => {
 
 }
 
-const goToAllProduct = () => {
-    reset(
-        showProfileShop,
-        showFlashSale,
-        showManagermentOrder,
-        showData,
-        showManagermentProduct,
-        showCustomCare,
-        showManagermentShop,
-        showMarketing,
-        showVoucher,
-        isShow,
-        showAllOrder,
-        showAddProduct,
-        showReview,
-        showProfile,
-        showAllOrder,
-        showStatistical,
-        showAllProduct
-    );
-    handleResize();    
-    showManagermentProduct.value = true;
-    router.push({name: 'product-seller'})
-}
+// const goToAllProduct = () => {
+//     reset(
+//         showProfileShop,
+//         showFlashSale,
+//         showManagermentOrder,
+//         showData,
+//         showManagermentProduct,
+//         showCustomCare,
+//         showManagermentShop,
+//         showMarketing,
+//         showVoucher,
+//         isShow,
+//         showAllOrder,
+//         showAddProduct,
+//         showReview,
+//         showProfile,
+//         showAllOrder,
+//         showStatistical,
+//         showAllProduct
+//     );
+//     handleResize();    
+//     showManagermentProduct.value = true;
+//     router.push({name: 'product-seller'})
+// }
 
-const gotoAddProduct = () => {
-    reset(
-        showProfileShop,
-        showFlashSale,
-        showManagermentOrder,
-        showData,
-        showManagermentProduct,
-        showCustomCare,
-        showManagermentShop,
-        showMarketing,
-        showVoucher,
-        isShow,
-        showAllOrder,
-        showReview,
-        showProfile,
-        showAllOrder,
-        showAllProduct,
-        showStatistical,
-        showAddProduct
-    );
-    handleResize();    
-    showManagermentProduct.value = true;
-}
+// const gotoAddProduct = () => {
+//     reset(
+//         showProfileShop,
+//         showFlashSale,
+//         showManagermentOrder,
+//         showData,
+//         showManagermentProduct,
+//         showCustomCare,
+//         showManagermentShop,
+//         showMarketing,
+//         showVoucher,
+//         isShow,
+//         showAllOrder,
+//         showReview,
+//         showProfile,
+//         showAllOrder,
+//         showAllProduct,
+//         showStatistical,
+//         showAddProduct
+//     );
+//     handleResize();    
+//     showManagermentProduct.value = true;
+// }
 
 const goToStatistical = () => {
     reset(
