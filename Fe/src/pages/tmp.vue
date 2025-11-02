@@ -1,211 +1,3 @@
-<template>
-    <Header />
-    <Notification 
-        :isSuccess="isNotification"
-        :text="toastText"
-    />
-  <div class="cart-page" @click="closeAllDropdowns">
-    <div class="cart-content">
-      <div class="tab">
-        <span>Trang chủ</span>
-        <span class="divider"></span>
-        <span :style="{color:'#828080ff'}">Giỏ hàng({{ cartStore.totalItemCount }})</span>
-      </div>
-
-      <div class="cart-header">
-        <div class="header1">
-          <span>Sản phẩm</span>
-        </div>
-        <div class="header2">
-          <span class="header_price">Đơn giá</span>
-          <span class="header_quantity">Số lượng</span>
-          <span class="header_total">Số tiền</span>
-          <span class="header_v">Thao tác</span>
-        </div>
-      </div>
-
-      <!-- Danh sách shop -->
-      <div v-for="shop in cartStore.shops" :key="shop.shop_id" class="shop-container">
-        <div class="shop">
-          <input
-            class="checkbox"
-            type="checkbox"
-            v-model="cartStore.shopSelected(shop).value"
-            @click="cartStore.toggleSelectShop(shop, !cartStore.shopSelected(shop).value)"
-          />
-          <span class="shop-name">{{ shop.shop_name }}</span>
-        </div>
-
-        <!--  Danh sách sản phẩm -->
-        <div v-for="product in shop.carts" :key="product.cart_item_id" class="cart-item" :class="{ disabled: product.sold_out }">
-          <input class="checkbox" type="checkbox" v-model="product.selected" :disabled="product.sold_out" />
-           
-          <img :src="getImage(product.image_url)" alt="product" @click="nextProductDetail(product.size_id)" >
-            <span v-if="product.sold_out" class="soldout">Hết hàng</span>
-          </img>
-
-          <!-- <img :src="product.image_url" alt="product" /> -->
-          <!-- <img src="../uploads/products/ao-polo-nam-xam-main.jpg" /> -->
-          <div class="item-info">   
-            <span class="item-name">{{ product.name }}</span>
-
-            <!--  Chọn size -->
-            <div class="size-selector">
-              <div class="size-header" @click.stop="toggleDropdown(product)">
-                <span>Phân loại hàng:</span>
-                <i class="fa-solid fa-caret-down" :class="{ 'open': openDropdown === product.cart_item_id }"></i>
-              </div>
-
-              <!--  Dropdown size -->
-              <div
-                v-if="openDropdown === product.cart_item_id"
-                class="size-dropdown"
-                @click.stop
-              >
-                <div class="size-option" >
-                  <span>{{ product.color }}</span>
-                </div>
-                <div class="colors-row" >
-                  <img 
-                    v-for="color in cartStore.selectedProduct?.colors" 
-                    :key="color.id"
-                    :src="getImage(color.image_url)" 
-                    alt="color"
-                    :class="{ selected: color.color === product.color,disabled: !color.sizes?.some(s => s.stock > product.quantity) }"
-                    @click="selectColor(product, cartStore.selectedProduct!, color)" 
-                  />
-                </div>
-
-                <!-- <div v-for="color in afterColor?.sizes" :key="color.id"> -->
-                  <div class="available-sizes" v-if="afterColor?.sizes">
-                    <div
-                      v-for="size in afterColor.sizes"
-                      :key="size.id"
-                      class="size-item"
-                      :class="{ 'selected': size.id === product.size_id, 'disabled': size.stock < product.quantity  }"
-                      @click="selectSize(product, size)"
-                    >
-                      {{ size.size }}
-                    </div>
-                  </div>
-                <!-- </div> -->
-                
-              </div>
-
-              <!-- Hiển thị size đang chọn -->
-              <div class="selected-size">
-                <span>{{ product.color }} | </span>
-                <span>Size {{ product.size }}</span>
-                <!-- <span>Size {{ product.size_id }}</span> -->
-              </div>
-            </div>
-
-            <!--  Giá -->
-            <div class="item-price">
-              <span><s>{{ product.price.toLocaleString() }}đ</s></span>
-              <span style="margin-left:20px">{{ product.price_after_reduction?.toLocaleString() }}đ</span>
-            </div>
-
-            <!-- Số lượng -->
-            <div class="item-quantity">
-              <button @click="cartStore.decrease(product); updateCartItemQuantityDebounced(product, product.quantity)">-</button>
-              <input
-                type="number"
-                v-model.number="product.quantity"
-                min="1"
-                @change="product.quantity = Math.max(1, product.quantity); updateCartItemQuantityDebounced(product, product.quantity)"
-              />
-              <button @click="cartStore.increase(product); updateCartItemQuantityDebounced(product, product.quantity)">+</button>
-            </div>
-
-            <!-- Tổng -->
-            <p class="item-total">
-              {{ (product.price_after_reduction! * product.quantity).toLocaleString() }}đ
-            </p>
-
-            <!-- Xóa -->
-            <i class="fa-solid fa-trash-can" @click="() => cartStore.removeCartItem(shop, product)"></i>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!--  Thanh tổng tiền -->
-    <div class="cart-footer">
-      <div class="cart-footer-voucher">
-        <div class="voucher">
-          <i class="fa-solid fa-ticket"></i>
-          <span>Voucher</span>
-        </div>
-        <!-- <span v-if="cartStore.cartPay?.voucher" class="voucher-discount">-{{ (cartStore.cartPay?.voucher/ 1000).toLocaleString() }}k</span> -->
-         <span v-if="cartStore.cartPay?.voucher_discount||0 > 0" class="voucher-discount">
-          -{{ ((cartStore.cartPay?.voucher_discount||0)/1000).toLocaleString() }}k
-        </span>
-        <a href="javascript:void(0)" @click.stop="openVoucherModal">
-          {{ selectedVoucherCode || 'Chọn hoặc nhập mã voucher' }}
-        </a>
-
-      </div>
-
-      <div class="left-right">
-        <div class="left">
-          <div>
-            <input
-              class="checkbox"
-              type="checkbox"
-              v-model="cartStore.selectAll"
-              @change="cartStore.toggleSelectAll"
-               
-            />
-            <span>Chọn tất cả ({{ cartStore.totalItemCount }})</span>
-          </div>
-          <!-- <span @click="confirmDelete;cartStore.removeSelectedItemsApi()">Xóa</span> -->
-          <span @click="confirmDelete()" :style="{cursor: 'pointer'}">Xóa</span>
-          <span :style="{cursor: 'pointer'}" @click="handleSaveFavourite">Lưu vào mục yêu thích</span>
-        </div>
-
-        <div class="right">
-          <p>
-            Tổng số ({{ cartStore.totalSelectedItemCount }} sản phẩm): <br />
-            Tiết kiệm:
-          </p>
-          <p>
-            <span class="total-amount">{{ (cartStore.total_price_after_reduction - (cartStore.cartPay?.voucher_discount ||0) ) .toLocaleString() }}đ</span> <br/>
-            <span class="total-amount"><s>{{ (cartStore.total_price - cartStore.total_price_after_reduction + (cartStore.cartPay?.voucher_discount||0)).toLocaleString() }}đ</s></span>
-          </p>
-          <button @click="confirmPay()" class="checkout-btn">Mua hàng </button>
-        </div>
-      </div>
-    </div>
-    <!-- Modal xác nhận xóa -->
-    <div v-if="showDeleteConfirm" class="modal-overlay" @click="cancelDelete">
-      <div class="modal-content" @click.stop>
-        <p class="modal-message">Bạn có muốn bỏ {{cartStore.totalSelectedItemCount}} sản phẩm?</p>
-        <div class="modal-actions">
-          <button class="btn-cancel" @click="cancelDelete">TRỞ LẠI</button>
-          <button class="btn-delete" @click="handleDelete">CÓ</button>
-        </div>
-      </div>
-    </div>
-
-    <!-- Modal xác nhận Pay -->
-    <div v-if="showPayConfirm" class="modal-overlay" @click="cancelPay">
-      <div class="modal-content" @click.stop>
-        <p class="modal-message">Bạn vẫn chưa chọn sản phẩm nào để mua.</p>
-        <div class="modal-actions">
-          <button class="btn-pay" @click="cancelPay">OK</button>
-        </div>
-      </div>
-    </div>
-    <Voucher 
-      v-if="showVoucher"
-      @close="closeVoucherModal"
-      @selected="handleSelectVoucher"
-    />
-
-    
-  </div>
-</template>
 
 
 <script setup lang="ts">
@@ -219,19 +11,13 @@ import {validateVoucherByCode} from '../utils/validateVoucher'
 import Voucher from '../components/Voucher.vue'
 import { getImage } from '../utils/format'
 import Notification from '../components/Notification.vue'
-import { useAddressStore } from '../stores/addressStore'
-import { useProductStore } from '../stores/productStore'
 
 
 const router = useRouter()
 const cartStore = useCartStore() 
-const addressStore = useAddressStore();
-const productStore = useProductStore();
 onMounted(async () => {
   await cartStore.getCart()
   await cartStore.checkSoldOut();
-  const res = await addressStore.getAddressesByUserStore();
-  console.log(res)
 })
 const toastText = ref<string>('')
 const isNotification = ref<boolean>(false);
@@ -250,14 +36,30 @@ const handleSaveFavourite = async() => {
 
     }, 0)
 }
+const voucher_code = ref<string>("GLOBAL102225")
+watch(
+  () => cartStore.total_price_after_reduction,
+  async (total) => {
+    const cart = cartStore.cartPay
+    if (!cart) return 
 
+    if (total > 0) {
+      try {
+        const discount = await validateVoucherByCode(voucher_code.value, total)
+        cart.voucher_discount = discount
 
-const nextProductDetail = async (size_id:number)=>{
-  const product_id = await productStore.getProductIdBySizeStore(size_id)
-  console.log('product id')
-  console.log(product_id)
-   router.push({ path: `/product/${product_id}` })
-}
+        // Lưu voucher_id vào cartPay
+        cart.voucher_code = voucher_code.value
+      } catch (err: any) {
+        cart.voucher_discount = 0
+        console.error(err.message)
+      }
+    } else {
+      cart.voucher_discount = 0
+    }
+  }
+)
+
 
 
 
@@ -285,25 +87,12 @@ const selectColor = async (cartItem: CartItemDetail, product: ProductPayload, it
   flagSize.value = cartItem.color === itemcolor.color
   cartItem.color=itemcolor.color;
   afterColor.value = product.colors.find(c => c.color === itemcolor.color) || null
-  cartItem.image_url = itemcolor.image_url
 }
 const selectSize = async (cartItem: CartItemDetail, size: ProductSize) => {
   cartItem.size_id = size.id!      
   cartItem.size = size.size!     
   openDropdown.value = null   
-  flagSize.value = true;
-  let existingItem: CartItemDetail | undefined = undefined;
-  for (const shop of cartStore.shops) {
-    if(shop.carts){
-      existingItem = shop.carts.find(item=> item.size_id === size.id &&  item.cart_item_id !== cartItem.cart_item_id)
-    }
-    if(existingItem){
-      const newQuantity = existingItem.quantity + cartItem.quantity;
-      await cartStore.updateCartItemQuantity(existingItem,newQuantity)
-      await cartStore.removeCartItem(shop,cartItem);
-      break
-    }
-  } 
+   flagSize.value = true;
   await cartStore.updateCartItemSize(cartItem,size.id!)    
 }
 
@@ -388,31 +177,61 @@ const handleSelectVoucher = async (code: string, id_shop: number) => {
   closeVoucherModal()
 }
 
-const updateCartItemQuantityDebounced = async (product: CartItemDetail, quantity: number) => {
-  toastText.value = "";
-  try {
-    await cartStore.updateCartItemQuantityDebounced(product, quantity);
-  } catch (error: any) {
-    const msg = error.response?.data?.message || error.message || "";
+// watch(
+//   () => cartStore.total_price_after_reduction,
+//   async (total) => {
+//     const cart = cartStore.cartPay
+//     if (!cart) return 
 
-    if (msg.includes("Not enough stock")) {
-      const available = msg.match(/\d+/)?.[0];
+//     if (total > 0) {
+//       try {
+//         const discount = await validateVoucherByCode(selectedVoucherCode.value, total)
+//         cart.voucher_discount = discount
 
-      if (available) {
-        product.quantity = Number(available);
-        toastText.value = `Sản phẩm "${product.name}" chỉ còn ${available} sản phẩm trong kho.`;
-        isNotification.value=false;
-      } else {
-    
-        toastText.value = "Số lượng vượt quá tồn kho.";
-          isNotification.value=false;
-      }
-    } else {
-      toastText.value = "Có lỗi xảy ra khi cập nhật giỏ hàng.";
-        isNotification.value=false;
-    }
+//         cart.voucher_code = selectedVoucherCode.value
+//       } catch (err: any) {
+//         cart.voucher_discount = 0
+//         console.error(err.message)
+//       }
+//     } else {
+//       cart.voucher_discount = 0
+//     }
+//   }
+// )
+
+const selectedAddress = ref(0)
+
+const addresses = [
+  {
+    id: 1,
+    name: 'Trần Huy Vui',
+    phone: '0123456789',
+    street: '31 Bình phú',
+    district: 'Phường 10, Quận 6, TP. Hồ Chí Minh',
+    isDefault: true,
+    label: 'Mặc định'
+  },
+  {
+    id: 2,
+    name: 'Trần Huy Vui',
+    phone: '0123457891',
+    street: '31 Bình phú',
+    district: 'Phường 10, Quận 6, TP. Hồ Chí Minh',
+    isDefault: false
   }
-};
+]
+
+const handleConfirm = () => {
+  console.log('Địa chỉ được chọn:', addresses[selectedAddress.value])
+}
+
+const handleCancel = () => {
+  console.log('Hủy')
+}
+
+const handleAddAddress = () => {
+  console.log('Thêm địa chỉ mới')
+}
 
 </script>
 
@@ -971,6 +790,7 @@ input[type="number"]::-webkit-inner-spin-button {
   to { opacity: 1; transform: scale(1); }
 }
 
+
 /* adress */
 .container-wrapper {
   min-height: 100vh;
@@ -1067,12 +887,17 @@ input[type="number"]::-webkit-inner-spin-button {
   font-size: 0.85rem;
 }
 
-.info-address {
+.info-street {
   font-size: 0.875rem;
   color: #4b5563;
   margin: 0.25rem 0;
 }
 
+.info-district {
+  font-size: 0.875rem;
+  color: #4b5563;
+  margin: 0.5rem 0;
+}
 
 .badge-default {
   display: inline-block;
@@ -1167,7 +992,6 @@ input[type="number"]::-webkit-inner-spin-button {
 .btn-confirm:hover {
   background-color: #dc2626;
 }
-
 /* ----------------------------- */
 /*  Destop (1024px – 1300px) */
 /* ----------------------------- */
@@ -1587,7 +1411,7 @@ input[type="number"]::-webkit-inner-spin-button {
 /* ----------------------------- */
 /* 📱 Mobile (≤767px) */
 /* ----------------------------- */
-@media (max-width: 767px) {
+@media (max-width: 767px) and (min-width: 550px) {
   .cart-page {
     font-size: 16px;
     background-color: #ececec;
@@ -1787,4 +1611,263 @@ input[type="number"]::-webkit-inner-spin-button {
     font-size:20px;
   }
 }
+@media (max-width: 550px) {
+  .cart-page {
+    font-size: 11px;
+    padding-top: 85px;
+    background-color: #ececec;
+    width: 100%;
+  }
+
+  .cart-content {
+  flex: 1;
+  padding: 5px;
+  overflow-y: auto;
+  }
+
+  .tab {
+    padding: 8px 12px;
+    background-color: #d4d4d4;
+  }
+
+  /* Ẩn header hoàn toàn */
+  .cart-header {
+    display: none;
+  }
+
+  /* Shop container */
+  .shop-container {
+     position: relative;
+    background: white;
+    margin-bottom: 7px;
+    padding: 0;
+    box-shadow: none;
+   
+  }
+
+  /* Shop header */
+  .shop {
+    padding: 5px 12px;
+    font-weight: 400;
+    background: #FFF1E2;
+    border-bottom: none;
+  }
+  /* Cart item */
+  .cart-item {
+     width:94.5%;
+    margin-top:5px;
+    margin-bottom:5px;
+    margin-left: 1.5%;
+    position: relative;
+    flex-direction: row;
+    align-items: center;
+    padding: 5px;
+    gap: 5px;
+    background: white;
+    border-bottom: none;
+    border-radius: 8px;
+    box-shadow: 4px 4px 8px rgba(127, 125, 125, 0.5);
+  
+  }
+
+  .cart-item:last-child {
+    border-bottom: none;
+  }
+
+  .checkbox {
+    width: 15px;
+    height: 15px;
+    flex-shrink: 0;
+    margin-top: 4px;
+  }
+
+  .cart-item img {
+    width: 70px;
+    height:70px;
+    padding-top: 0;
+    flex-shrink: 0;
+    margin-left: 0;
+    margin-top: 0;
+  }
+
+  /* Item info */
+  .item-info {
+    flex: 1;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 3px;
+  }
+
+  .item-info > .item-name {
+    width: 100%;
+    font-weight: 400;
+    color: #000;
+    padding-right: 25px;
+  }
+
+  /* Size selector */
+  .size-selector {
+    width: 100%;
+  }
+
+  .size-header {
+    padding: 0px 4px;
+    border: 1px solid #191717;
+    width: 90px;
+    font-size:11px;
+    
+  }
+
+  .selected-size {
+    color: #666;
+    font-size:10px;
+    padding-bottom: 0;
+  }
+
+  /* Price */
+  .item-info > .item-price {
+    display: flex;
+    gap: 8px;
+    width: 100%;
+  
+    color: #e53935;
+  }
+
+  .item-info > .item-price s {
+    color: #999;
+
+  }
+
+  /* Quantity */
+  .item-info > .item-quantity {
+    margin-top: 2px;
+    position: absolute;
+    right: 10px;
+    bottom: 7px;
+  }
+
+  .item-quantity button {
+    width: 20px;
+    height: 18.5px;
+  }
+
+  .item-quantity input {
+    width: 20px;
+    height: 15px;
+    font-size: 11px;;
+
+  }
+
+  /* Ẩn total */
+  .item-info > .item-total {
+    display: none;
+  }
+
+  /* Icon delete */
+  .item-info > i {
+    position: absolute;
+    right: 10px;
+    top: 7px;
+    font-size: 15px;
+    color: #666;
+  }
+
+  /* Footer */
+  .cart-footer {
+    padding: 12px;
+  }
+
+  .cart-footer-voucher {
+    justify-content: flex-start;
+    gap: 12px;
+    margin-right: 0;
+    margin-bottom: 12px;
+  }
+
+  .cart-footer i {
+    font-size: 30px;
+  }
+
+  .left-right {
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 0px;
+  }
+
+  .cart-footer .left {
+    flex: 1;
+    min-width: 100%;
+    gap: 20px;
+  }
+
+  .cart-footer .right {
+    flex: 1;
+    max-width: 100%;
+    justify-content: flex-end;
+     position: relative;
+     margin-bottom: 30px;
+  }
+
+  .checkout-btn {
+    position:absolute;
+    font-size:15px;
+    right: 0px;
+    top: 60px;
+    padding: 10px 24px;
+    width: 180px;
+    margin: 0;
+  }
+
+  .size-dropdown {
+  top: 40%;
+  left: 0%;
+  min-width: 100px;
+  }
+
+  .size-option {
+  margin-bottom: 6px;
+  font-size: 11px;
+}
+
+.size-dropdown > div:has(img) {
+  gap: 6px;
+  margin-bottom: 16px;
+  padding-bottom: 6px;
+}
+
+.size-dropdown img {
+  width: 40px !important;
+  height: 40px !important;
+}
+
+.available-sizes {
+  padding: 0px 0;
+}
+
+.size-item {
+  padding: 5px 8px;
+  font-size: 11px;
+  width: 40px;
+
+}
+
+  .voucher span{
+    font-size:15px;
+  }
+
+  .checkout-btn {
+    position: absolute;
+    right:0;
+    top:45px;
+  width: 140px;
+  font-size: 12px; 
+}
+}
 </style>
+
+
+
+
+
+
+

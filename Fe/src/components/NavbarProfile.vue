@@ -175,6 +175,10 @@ const goToAddress = () => {
     showProfile,
     showOrder,
     showResetPassword
+  );
+   router.push({
+    name: "address",
+  });
     );
     showDetail.value = true;
 };
@@ -189,6 +193,10 @@ const goToResetPass = () => {
     showAddress,
     showProfile,
     showOrder
+  );
+  router.push({
+    name: "changePassword",
+  });
     );
     showDetail.value = true;
 };

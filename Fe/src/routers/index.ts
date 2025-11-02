@@ -26,6 +26,9 @@ import Product from '../pages/sellers/Product.vue';
 import HeaderAdmin from '../components/admins/Header.vue'
 import NavbarAdmin from '../components/admins/NavbarAdmin.vue';
 import AccountPermission from '../pages/admins/AccountPermission.vue';
+  import Address from '../pages/Address.vue'
+  import ChangePassword from '../pages/ChangePassword.vue'
+
 
 const routes = [
     { path: '/', redirect: '/home' },
@@ -49,6 +52,8 @@ const routes = [
     { path: '/order/payment', name: 'payment', component: Pay },
     { path: '/cart/cartOfme', name: 'cart-of-me', component: CartView },
     { path: '/shop/:id', name: 'shop', component: Shop },
+        { path: '/profile/address', name: 'address', component: Address },
+  { path: '/profile/changePassword', name: 'changePassword', component: ChangePassword },
 
     { path: '/seller/home', name: 'home-seller', component: HomeSeller },
     { path: '/seller/flashSale', name: 'flashsale-seller', component: FlashSaleSeller },

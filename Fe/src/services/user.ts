@@ -97,3 +97,12 @@ export const updateAvatarAPI = async (file: File) => {
 
     return response.data;
 };
+
+
+export const changePassword = async (password: string,newPassword: string)=>{
+    const response = await api.put('/user/changePassword',{
+        password: password,
+        newPassword:newPassword
+    })
+    return response.data
+}

@@ -81,7 +81,21 @@ const change = async () => {
   textToast.value = "";
   showNotification.value = false;
   if (!userStore.user) return;
+  if (!userStore.user.name || !userStore.user.phone) {
+    textToast.value = "";
+    textToast.value = "Vui lòng nhập đầy đủ họ tên và số điện thoại.";
+    showNotification.value = false;
+    return;
+  }
+  const phoneRegex = /^(0|\+84)[0-9]{9}$/;
+  if (!phoneRegex.test(userStore.user.phone)) {
+    textToast.value = "";
+    textToast.value = "Số điện thoại không hợp lệ.";
+    showNotification.value = false;
+    return;
+  }
   try {
+    textToast.value = "";
     if (userStore.user.date_of_birth && !(userStore.user.date_of_birth instanceof Date)) {
       userStore.user.date_of_birth = new Date(userStore.user.date_of_birth);
     }
@@ -89,10 +103,11 @@ const change = async () => {
     
     // Cập nhật lại dữ liệu gốc sau khi lưu thành công
     originalUserData.value = { ...userStore.user };
-    
+    textToast.value = "";
     textToast.value = "Đã cập nhật thông tin mới";
     showNotification.value = true;
   } catch {
+    textToast.value = "";
     textToast.value = "Cập nhật thông tin thất bại";
     showNotification.value = true;
   }
@@ -105,11 +120,11 @@ const password = ref("");
 const otp = ref("");
 
 const openEmailForm = () => {
-  showEmailModal.value = true;
-  showOtpForm.value = false;
-  newEmail.value = "";
-  password.value = "";
-  otp.value = "";
+showEmailModal.value = true;
+showOtpForm.value = false;
+newEmail.value = "";
+password.value = "";
+otp.value = "";
 };
 const closeEmailModal = () => (showEmailModal.value = false);
 

@@ -204,28 +204,36 @@ export const useCartStore = defineStore('cart', () => {
     }
 
     const removeSelectedItemsApi = async () => {
-        for(const shop of shops){
-            if(!shop.carts) continue
-            const selectItems = shop.carts.filter(item => item.selected)
-            for(const item of selectItems){
-                try {
-                    await removeCartItemAPI(item.cart_item_id)
-                    const index = shop.carts.findIndex(i => i.cart_item_id === item.cart_item_id)
-                    if(index !== -1) shop.carts.splice(index,1)
-                } catch (error) {
-                    console.error(`Xóa item ${item.cart_item_id} thất bại:`, error)
-                }
+
+        const itemsToRemove: number[] = [];
+
+        for (const shop of shops) {
+            if (!shop.carts) continue;
+
+            const selectedItems = shop.carts.filter(item => item.selected);
+            for (const item of selectedItems) {
+                itemsToRemove.push(item.cart_item_id);
             }
+
+
+            shop.carts = shop.carts.filter(item => !item.selected);
         }
 
         for (let i = shops.length - 1; i >= 0; i--) {
             const shop = shops[i];
-            if (!shop || !shop.carts?.length) {
+            if (!shop || !shop.carts || shop.carts.length === 0) {
                 shops.splice(i, 1);
             }
         }
+
+        try {
+            await Promise.all(itemsToRemove.map(id => removeCartItemAPI(id)));
+        } catch (error) {
+            console.error("Xóa giỏ hàng lỗi:", error);
+        }
+
         await getCartCountStore();
-    }
+    };
 
     const removePaidItems = async () => {
         if (!cartPay.value?.shops?.length) return
@@ -310,23 +318,26 @@ export const useCartStore = defineStore('cart', () => {
 
     const quantityTimeouts = new Map<number, ReturnType<typeof setTimeout>>()
 
-    const updateCartItemQuantityDebounced = (cartItem: CartItemDetail, newQuantity: number) => {
-        if (quantityTimeouts.has(cartItem.cart_item_id)) {
-            clearTimeout(quantityTimeouts.get(cartItem.cart_item_id))
-        }
-        const timeout = setTimeout(async () => {
-            try {
-            await updateCartItemQuantityAPI(cartItem.cart_item_id, newQuantity)
-            cartItem.quantity = newQuantity
-            } catch (error) {
-            console.error('Cập nhật quantity thất bại:', error)
-            } finally {
-            quantityTimeouts.delete(cartItem.cart_item_id)
-            }
-        }, 500)
-
-        quantityTimeouts.set(cartItem.cart_item_id, timeout)
-    }
+const updateCartItemQuantityDebounced = async (cartItem: CartItemDetail, newQuantity: number) => {  // Thêm async
+  if (quantityTimeouts.has(cartItem.cart_item_id)) {
+    clearTimeout(quantityTimeouts.get(cartItem.cart_item_id))
+  }
+  
+  return new Promise((resolve, reject) => {
+    const timeout = setTimeout(async () => {
+      try {
+        await updateCartItemQuantityAPI(cartItem.cart_item_id, newQuantity)
+        cartItem.quantity = newQuantity
+        resolve(true)
+      } catch (error) {
+        reject(error)
+      } finally {
+        quantityTimeouts.delete(cartItem.cart_item_id)
+      }
+    }, 500)
+    quantityTimeouts.set(cartItem.cart_item_id, timeout)
+  })
+}
 
     const filterSelectedItems = () => {
         if (!cartPay.value) {
