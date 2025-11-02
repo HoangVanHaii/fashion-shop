@@ -215,7 +215,7 @@ const updateProductStock = async (transaction: mssql.Transaction, size_id: numbe
     request.input('quantity', quantity);
   
     const checkFlashSale = `
-      SELECT ISNULL(fsi.quantity - fsi.sold, 0) AS flash_remaining
+      SELECT ISNULL(fsi.stock - fsi.sold, 0) AS flash_remaining
       FROM flash_sale_items AS fsi
       JOIN flash_sales AS fs ON fs.id = fsi.flash_sale_id
       WHERE fsi.size_id = @size_id
@@ -251,10 +251,6 @@ const updateProductStock = async (transaction: mssql.Transaction, size_id: numbe
       .input('size_id', size_id)
       .input('quantity', quantity)
       .query(updateProduct);
-  
-    console.log(
-      `✅ Đã trừ ${flashSaleDeduct} flash sale + ${quantity} stock cho size_id ${size_id}`
-    );
   };
   
 const insertPayment = async (transaction: mssql.Transaction, orderId: number, amount: number, method: string, status: string): Promise<void> => {
