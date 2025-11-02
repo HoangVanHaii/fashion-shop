@@ -24,7 +24,7 @@ export const getAllActiveCategories = async (): Promise<Category[]> => {
         const pool = await connectionDB();
         const result = await pool.request()
             .query(`
-        SELECT category_id, category_name, description, status, gender
+        SELECT category_id, category_name
         FROM categories
         WHERE status = 'active'
       `);
