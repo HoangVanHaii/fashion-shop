@@ -17,36 +17,56 @@ import Shop from '../pages/Shop.vue'
 import Pay from '../pages/Pay.vue';
 import CartView from '../pages/CartView.vue';
 import Footer from '../components/Footer.vue';
-import Address from '../pages/Address.vue'
- import HomeSeller from '../pages/sellers/Home.vue';
+import HomeSeller from '../pages/sellers/Home.vue';
 import FlashSaleSeller from '../pages/sellers/FlashSale.vue';
 import OrderFailed from '../pages/OrderFailed.vue';
-import ChangePassword from '../pages/ChangePassword.vue'
+import HeaderSeller from '../components/sellers/Header.vue'
+import OrderSeller from '../pages/sellers/Order.vue'
+import Product from '../pages/sellers/Product.vue';
+import HeaderAdmin from '../components/admins/Header.vue'
+import NavbarAdmin from '../components/admins/NavbarAdmin.vue';
+import AccountPermission from '../pages/admins/AccountPermission.vue';
+  import Address from '../pages/Address.vue'
+  import ChangePassword from '../pages/ChangePassword.vue'
+
 
 const routes = [
-  { path: '/', redirect: '/home' },
-  { path: '/home', name: 'Home', component: Home },
-  { path: '/auth/login', name: 'login', component: Auth },
-  { path: '/header', name: 'header', component: Header },
-  { path: '/footer', name: 'footer', component: Footer },
-  { path: '/auth/register', name: 'register-sendOTP', component: Auth },
-  { path: '/verifyRegister', name: 'register-verify', component: VerifyOTP },
-  { path: '/categoryGender', name: 'category-gender', component: CategoryGender },
-  { path: '/product/:id', name: 'product-detail', component: ProductDetail },
-  { path: '/dealHot', name: 'DealHot', component: DealHot },
-  { path: '/addToCart', name: 'AddToCart', component: AddToCart },
-  { path: '/orderSuccess', name: 'OrderSuccess', component: OrderSuccess },
-  { path: '/orderFailed', name: 'OrderFailed', component: OrderFailed },
-  { path: '/profile/orderOfme', name: 'order-of-me', component: Order },
-  { path: '/navbarProfile', name: 'nav-bar', component: NavbarProfile },
-  { path: '/profile/me', name: 'profile', component: Profile },
-  { path: '/profile/address', name: 'address', component: Address },
+    { path: '/', redirect: '/home' },
+    { path: '/home', name: 'Home', component: Home },
+    { path: '/auth/login', name: 'login', component: Auth },
+    { path: '/header', name: 'header', component: Header },
+    { path: '/footer', name: 'footer', component: Footer },
+    { path: '/auth/register', name: 'register-sendOTP', component: Auth },
+    { path: '/verifyRegister', name: 'register-verify', component: VerifyOTP },
+    { path: '/categoryGender', name: 'category-gender', component: CategoryGender },
+    { path: '/product/:id', name: 'product-detail', component: ProductDetail },
+    { path: '/dealHot', name: 'DealHot', component: DealHot },
+    { path: '/addToCart', name: 'AddToCart', component: AddToCart },
+    { path: '/orderSuccess', name: 'OrderSuccess', component: OrderSuccess },
+    { path: '/orderFailed', name: 'OrderFailed', component: OrderFailed },
+    { path: '/profile/orderOfme', name: 'order-of-me', component: Order },
+    { path: '/navbarProfile', name: 'nav-bar', component: NavbarProfile },
+    { path: '/profile/me', name: 'profile', component: Profile },
+    { path: '/profile/orderOfme/:id', name: 'order-detail', component: OrderDetail },
+    { path: '/profile/favouriteOfme', name: 'favourite', component: Favourite },
+    { path: '/order/payment', name: 'payment', component: Pay },
+    { path: '/cart/cartOfme', name: 'cart-of-me', component: CartView },
+    { path: '/shop/:id', name: 'shop', component: Shop },
+        { path: '/profile/address', name: 'address', component: Address },
   { path: '/profile/changePassword', name: 'changePassword', component: ChangePassword },
-  { path: '/profile/orderOfme/:id', name: 'order-detail', component: OrderDetail },
-  { path: '/profile/favouriteOfme', name: 'favourite', component: Favourite },
-  { path: '/order/payment', name: 'payment', component: Pay },
-  { path: '/cart/cartOfme', name: 'cart-of-me', component: CartView },
-  { path: '/shop/:id', name: 'shop', component: Shop },
+
+    { path: '/seller/home', name: 'home-seller', component: HomeSeller },
+    { path: '/seller/flashSale', name: 'flashsale-seller', component: FlashSaleSeller },
+    { path: '/seller/header', name: 'header-seller', component: HeaderSeller },
+    { path: '/seller/order', name: 'order-seller', component: OrderSeller },
+    { path: '/seller/product', name: 'product-seller', component: Product },
+    
+    { path: '/admin/header', name: 'header-admin', component: HeaderAdmin },
+    { path: '/admin/header1', name: 'header-admin', component: NavbarAdmin },
+    { path: '/admin/accountPermission', name: 'accountPermission-admin', component: AccountPermission },
+
+    
+  
 ];
 const router = createRouter({ history: createWebHistory(import.meta.env.BASE_URL), routes });
 

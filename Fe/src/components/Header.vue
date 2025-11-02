@@ -8,7 +8,6 @@ import logo from "../assets/logo.jpg";
 import { getImage } from "../utils/format";
 import Notification from "./Notification.vue";
 import { formatPrice } from "../utils/format";
-import { storeToRefs } from "pinia";
 import { useUserStore } from "../stores/userStore";
 import { useProductStore } from "../stores/productStore";
 
@@ -29,6 +28,7 @@ const searchBarRef = ref<HTMLElement | null>(null);
 const showFormUser = ref(false);
 const isLogin = ref(false);
 const showMenuPhone = ref(false);
+const isLogOut = ref(false); 
 const MenuPhone = ref<HTMLElement | null>(null);
 const listSearch = computed<ProductSummary[]>(() => {
   const query = searchQuery.value.toLowerCase().trim();
@@ -39,12 +39,17 @@ const listSearch = computed<ProductSummary[]>(() => {
 });
 const u = useUserStore();
 
-const { avatar } = storeToRefs(u);
+// const { avatar } = storeToRefs(u);  
+
 onBeforeMount(async () => {
     isLogin.value = localStorage.getItem("user_id") ? true : false;
-    u.fetchProfile();
+    await u.fetchProfile();
     if (localStorage.getItem('accessToken')) {
+        isLogOut.value = false;
         await cart.getCartCountStore();
+    }
+    else {
+        isLogOut.value = true;
     }
   categoryMale.value = await category.getCategoryNameStore("Nam");
   categoryFemale.value = await category.getCategoryNameStore("Nữ");
@@ -82,15 +87,18 @@ const goToLogin = () => {
 const goToRegister = () => {
   router.push("/auth/register");
 };
+
 const goToLogout = async() => {
     localStorage.removeItem("accessToken");
     localStorage.removeItem("refreshToken");
     localStorage.removeItem("user_id");
     localStorage.removeItem("avatar");
-    avatar.value = "";
+    // avatar.value = "";
     isLogin.value = false;
+    u.avatar = '';
+    isLogOut.value = true
+    cart.resetCartCount();
     router.push("/home");   
-    cart.resetCartCount()
 };
 
 const goToProfile = () => {
@@ -282,8 +290,8 @@ onBeforeUnmount(() => {
             @mouseenter="showFormUser = true"
             @mouseleave="showFormUser = false"
           >
-            <i v-if="!avatar" class="fa-solid fa-user"></i>
-            <img v-else :src="getImage(avatar)" class="avt" alt="" />
+            <i v-if="u.avatar === '' || isLogOut" class="fa-solid fa-user"></i>
+            <img v-else :src="getImage(u.avatar)" class="avt" alt="" />
             <div class="user-container" v-if="showFormUser">
               <div v-if="!isLogin" class="guest-actions">
                 <span @click="goToLogin" class="login">Đăng nhập</span>

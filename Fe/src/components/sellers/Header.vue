@@ -30,11 +30,11 @@ const toggleNavbar = () => {
             <div class="header-left">
                 <i class="fa-solid fa-bag-shopping"></i>
                 <div class="abslu">U</div>
-                <div class="chanel" v-if="props.nav1 == undefined">
+                <div class="chanel" v-if="props.nav1 == undefined || props.nav1 === ''">
                     <span @click="router.push({name: 'home-seller'})">Navar</span>
                     <span style="color: black;">Kênh người bán</span>
                 </div>
-                <div class="navbar" v-if="props.nav1 != undefined">
+                <div class="navbar" v-if="props.nav1 != undefined && props.nav1 !== ''" >
                     <div @click="router.push({name: 'home-seller'})">Trang chủ</div>
                     <i class="fa-solid fa-greater-than"></i>
                     <span>{{ props.nav1 }}</span>

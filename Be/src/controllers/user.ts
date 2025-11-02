@@ -355,6 +355,19 @@ export const getShopTodoSummary = async (req: Request, res: Response, next: Next
         next(err);
     }
 }
+export const getShopIdByUserId = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const shop_id = await userService.getShopIdByUserId(req.user?.id!);
+       
+        return res.status(200).json({
+            success: true,
+            message: "Get shop id successfully",
+            data: shop_id
+        })
+    } catch (err) {
+        next(err);
+    }
+}
 export const getShopStatistic = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const shop_id = await userService.getShopIdByUserId(req.user?.id!);

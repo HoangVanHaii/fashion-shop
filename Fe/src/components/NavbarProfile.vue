@@ -158,7 +158,8 @@ const goToProfile = () => {
     showOrder,
     showAddress,
     showResetPassword
-  );
+    );
+    showDetail.value = true;
   router.push({
     name: "profile",
   });
@@ -178,6 +179,8 @@ const goToAddress = () => {
    router.push({
     name: "address",
   });
+    );
+    showDetail.value = true;
 };
 const goToResetPass = () => {
   reset(
@@ -194,6 +197,8 @@ const goToResetPass = () => {
   router.push({
     name: "changePassword",
   });
+    );
+    showDetail.value = true;
 };
 const emit = defineEmits(["update:show-menu"]);
 

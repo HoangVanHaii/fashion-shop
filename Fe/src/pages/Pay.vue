@@ -74,21 +74,15 @@
                                         <span>Màu {{ item.color }} | Size {{ item.size }}</span>    
                                     </div>
                                 <div class="price">
-                                    <s >{{ item.price.toLocaleString() }}đ</s>
-                                    <span >{{ item.price_after_reduction?.toLocaleString() }}đ</span>
+                                    <s>{{ item.price.toLocaleString() }}đ</s>
+                                    <span>{{ item.price_after_reduction?.toLocaleString() }}đ</span>
                                 </div>
                                 
                                 <div class="quantity">
                                     {{ item.quantity }}
                                 </div>
                                 <div class="quantity-mobile">
-                                    <div class="quantity-mobile-in">
-                                        <span>x{{ item.quantity }}</span>
-                                        <div>
-                                            <span class="price2">{{ item.price_after_reduction?.toLocaleString() }}đ</span>
-                                            <s class="price1">{{ item.price.toLocaleString() }}đ</s>
-                                        </div> 
-                                    </div>        
+                                    <span>x{{ item.quantity }}</span>
                                 </div>
                                 
                                 <div class="total">
@@ -454,24 +448,20 @@ const clickOrder = async () => {
 
     try {
         const res = await orderStore.createOrder(payload)
-        loadingOrder.value = false;
         await cartStore.removePaidItems()
+        loadingOrder.value = false;
 
         if (order.payment_method == 'vnpay') {
             console.log(res.paymentUrl)
-            window.location.href = res.paymentUrl;
-            if (orderStore.error) {
-                router.push('/orderFailed');
-            }
-            else router.push('/orderSuccess')
-        }
+            window.location.href = res.paymentUrl;   
+        } 
         else {
             if (orderStore.error) {
                 router.push('/orderFailed');
             }
             else router.push('/orderSuccess')
+            
         }
-       
     } catch (err: any) {
         loadingOrder.value = false;
         const msg = err.response?.data?.message || err.message;
@@ -975,19 +965,23 @@ font-size: 21px;
 text-align: right;
 }
 
+/* label co giãn linh hoạt, không bị đẩy */
 .total-all-shop1 {
 
 text-align: right;
 color: #333;
 }
 
+/* value có độ rộng cố định, căn phải */
 .total-all-shop2 {
-width: 180px; 
+width: 180px; /* có thể chỉnh nhỏ/lớn hơn tùy layout */
 text-align: right;
 color: #dc2626;
 font-weight: 700;
 }
 
+
+/* --- Order Summary Section --- */
 .order-summary {
 background-color: #fff;
 margin-top: 20px;
@@ -996,6 +990,7 @@ border-radius: 8px;
 border-top: 1px dashed #ccc;
 }
 
+/* Layout chính: 2 cột ngang */
 .voucher-section{
 display: grid;
 grid-template-columns: 1fr 1fr;
@@ -1015,6 +1010,7 @@ gap: 40px;
 border-bottom: 1px dashed #ccc;
 }
 
+/* Cột trái */
 .voucher-left,
 .payment-left { 
     display: flex; 
@@ -1032,6 +1028,7 @@ border-bottom: 1px dashed #ccc;
     font-size: 26px; 
 }
 
+/* Cột phải */
 .voucher-right{ 
     display: flex; 
     justify-content: flex-end;
@@ -1072,12 +1069,14 @@ font-weight: 600;
     text-decoration: underline; 
 }
 
+/* Summary section - layout ngang */
 .summary-total {
 margin-top: 20px;
 padding-top: 15px;
 border-top: 1px dashed #ccc;
 }
 
+/* Grid layout cho phần summary */
 .summary-row {
 display: grid;
 grid-template-columns: 220px 120px;
@@ -1094,24 +1093,24 @@ text-align: left;
 }
 
 .road-line-sumary {
-grid-column: 1 / -1;   
+grid-column: 1 / -1;   /* chiếm toàn bộ hàng grid */
 height: 1px;
 background-color: #999;
 border-radius: 2px;
-margin: 6px 0;        
+margin: 6px 0;         /* khoảng cách trên/dưới */
 opacity: 0.7;
 width:400px;
 margin-left: auto;
 }
 
-
+/* Giá trị căn phải */
 .summary-value {
 text-align: right;
 font-weight: 600;
 min-width: 120px;
 }
 
-
+/* Nút đặt hàng cùng hàng */
 .order-btn {
 background-color: #dc2626;
 color: #fff;
@@ -1127,6 +1126,7 @@ white-space: nowrap;
     width: 200px;
 outline: none;
 box-shadow: none;
+
 }
 
 .order-btn:hover { 
@@ -1134,12 +1134,12 @@ box-shadow: none;
     transform: translateY(-1px); 
 }
 
-
+/* Trạng thái giảm giá */
 .discount { 
     color: #dc2626; 
 }
 
-
+/* Dòng tổng thanh toán */
 .total-pay {
 margin-top: 5px;
 }
@@ -1154,7 +1154,7 @@ margin-top: 5px;
     font-weight: 800; 
 }
 
-
+/* Note văn bản nhỏ */
 .note {
 margin-top: 15px;
 color: #555;
@@ -1548,7 +1548,7 @@ add address */
     .product-line {
         display: block;
         text-align: left;
-        font-size: 18px;
+        font-size: 25px;
         font-weight: 400;
     }
 

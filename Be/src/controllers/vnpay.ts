@@ -1,19 +1,15 @@
 import { VerifyReturnUrl, ReturnQueryFromVNPay } from 'vnpay';
-import { vnpay,buildPaymentUrl } from '../utils/vnpay';
+import { vnpay, buildPaymentUrl } from '../utils/vnpay';
 import { Request, Response, NextFunction } from 'express';
 import * as paymentService from '../services/payment';
 
 export const checkPayment = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const vnpParams = req.query as unknown as ReturnQueryFromVNPay;
-        
-        const verify: VerifyReturnUrl = vnpay.verifyReturnUrl(vnpParams);        
+
+        const verify: VerifyReturnUrl = vnpay.verifyReturnUrl(vnpParams);
         if (!verify.isVerified) {
-            return res.redirect('http://localhost:5173/orderFailed?reason=invalid_signature');
-            return res.status(400).json({ 
-                message: "Invalid signature",
-                details: verify.message 
-            });
+            return res.redirect('https://fashion-shop-1-wacu.onrender.com/orderFailed?reason=invalid_signature');
         }
 
         const orderId = verify.vnp_TxnRef;
@@ -21,15 +17,15 @@ export const checkPayment = async (req: Request, res: Response, next: NextFuncti
         console.log(orderId);
         if (responseCode === '00') {
             await paymentService.updatePaymentStatus(orderId, "success");
-            return res.redirect(`http://localhost:5173/orderSuccess?orderId=${orderId}`);
+            return res.redirect(`https://fashion-shop-1-wacu.onrender.com/orderSuccess?orderId=${orderId}`);
         } else {
             await paymentService.updatePaymentStatus(orderId, "failed");
-            return res.redirect(`http://localhost:5173/orderFailed?orderId=${orderId}&code=${responseCode}`);
+            return res.redirect(`https://fashion-shop-1-wacu.onrender.com/orderFailed?orderId=${orderId}&code=${responseCode}`);
         }
 
     } catch (error) {
         console.error("Error checking payment:", error);
-        return res.redirect('http://localhost:5173/orderFailed?reason=server_error');
+        return res.redirect('https://fashion-shop-1-wacu.onrender.com/orderFailed?reason=server_error');
     }
 };
 export const createPaymentQR = async (req: Request, res: Response, next: NextFunction) => {
