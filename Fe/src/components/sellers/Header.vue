@@ -14,7 +14,8 @@ const router = useRouter();
 const auth = useAuthStore();
 const shop = ref<Shop>();
 onBeforeMount(async () => {
-    shop.value = await auth.getShopByidStore(3);
+    const shop_id = await auth.getShopIdByUserIdStore();
+    shop.value = await auth.getShopByidStore(shop_id || 1);
 })
 
 import emitter from "../../utils/eventBus";
@@ -182,7 +183,7 @@ hr{
         color: rgb(50, 50, 50);
     }
 }
-@media (max-width: 390px) {
+@media (max-width: 450px) {
     .logo{
         display: none;
     }

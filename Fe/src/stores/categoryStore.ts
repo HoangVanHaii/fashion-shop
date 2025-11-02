@@ -1,6 +1,6 @@
 import { ref } from 'vue';
 import { defineStore } from "pinia";
-import { getCategoryName } from "../services/category";
+import { getActiveCategory, getCategoryName } from "../services/category";
 
 export const useCategoryStore = defineStore('category', () => {
     const loading = ref<boolean>(true);
@@ -16,5 +16,17 @@ export const useCategoryStore = defineStore('category', () => {
             loading.value = false;
         }
     }
-    return { getCategoryNameStore };
+    const getActiveCategoryStore = async () => {
+        loading.value = true;
+        try {
+            const res = await getActiveCategory();
+            return res.data;
+        } catch (error) {
+            // console.error("Failed to fetch cart count:", error);
+            // return 0;
+        } finally {
+            loading.value = false;
+        }
+    }
+    return { getCategoryNameStore, getActiveCategoryStore };
 })

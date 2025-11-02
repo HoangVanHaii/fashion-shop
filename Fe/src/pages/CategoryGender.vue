@@ -8,6 +8,7 @@ import { useCategoryStore } from "../stores/categoryStore";
 import { getImage, formatPrice } from "../utils/format";
 import AddToCart from "../components/AddToCart.vue";
 import { useFavouriteStore } from "../stores/favourite";
+import Loading from "../components/Loading.vue";
 const route = useRoute();
 const router = useRouter();
 const product = useProductStore();
@@ -104,14 +105,12 @@ const sortProducts = (products: ProductSummary[], sortKey: string) => {
   return products.sort((a, b) => {
     const nameA = (a.name ?? "").toString();
     const nameB = (b.name ?? "").toString();
-    const priceA = Number(a.min_price ?? 0);
-    const priceB = Number(b.min_price ?? 0);
-    const soldA = Number(
-      a.sold_quantity ?? a.flash_price ?? a.sold_quantity ?? 0
-    );
-    const soldB = Number(
-      b.sold_quantity ?? b.flash_price ?? b.sold_quantity ?? 0
-    );
+
+    const priceA = Number(a.flash_price ?? a.min_price ?? 0);
+    const priceB = Number(b.flash_price ?? b.min_price ?? 0);
+
+    const soldA = Number(a.sold_quantity ?? 0);
+    const soldB = Number(b.sold_quantity ?? 0);
 
     switch (sortKey) {
       case "name-asc":
@@ -152,23 +151,18 @@ const handleCart = async (id: number) => {
     showFormAdd.value = true;
   }
 };
-const toggleFavourite = async (id: number) => {
-  if (favourite.isFavourite(id)) {
-    await favourite.deleteFavouriteStore(id);
-  } else {
-    await favourite.addFavouriteStore(id);
-  }
-};
+
 </script>
 
 <template>
   <Header></Header>
+  <Loading :loading="product.loading" />
   <AddToCart
     v-if="showFormAdd && productDetail"
     :product="productDetail"
     @close="showFormAdd = false"
   />
-  <div class="product-page">
+  <div class="product-page" v-if="!product.loading">
     <div v-if="product.loading" class="loading-overlay">
       <div class="spinner"></div>
     </div>
@@ -296,7 +290,7 @@ const toggleFavourite = async (id: number) => {
                 <button @click="handleCart(product.id)">
                   <i class="fa-solid fa-cart-shopping"></i>
                 </button>
-                <button @click.stop="toggleFavourite(product.id)">
+                <button @click.stop="favourite.toggleFavouriteInstant(product.id)">
                     <i
                       v-if="favourite.isFavourite(product.id)"
                       class="fa-solid fa-heart"

@@ -4,6 +4,7 @@ import { useRoute, useRouter } from "vue-router";
 import { useAuthStore } from "../stores/authStore";
 import iconLock from '../assets/iconLock.jpg'
 import Notification from "./Notification.vue";
+import RePassConfirm from "./RePassConfirm.vue";
 
 const props = defineProps(['email']);
 const emit = defineEmits(['close']);
@@ -15,6 +16,10 @@ const otpLength = 6;
 const otp = ref<string[]>(Array(otpLength).fill(""));
 const resending = ref<boolean>(false);
 const inputs = ref<(HTMLInputElement | null)[]>([]);
+
+const countdown = ref<number>(0);
+let timer: any = null;
+
 
 const showNotification = ref<boolean>(false);
 const toastText = ref('');
@@ -35,8 +40,10 @@ const handleBackspace = (event: KeyboardEvent, index: number) => {
         nextTick(() => inputs.value[index - 1]?.focus());
     }
 };
-
+const showRepass = ref<boolean>(false);
+const showMe = ref(true);
 const handleSubmit = async () => {
+
     const otpCode = otp.value.join("");
     auth.loading = true;
     if(otpCode.length != 6){
@@ -45,6 +52,21 @@ const handleSubmit = async () => {
         return;
     }
     const email: string = props.email
+    if (route.path == '/auth/login') {
+        await auth.verifyForgotPasswordStore(props.email, otpCode)
+         if(!auth.error){
+            showNotification.value = true;
+            toastText.value = "✅ Xác thực thành công!";
+            setTimeout(() => {
+                showRepass.value = true;
+                showMe.value = false;
+            }, 1200);  
+            
+        }
+        if(auth.error){
+            err.value = auth.error;
+        }
+    }
     if (route.path == '/auth/register') {
         await auth.verifyRegisterStore(email, otpCode)
         if(auth.success){
@@ -63,19 +85,28 @@ const handleSubmit = async () => {
     auth.loading = false;
 }
 const handleResendOTP = async () => {
-    resending.value = true;
+    if (resending.value || countdown.value > 0) return;
+
     err.value = "";
-        
-    // TODO: Gọi API gửi lại OTP ở đây
-    // await auth.resendOTPStore(email);
-    
+    resending.value = true;
+    await auth.resendOTPStore(props.email);
+
+    otp.value = Array(otpLength).fill("");
+    nextTick(() => inputs.value[0]?.focus());
+
+    countdown.value = 10;
+    timer = setInterval(() => {
+        countdown.value--;
+        if (countdown.value <= 0) {
+            clearInterval(timer);
+        }
+    }, 1000);
+
     setTimeout(() => {
         resending.value = false;
-        otp.value = Array(otpLength).fill("");
-        nextTick(() => inputs.value[0]?.focus());
-        
-    }, 1500);
-}
+    }, 1000);
+};
+
 const handleClose = () => {
     emit('close');
 }
@@ -83,8 +114,8 @@ const handleClose = () => {
 
 <template>
     <Notification :text="toastText" :isSuccess="showNotification" />
-
-    <div class="otp-wrapper" @click="handleClose" >
+    <RePassConfirm :email="props.email" v-if="showRepass" @close="showRepass = false"/>
+    <div class="otp-wrapper" @click="handleClose" v-if="showMe">
         <div class="otp-card" @click.stop>
             <img :src="iconLock" alt="otp" class="otp-logo" />
             <h2>XÁC THỰC OTP</h2>
@@ -116,13 +147,21 @@ const handleClose = () => {
                     Tiếp tục
             </button>
              <p class="otp-resend">
-                Chưa nhận được mã? 
+                Chưa nhận được mã?
                 <a 
                     href="#" 
                     @click.prevent="handleResendOTP"
-                    :class="{ 'resending': resending }"
+                    :class="{ 'resending': resending || countdown > 0 }"
                 >
-                    {{ resending ? 'Đang gửi...' : 'Gửi lại' }}
+                    <template v-if="resending">
+                        Đang gửi...
+                    </template>
+                    <template v-else-if="countdown > 0">
+                        Gửi lại ({{ countdown }}s)
+                    </template>
+                    <template v-else>
+                        Gửi lại
+                    </template>
                 </a>
             </p>
             <p style="color: red;">{{err}}</p>

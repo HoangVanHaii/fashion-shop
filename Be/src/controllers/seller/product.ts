@@ -73,53 +73,49 @@ export const getAllProductsHiddenByShop = async (req: Request, res: Response, ne
 }
 export const addProduct = async (req: Request, res: Response, next: NextFunction) => {
     try {
+        
         const { category_id, name, description, colors } = req.body;
         const shop_id = await userService.getShopIdByUserId(req.user!.id);
-
-        const files = req.files as Express.Multer.File[];
+        const cacheKey = `shop:products:${shop_id}`;
         const parseColors = JSON.parse(colors);
-
         let productColors: ProductColor[] = [];
-        let indexImage = 0;
+
         for (let i = 0; i < parseColors.length; i++) {
             const color = parseColors[i];
-            const start = 4 * i;
-            const end = 4 * i + 3
-            const image = files[start];
-            let color_images: string[] = [];
-            for (let j = start + 1; j <= end; j++) {
-                color_images.push(`/uploads/products/${files[j].filename}`)
-            }
-            let productSizes: ProductSize[] = [];
-            for (const size of color.sizes) {
-                productSizes.push({
-                    size: size.size,
-                    stock: size.stock,
-                    price: size.price
-                });
-            }
+
+            let productSizes: ProductSize[] = color.sizes.map((s: any) => ({
+                size: s.size,
+                stock: s.stock,
+                price: s.price
+            }));
+
             productColors.push({
                 color: color.color,
-                image_url: `/uploads/products/${image.filename}`,
-                is_main: i == 0,
+                image_url: color.image_url,
+                is_main: i === 0,
                 sizes: productSizes,
-                images: color_images
-            })
+                images: color.images
+            });
         }
+
         const productPayload: ProductPayload = {
-            shop_id: Number(shop_id),
-            category_id: Number(category_id),
-            name: String(name),
-            description: String(description),
+            shop_id,
+            category_id,
+            name,
+            description,
             colors: productColors
         };
-        await productService.addProduct(productPayload);
 
-        res.status(201).json({ message: "Product added successfully" });
+        await productService.addProduct(productPayload);
+        await redisClient.del(cacheKey);
+        return res.status(201).json({ message: "Product created successfully" });
+
     } catch (error: any) {
+        console.log(error);
         next(error);
     }
-}
+};
+
 export const updateProduct = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const productId = parseInt(req.params.id);

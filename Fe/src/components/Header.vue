@@ -161,7 +161,7 @@ onBeforeUnmount(() => {
           <a href="/dealHot" class="nav-link">Ưu đãi cực hot</a>
           <a href="/CategoryGender?gender=Nam" class="nav-link"> Nam </a>
           <a href="/CategoryGender?gender=Nữ" class="nav-link">Nữ </a>
-          <a href="/phu-kien" class="nav-link"> Phụ kiện </a>
+          <a href="/CategoryGender?gender=Nữ" class="nav-link"> Phụ kiện </a>
         </div>
         <div class="logo">
           <img :src="logo" @click="router.push('/')" />
@@ -210,7 +210,7 @@ onBeforeUnmount(() => {
             @mouseenter="showPhuKienDropdown = true"
             @mouseleave="showPhuKienDropdown = false"
           >
-            <a href="/phu-kien" class="nav-link">
+            <a href="/CategoryGender?gender=Nữ" class="nav-link">
               Phụ kiện <span class="arrow">▼</span>
             </a>
             <div v-if="showPhuKienDropdown" class="dropdown-menu">
