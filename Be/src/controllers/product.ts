@@ -14,7 +14,7 @@ export const getProductsActive = async (req: Request, res: Response, next: NextF
 
 		const products = await productService.getProductsActive();
 
-		await redisClient.setEx(cacheKey, 300, JSON.stringify(products));
+		await redisClient.setEx(cacheKey, 1200, JSON.stringify(products));
 		console.log("Cache miss → saved new data");
 
 		res.status(200).json(products);
@@ -90,7 +90,7 @@ export const getLatestProducts = async (req: Request, res: Response, next: NextF
             return res.status(200).json(products);
         }
 		const products = await productService.getLatestProducts(limit);
-		await redisClient.setEx(cacheKey, 600, JSON.stringify(products));
+		await redisClient.setEx(cacheKey, 1200, JSON.stringify(products));
 		return res.status(200).json(products);
 	} catch (error: any) {
 		next(error);
@@ -108,7 +108,7 @@ export const getBestSellerProduct = async (req: Request, res: Response, next: Ne
             return res.status(200).json(products);
         }
 		const products = await productService.getBestSellerProduct(limit);
-		await redisClient.setEx(cacheKey, 600, JSON.stringify(products));
+		await redisClient.setEx(cacheKey, 1200, JSON.stringify(products));
 		return res.status(200).json(products);
 	} catch (error: any) {
 		next(error);

@@ -98,54 +98,54 @@ const goToOrder = () => {
 
 }
 
-const goToAllProduct = () => {
-    reset(
-        showProfileShop,
-        showFlashSale,
-        showManagermentOrder,
-        showData,
-        showManagermentProduct,
-        showCustomCare,
-        showManagermentShop,
-        showMarketing,
-        showVoucher,
-        isShow,
-        showAllOrder,
-        showAddProduct,
-        showReview,
-        showProfile,
-        showAllOrder,
-        showStatistical,
-        showAllProduct
-    );
-    handleResize();    
-    showManagermentProduct.value = true;
-    router.push({name: 'product-seller'})
-}
+// const goToAllProduct = () => {
+//     reset(
+//         showProfileShop,
+//         showFlashSale,
+//         showManagermentOrder,
+//         showData,
+//         showManagermentProduct,
+//         showCustomCare,
+//         showManagermentShop,
+//         showMarketing,
+//         showVoucher,
+//         isShow,
+//         showAllOrder,
+//         showAddProduct,
+//         showReview,
+//         showProfile,
+//         showAllOrder,
+//         showStatistical,
+//         showAllProduct
+//     );
+//     handleResize();    
+//     showManagermentProduct.value = true;
+//     router.push({name: 'product-seller'})
+// }
 
-const gotoAddProduct = () => {
-    reset(
-        showProfileShop,
-        showFlashSale,
-        showManagermentOrder,
-        showData,
-        showManagermentProduct,
-        showCustomCare,
-        showManagermentShop,
-        showMarketing,
-        showVoucher,
-        isShow,
-        showAllOrder,
-        showReview,
-        showProfile,
-        showAllOrder,
-        showAllProduct,
-        showStatistical,
-        showAddProduct
-    );
-    handleResize();    
-    showManagermentProduct.value = true;
-}
+// const gotoAddProduct = () => {
+//     reset(
+//         showProfileShop,
+//         showFlashSale,
+//         showManagermentOrder,
+//         showData,
+//         showManagermentProduct,
+//         showCustomCare,
+//         showManagermentShop,
+//         showMarketing,
+//         showVoucher,
+//         isShow,
+//         showAllOrder,
+//         showReview,
+//         showProfile,
+//         showAllOrder,
+//         showAllProduct,
+//         showStatistical,
+//         showAddProduct
+//     );
+//     handleResize();    
+//     showManagermentProduct.value = true;
+// }
 
 const goToStatistical = () => {
     reset(

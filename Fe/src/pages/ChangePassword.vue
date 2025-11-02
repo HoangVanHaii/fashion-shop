@@ -1,11 +1,10 @@
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted, computed } from "vue";
+import { ref, onMounted } from "vue";
 import { useUserStore } from "../stores/userStore";
 import NavbarProfile from "../components/NavbarProfile.vue";
 import Header from "../components/Header.vue";
 import Loading from "../components/Loading.vue";
 import Notification from "../components/Notification.vue";
-import type { User } from "../interfaces/user";
 
 const userStore = useUserStore();
 const textToast = ref("");

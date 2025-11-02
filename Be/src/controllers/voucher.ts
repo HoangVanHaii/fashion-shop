@@ -140,7 +140,7 @@ export const getTopVouchers = async (req: Request, res: Response, next: NextFunc
         }
           
         const vouchers = await voucherService.getTopVouchers(top, scope);
-        await redisClient.setEx(cacheKey, 300, JSON.stringify(vouchers));
+        await redisClient.setEx(cacheKey, 1200, JSON.stringify(vouchers));
         console.log("Cache miss → saved new data");
         
         return res.status(200).json({
