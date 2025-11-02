@@ -23,6 +23,9 @@ import OrderFailed from '../pages/OrderFailed.vue';
 import HeaderSeller from '../components/sellers/Header.vue'
 import OrderSeller from '../pages/sellers/Order.vue'
 import Product from '../pages/sellers/Product.vue';
+import HeaderAdmin from '../components/admins/Header.vue'
+import NavbarAdmin from '../components/admins/NavbarAdmin.vue';
+import AccountPermission from '../pages/admins/AccountPermission.vue';
 
 const routes = [
     { path: '/', redirect: '/home' },
@@ -52,6 +55,12 @@ const routes = [
     { path: '/seller/header', name: 'header-seller', component: HeaderSeller },
     { path: '/seller/order', name: 'order-seller', component: OrderSeller },
     { path: '/seller/product', name: 'product-seller', component: Product },
+    
+    { path: '/admin/header', name: 'header-admin', component: HeaderAdmin },
+    { path: '/admin/header1', name: 'header-admin', component: NavbarAdmin },
+    { path: '/admin/accountPermission', name: 'accountPermission-admin', component: AccountPermission },
+
+    
   
 ];
 const router = createRouter({ history: createWebHistory(import.meta.env.BASE_URL), routes });

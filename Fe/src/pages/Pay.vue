@@ -60,7 +60,7 @@
                     <div class="shop-items">
                         <div v-for="item in shop.carts" :key="item.cart_item_id" class="item-row">
                             <div class="item-info">
-                                <img :src="`http://localhost:3000${item.image_url}`" alt="product" />
+                                <img :src="getImage(item.image_url)" alt="product" />
                                 <div class="item-details">
                                     <span class="item-name">{{ item.name }}</span> 
                                 </div>
@@ -178,6 +178,7 @@ import type { OderPayLoad, OrderItem, Order } from '../interfaces/order'
 import Header from '../components/Header.vue'
 import Loading from '../components/Loading.vue'
 import router from '../routers'
+import { getImage } from '../utils/format'
 
 const cartStore = useCartStore()
 const orderStore = useOrderStore()

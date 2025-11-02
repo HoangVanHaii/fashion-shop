@@ -12,6 +12,7 @@ import { useCartStore } from "../stores/cartStore";
 import Notification from "./Notification.vue";
 const router = useRouter();
 const emit = defineEmits(["close"]);
+const loading = ref(false);
 const handleClose = () => {
   emit("close");
 };
@@ -67,13 +68,16 @@ const handleAddToCart = async (size: ProductSize) => {
         }, 0)        
         return;
     }
+    if (loading.value) return;
+    loading.value = true;
     await cart.addToCartStore(size.id!, quantity.value || 1);
     if (cart.success) {
         showNotification.value = true;
         toastText.value = "🛒 Thêm vào giỏ hàng thành công!";
         setTimeout(() => {
+            loading.value = false;
             handleClose();
-        }, 2100);
+        },1600);
     } else {
         toastText.value = cart.error || "❌ Thêm vào giỏ hàng thất bại!";
         showNotification.value = false;
