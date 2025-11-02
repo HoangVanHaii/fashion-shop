@@ -209,15 +209,54 @@ const insertOrderItems = async (transaction: mssql.Transaction, orderId: number,
         await updateProductStock(transaction, item.size_id, item.quantity);
     }
 }
-const updateProductStock = async (transaction: mssql.Transaction, size_id: number, quantity: number): Promise<void> => {
-    const query = `UPDATE product_sizes
-                   SET stock = stock - @quantity
-                   WHERE id = @size_id AND stock >= @quantity`;
-    await new mssql.Request(transaction)
+const updateProductStock = async (transaction: mssql.Transaction, size_id: number, quantity: number ): Promise<void> => {
+    const request = new mssql.Request(transaction);
+    request.input('size_id', size_id);
+    request.input('quantity', quantity);
+  
+    const checkFlashSale = `
+      SELECT ISNULL(fsi.quantity - fsi.sold, 0) AS flash_remaining
+      FROM flash_sale_items AS fsi
+      JOIN flash_sales AS fs ON fs.id = fsi.flash_sale_id
+      WHERE fsi.size_id = @size_id
+        AND fsi.status = 'active'
+        AND fs.status = 'active'
+    `;
+    const result = await request.query(checkFlashSale);
+    const flashRemaining = result.recordset[0]?.flash_remaining ?? 0;
+  
+    const flashSaleDeduct = Math.min(quantity, flashRemaining);
+  
+    if (flashSaleDeduct > 0) {
+      const updateFlashSale = `
+        UPDATE fsi
+        SET fsi.sold = fsi.sold + @flashSaleDeduct
+        FROM flash_sale_items AS fsi
+        JOIN flash_sales AS fs ON fs.id = fsi.flash_sale_id
+        WHERE fsi.size_id = @size_id
+          AND fsi.status = 'active'
+          AND fs.status = 'active'
+      `;
+      await new mssql.Request(transaction)
         .input('size_id', size_id)
-        .input('quantity', quantity)
-        .query(query);
-}
+        .input('flashSaleDeduct', flashSaleDeduct)
+        .query(updateFlashSale);
+    }
+      const updateProduct = `
+      UPDATE product_sizes
+      SET stock = stock - @quantity
+      WHERE id = @size_id
+    `;
+    await new mssql.Request(transaction)
+      .input('size_id', size_id)
+      .input('quantity', quantity)
+      .query(updateProduct);
+  
+    console.log(
+      `✅ Đã trừ ${flashSaleDeduct} flash sale + ${quantity} stock cho size_id ${size_id}`
+    );
+  };
+  
 const insertPayment = async (transaction: mssql.Transaction, orderId: number, amount: number, method: string, status: string): Promise<void> => {
     const query = `INSERT INTO payments (order_id, amount, method, status)
                    VALUES (@order_id, @amount, @method, @status)`;
