@@ -101,20 +101,31 @@ onMounted(async () => {
     setTimeout(() => {
         loadingHome.value = false;
     }, 1000)
-  vouchers.value = await useVoucher.getTop4VoucherGlobal();
-  flashSaleHomes.value = await useFlashSale.getFlashSaleHome();
-  localStorage.setItem(
-    "excludeIdHome",
-    flashSaleHomes.value?.id ? flashSaleHomes.value.id.toString() : ""
-  );
+    // vouchers.value = await useVoucher.getTop4VoucherGlobal();
+    // flashSaleHomes.value = await useFlashSale.getFl  ashSaleHome();
+    const [vouchersData, flashSaleData] = await Promise.all([
+      useVoucher.getTop4VoucherGlobal(),
+      useFlashSale.getFlashSaleHome()
+    ]);
+    vouchers.value = vouchersData;
+    flashSaleHomes.value = flashSaleData;
+    localStorage.setItem(
+        "excludeIdHome",
+        flashSaleHomes.value?.id ? flashSaleHomes.value.id.toString() : ""
+    );
+    const promises = [
+        useProduct.getProductBestSellerStore(),
+        useProduct.getProductLatestStore()
+    ];
+    const [ bestSellerData, latestData] = await Promise.all(promises);
+    productBestSeller.value = bestSellerData ?? [];
+    productLatests.value = latestData ?? [];
 
-  totalSolds.value = await useFlashSale.getTotalSoldFlashSaleByIdStore(flashSaleHomes.value?.id || 3);
-
-  productBestSeller.value = await useProduct.getProductBestSellerStore();
-
-  productLatests.value = await useProduct.getProductLatestStore();
-
-    await favourite.getFavouriteOfMeStore();
+    totalSolds.value = await useFlashSale.getTotalSoldFlashSaleByIdStore(flashSaleHomes.value?.id || 3);
+    const token = localStorage.getItem("accessToken");
+    if (token) {
+        await favourite.getFavouriteOfMeStore()
+    }
 
   setTime();
   countdown = setInterval(setTime, 1000);
@@ -195,6 +206,16 @@ const toggleFavourite = async (id: number) => {
     await favourite.addFavouriteStore(id);
   }
 };
+const checkSoldOut = (product_id: number) => {
+    if (product_id) {
+        const soldItem = totalSolds.value.find((item) => item.product_id === product_id);
+        if (soldItem && (soldItem.total_flash_sale_sold >= soldItem.total_stock)) {
+            return true;
+        }
+        return false
+    }
+    return false;
+}
 </script>
 <template>
   <Header />
@@ -334,7 +355,8 @@ const toggleFavourite = async (id: number) => {
                     </div>
                 </div>
                 <div class="product-sold">
-                    <span>Đã bán {{ getSold(product.id) }} sản phẩm</span>
+                    <span v-if="checkSoldOut(product.id)" style="color: red">Hết Sale</span>
+                    <span v-else >Đã bán {{ getSold(product.id) }} sản phẩm</span>
                     <div class="progress-bar">
                     <div
                         class="progress"

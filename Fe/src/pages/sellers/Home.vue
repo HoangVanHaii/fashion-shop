@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { computed, onMounted } from 'vue';
 import homeSeller from '../../assets/homeSeller.jpg';
-import Header from '../../components/Header.vue';
 import { flashSaleSellerStore } from '../../stores/sellers/flashSaleStore';
 import { formatDateTime, formatPrice } from '../../utils/format';
 import { ref } from 'vue';
@@ -9,6 +8,8 @@ import ConfirmDialog from '../../components/ConfirmDialog.vue';
 import Notification from '../../components/Notification.vue';
 import { userStore } from '../../stores/sellers/userStore';
 import type { ShopToDoSummary, ShopStatistic } from '../../interfaces/user';
+import Header from '../../components/sellers/Header.vue';
+import Navbar from '../../components/sellers/Navbar.vue';
 
 const shopToDoSummary = ref<ShopToDoSummary | null>(null);
 const shopStatistic = ref<ShopStatistic | null>(null);
@@ -75,7 +76,10 @@ const conversionRate = computed(() =>{
 </script>
 
 <template>
-    <Header />
+    <Header 
+        :nav1="''" :nav2="''"
+    />
+
     <ConfirmDialog v-if="showConfirmDialog"
         :message="'Bạn có chắc chắn hủy hết sản phẩm trong Flash Sale này?'"
         @close="handleCancelConfirm"
@@ -86,7 +90,24 @@ const conversionRate = computed(() =>{
         :isSuccess="isNotification" 
      />
     <div class="container">
-        <div class="component-left"></div>
+            <Navbar class="navbar"
+                :isShow='false'
+                :showManagermentOrder= 'true'
+                :showManagermentProduct= 'false'
+                :showData= 'false'
+                :showCustomCare= 'false'
+                :showManagermentShop= 'false'
+                :showMarketing= 'false'
+                :showVoucher= 'false'
+                :showFlashSale= 'false'
+                :showAllOrder= 'true'
+                :showAllProduct= 'false'
+                :showAddProduct= 'false'
+                :showReview= 'false'
+                :showProfileShop= 'false'
+                :showProfile= 'false'
+                :showStatistical= 'false'
+            />
         <div class="container-content">
             <div class="top-content">
                 <div class="left-content">
@@ -250,6 +271,13 @@ const conversionRate = computed(() =>{
 </template>
 
 <style scoped>
+    .navbar{
+        z-index: 9;
+        margin-top: 5px;
+        background-color: white;
+        border-radius: 5px;
+        height: 82vh;
+    }
     .fa-toggle-on{
         color: rgb(24, 206, 55);
         font-size: 25px;
@@ -268,25 +296,17 @@ const conversionRate = computed(() =>{
         cursor: pointer;
     }
     .container{
-        margin-top: 110px;
+        margin-top: 60px;
         /* padding-top: 110px; */
         width: 100%;
         background-color: rgb(195, 191, 191);
-        height: 83vh;
+        height: 85vh;
         display: flex;
         flex-direction: row;
         justify-content: space-between;
     }
-    .component-left{
-        width: 17%;
-        /* position: fixed; */
-        height: 83vh;
-        /* padding: 10px; */
-        background-color: white;
-        /* background-color: aqua; */
-    }
     .container-content{
-        width: 81.3%;
+        width: 82%;
         height: 85vh;
         overflow-y: auto;
         /* background-color: red; */
