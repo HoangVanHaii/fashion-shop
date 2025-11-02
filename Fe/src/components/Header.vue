@@ -43,9 +43,9 @@ const u = useUserStore();
 
 onBeforeMount(async () => {
     isLogin.value = localStorage.getItem("user_id") ? true : false;
-    await u.fetchProfile();
     if (localStorage.getItem('accessToken')) {
         isLogOut.value = false;
+        await u.fetchProfile();
         await cart.getCartCountStore();
     }
     else {
