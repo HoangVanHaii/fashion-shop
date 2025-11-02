@@ -20,6 +20,7 @@ import Loading from "../components/Loading.vue";
 import { useFavouriteStore } from "../stores/favourite";
 import type { Cart, CartItemDetail, ShopCart } from "../interfaces/cart";
 
+const loadingAddToCart = ref(false);
 const favourite = useFavouriteStore();
 const auth = useAuthStore();
 const route = useRoute();
@@ -177,9 +178,12 @@ const hanlderDecre = () => {
 
 
 const handleAddToCart = async (size: ProductSize) => {
-  showNotification.value = false;
-  toastText.value = "";
-  await cart.addToCartStore(size.id!, quantity.value || 1);
+    showNotification.value = false;
+    toastText.value = "";
+    if (loadingAddToCart.value) return;
+    loadingAddToCart.value = true;
+    await cart.addToCartStore(size.id!, quantity.value || 1);
+    loadingAddToCart.value = false;
   if (cart.success) {
     showNotification.value = true;
     toastText.value = "🛒 Thêm vào giỏ hàng thành công!";

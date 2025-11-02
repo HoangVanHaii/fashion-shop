@@ -55,6 +55,7 @@ const handleCancelled = async () => {
     }
 };
 
+
 const handleReOrder = async (getOrder: GetOrder, shop_name: string) => {
   const cartItems: CartItemDetail[] = getOrder.items.map((item) => ({
     cart_item_id: item.id ?? 0, // nếu không có id thì bạn có thể tự sinh
@@ -92,10 +93,12 @@ const handleReOrder = async (getOrder: GetOrder, shop_name: string) => {
       router.push({ name: 'payment' });
 }
 
+
 const handleReview = (item: OrderItemDetail) => {
   selectedOrderItem.value = item;
   showReviewForm.value = true;
 };
+
 const showNavbar = ref<boolean>(true);
 </script>
 <template>

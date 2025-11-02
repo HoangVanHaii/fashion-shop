@@ -1,5 +1,5 @@
 import { defineStore } from "pinia";
-import { getProductByCategory, searchByCategoryGender, getProductByName, getProductById, getProductBestSeller, getProductLatest, getProductByShop, getAllProductActive } from '../services/product'
+import { getProductByCategory, searchByCategoryGender, getProductByName, getProductById, getProductBestSeller, getProductLatest, getProductByShop, getAllProductActive, getProductIdBySize } from '../services/product'
 import { ref } from "vue";
 import type { ProductSummary, ProductPayload } from "../interfaces/product";
 export const useProductStore = defineStore('product', () => {
@@ -30,14 +30,14 @@ export const useProductStore = defineStore('product', () => {
         }
         
     }
-    // const getProductIdBySizeStore = async(size_id:number)=>{
-    //      try {
-    //         const res = await getProductIdBySize(size_id);
-    //         return res.data;
-    //     } catch (error) {
-    //         console.log("Failed to get productId",error);
-    //     }
-    // }
+    const getProductIdBySizeStore = async(size_id:number)=>{
+         try {
+            const res = await getProductIdBySize(size_id);
+            return res.product_id;
+        } catch (error) {
+            console.log("Failed to get productId",error);
+        }
+    }
     const getProductByIdStore = async (id: number) => {
         try {
             const res = await getProductById(id);
@@ -91,5 +91,5 @@ export const useProductStore = defineStore('product', () => {
     }
 
 
-    return { searchByCategoryStore, getAllProductActiveStore, searchByCategoryGenderStore, getProductByIdStore, getProductBestSellerStore, getProductLatestStore, getProductByNameStore, getProductByShopStore, loading};
+    return { searchByCategoryStore, getAllProductActiveStore, searchByCategoryGenderStore, getProductByIdStore, getProductBestSellerStore, getProductLatestStore, getProductByNameStore, getProductByShopStore,getProductIdBySizeStore, loading};
 })

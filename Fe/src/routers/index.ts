@@ -26,6 +26,12 @@ import Product from '../pages/sellers/Product.vue';
 import AddProduct from '../pages/sellers/AddProduct.vue';
 import RePassSenOTP from '../components/RePassSenOTP.vue';
 import RePassConfirm from '../components/RePassConfirm.vue';
+import HeaderAdmin from '../components/admins/Header.vue'
+import NavbarAdmin from '../components/admins/NavbarAdmin.vue';
+import AccountPermission from '../pages/admins/AccountPermission.vue';
+  import Address from '../pages/Address.vue'
+  import ChangePassword from '../pages/ChangePassword.vue'
+
 
 const routes = [
     { path: '/', redirect: '/home' },
@@ -52,6 +58,8 @@ const routes = [
     { path: '/repass', name: 'repass', component: RePassSenOTP },
 
     { path: '/repassOtp', name: 'repassOtp', component: RePassConfirm },
+    { path: '/profile/address', name: 'address', component: Address },
+    { path: '/profile/changePassword', name: 'changePassword', component: ChangePassword },
 
     { path: '/seller/home', name: 'home-seller', component: HomeSeller },
     { path: '/seller/flashSale', name: 'flashsale-seller', component: FlashSaleSeller },
@@ -59,6 +67,12 @@ const routes = [
     { path: '/seller/order', name: 'order-seller', component: OrderSeller },
     { path: '/seller/product', name: 'product-seller', component: Product },
     { path: '/seller/product/addProduct', name: 'add-product-seller', component: AddProduct },
+    
+    { path: '/admin/header', name: 'header-admin', component: HeaderAdmin },
+    { path: '/admin/header1', name: 'header-admin', component: NavbarAdmin },
+    { path: '/admin/accountPermission', name: 'accountPermission-admin', component: AccountPermission },
+
+    
   
 ];
 const router = createRouter({ history: createWebHistory(import.meta.env.BASE_URL), routes });
