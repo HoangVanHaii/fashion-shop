@@ -1,5 +1,5 @@
 import { defineStore } from "pinia";
-import { getProductByCategory, searchByCategoryGender, getProductByName, getProductById, getProductBestSeller, getProductLatest, getProductByShop, getAllProductActive } from '../services/product'
+import { getProductByCategory, searchByCategoryGender, getProductByName, getProductById, getProductBestSeller, getProductLatest, getProductByShop, getAllProductActive, getProductIdBySize } from '../services/product'
 import { ref } from "vue";
 import type { ProductSummary, ProductPayload } from "../interfaces/product";
 export const useProductStore = defineStore('product', () => {

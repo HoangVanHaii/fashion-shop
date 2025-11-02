@@ -230,7 +230,7 @@ const productStore = useProductStore();
 onMounted(async () => {
   await cartStore.getCart()
   await cartStore.checkSoldOut();
-  const res = await addressStore.getAddressesByUserStore();
+  await addressStore.getAddressesByUserStore();
 })
 const toastText = ref<string>('')
 const isNotification = ref<boolean>(false);
