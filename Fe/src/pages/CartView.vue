@@ -228,6 +228,9 @@ const cartStore = useCartStore()
 const addressStore = useAddressStore();
 const productStore = useProductStore();
 onMounted(async () => {
+    if (cartStore.cartPay) {
+        cartStore.cartPay!.voucher_discount = undefined;
+    }
   await cartStore.getCart()
   await cartStore.checkSoldOut();
   await addressStore.getAddressesByUserStore();

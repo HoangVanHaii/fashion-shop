@@ -34,17 +34,48 @@ const shop = ref<ShopDetal | null>(null);
 const productSale = ref<ProductSummary[]>([]);
 const productForMe = ref<ProductSummary[]>([]);
 const listSaveVoucher = ref<Boolean[]>([]);
+const loading = ref(false);
 
+// onMounted(async () => {
+//     const id = parseInt(route.params.id as string);
+//     shop.value = await useShop.getShopByidStore(id);
+//     products.value = await product.getProductByShopStore(id);
+//     vouchers.value = await useVoucher.getAllVoucherByShopIdStore(id);
+//     const token = localStorage.getItem('accessToken') || '';
+//     if (token.length > 10) {
+//         await favourite.getFavouriteOfMeStore();
+//         await userVoucher.getVoucherUserByUserIdStore();
+//     }
+//     checkVoucherUser();
+//     distributeProducts();
+// });
 onMounted(async () => {
-    const id = parseInt(route.params.id as string);
-    shop.value = await useShop.getShopByidStore(id);
-    products.value = await product.getProductByShopStore(id);
-    vouchers.value = await useVoucher.getAllVoucherByShopIdStore(id);
-    await favourite.getFavouriteOfMeStore();
-    await userVoucher.getVoucherUserByUserIdStore();
-    checkVoucherUser();
+    loading.value = true;
+  const id = parseInt(route.params.id as string);
+
+  const [shopRes, productsRes, vouchersRes] = await Promise.all([
+    useShop.getShopByidStore(id),
+    product.getProductByShopStore(id),
+    useVoucher.getAllVoucherByShopIdStore(id),
+  ]);
+  shop.value = shopRes;
+  products.value = productsRes;
+    vouchers.value = vouchersRes;
+
     distributeProducts();
+    loading.value = false;
+
+  const token = localStorage.getItem('accessToken') || '';
+  if (token.length > 10) {
+    await Promise.all([
+      favourite.getFavouriteOfMeStore(),
+      userVoucher.getVoucherUserByUserIdStore(),
+    ]);
+  }
+  checkVoucherUser();
+
 });
+
 
 const distributeProducts = () => {
   const saleProducts: ProductSummary[] = [];
@@ -171,7 +202,7 @@ const handleSpace = async () => {
 <template>
   <Header />
   <Loading 
-    :loading="shop?.id ? false : true"
+    :loading="loading"
   />
   <AddToCart
     v-if="showFormAdd && productDetail"
@@ -202,7 +233,7 @@ const handleSpace = async () => {
       </div>
       <div class="right-content">
         <div class="content">
-          <span><i class="fa-solid fa-box-open"></i>Sản phẩm: {{ 60 }}</span>
+          <span><i class="fa-solid fa-box-open"></i>Sản phẩm: {{ shop?.visit_count ? shop.visit_count : 0 + 18 }}</span>
           <span
             ><i class="fa-regular fa-star"></i>Đánh giá:
             {{ shop?.rating || 0 }}</span
@@ -469,6 +500,7 @@ const handleSpace = async () => {
   width: 100%;
   /* height: 100%; */
   height: auto;
+  min-height: 100vh;
   /* background-color: red; */
   display: flex;
   flex-direction: column;

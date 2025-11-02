@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onMounted, ref } from "vue";
+import { computed, onMounted, ref, watch } from "vue";
 import { voucherStore } from "../stores/voucherStore";
 import { formatDateTime, formatPrice, getImage } from "../utils/format";
 const useVoucher = voucherStore();
@@ -8,11 +8,13 @@ import { useCartStore } from '../stores/cartStore'
 
 const cartStore = useCartStore() 
 const vouhers = ref<Voucher[]>([]);
+    const listvouhers = ref<Voucher[]>([]);
 const selectedVoucher = ref<number>();
 const voucherDetail = ref<Voucher | null>(null);
 
 onMounted(async () => {
-  vouhers.value = await useVoucher.getAllVoucherStore();
+    vouhers.value = await useVoucher.getAllVoucherStore();
+    listvouhers.value = vouhers.value;
 });
 const check = ref<Boolean>(false);
 const textSearch = ref<string>("");
@@ -26,12 +28,13 @@ const handleClose = () => {
   emit("close");
 };
 const handleSearchVoucher = async () => {
-  check.value = true;
-  voucherDetail.value = await useVoucher.getVoucherByCodeStore(
-    textSearch.value
-  );
+    listvouhers.value = vouhers.value.filter(i => i.code == textSearch.value);
 };
-
+watch((textSearch), (newval) => {
+    if (newval == '') {
+        listvouhers.value = vouhers.value;
+    }
+})
 const handleOK = () => {
   const voucher = vouhers.value.find(v => v.id === selectedVoucher.value) || 
                   (voucherDetail.value && voucherDetail.value.id === selectedVoucher.value
@@ -84,7 +87,7 @@ const isEligible = (voucher: Voucher) => {
             </button>
           </div>
         </div>
-        <div v-if="voucherDetail" class="voucher">
+        <!-- <div v-if="voucherDetail" class="voucher">
           <div class="voucher-image">
             <img :src="getImage(voucherDetail.image_url)" alt="" />
           </div>
@@ -108,9 +111,10 @@ const isEligible = (voucher: Voucher) => {
               :value="voucherDetail.id"
               name="voucher_select"
               v-model="selectedVoucher"
+              :disabled="!isEligible(voucherDetail)"
             />
           </div>
-        </div>
+        </div> -->
         <div v-if="check && !voucherDetail" class="notification">
           <span class="failed1"
             >Rất tiếc, mã voucher bạn nhập không hợp lệ hoặc đã hết hạn sử dụng.
@@ -121,7 +125,7 @@ const isEligible = (voucher: Voucher) => {
           >
         </div>
         <div class="list-voucher" v-if="!voucherDetail">
-          <div v-for="voucher in vouhers" class="voucher" :class="{ 'disabled-voucher': !isEligible(voucher) }">
+          <div v-for="voucher in listvouhers" class="voucher" :class="{ 'disabled-voucher': !isEligible(voucher) }">
             <div class="voucher-image">
               <img :src="getImage(voucher.image_url)" alt="" />
             </div>

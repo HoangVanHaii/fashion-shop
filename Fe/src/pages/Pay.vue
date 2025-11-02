@@ -320,10 +320,12 @@ import type { OderPayLoad, OrderItem, Order } from '../interfaces/order'
 import Header from '../components/Header.vue'
 import Loading from '../components/Loading.vue'
 import router from '../routers'
+import { useRoute } from 'vue-router'
 import { getImage } from '../utils/format'
 import { useAddressStore } from '../stores/addressStore'
 import type { Address } from '../interfaces/address'
 import Notification from '../components/Notification.vue'
+const route = useRoute();
 const toastText = ref<string>('')
 const isNotification = ref<boolean>(false);
 
@@ -342,7 +344,6 @@ const openVoucherModal = () => {
 const closeVoucherModal = () => {
   showVoucher.value = false
 }
-
 onMounted(async() => {
     console.log(cartStore.cartPay);
     if (cartStore.cartPay?.shops.length === 0) {
@@ -351,6 +352,9 @@ onMounted(async() => {
     console.log('Voucher in cartPay:', cartStore.cartPay?.voucher_discount)
     
     await addressStore.getAddressesByUserStore();
+    if (addressStore.listAddress.length === 0) {
+        showListAddress.value = true;
+    }
     if(addressStore.addressDefault.id){
         selectedAddress.value = addressStore.addressDefault.id
     }
@@ -448,7 +452,9 @@ const clickOrder = async () => {
 
     try {
         const res = await orderStore.createOrder(payload)
-        await cartStore.removePaidItems()
+        if (route.name === 'cart-of-me') {
+            await cartStore.removePaidItems();
+        }
         loadingOrder.value = false;
 
         if (order.payment_method == 'vnpay') {
@@ -557,6 +563,7 @@ const handleSubmitAddress = async () => {
         }
         
         if (newAddress.value.id) {
+            isNotification.value = true;
             await addressStore.updateAddressStore(addressPayload)
             toastText.value = "Đã cập nhật địa chỉ thành công"
         } else {
@@ -566,13 +573,13 @@ const handleSubmitAddress = async () => {
                 address: newAddress.value.address,
                 is_default: newAddress.value.is_default
             }
+            isNotification.value = true;
             await addressStore.addAddressStore(addPayload)
             toastText.value = "Đã thêm địa chỉ mới thành công"
         }
         
         await addressStore.getAddressesByUserStore()
         showAddAddressForm.value = false
-        isNotification.value = true
     } catch (err) {
         toastText.value = ""
         toastText.value = "Lỗi khi xử lý địa chỉ"
@@ -1110,13 +1117,13 @@ font-weight: 600;
 min-width: 120px;
 }
 
-/* Nút đặt hàng cùng hàng */
+/* Nút `đặt hàng` cùng hàng */
 .order-btn {
 background-color: #dc2626;
 color: #fff;
 border: none;
 border-radius: 6px;
-padding: 10px 35px;
+padding: 7px 20px;
 /* font-size: 18px; */
 cursor: pointer;
 transition: background-color 0.2s, transform 0.08s;
@@ -1126,6 +1133,7 @@ white-space: nowrap;
     width: 200px;
 outline: none;
 box-shadow: none;
+font-size: 23px;
 
 }
 

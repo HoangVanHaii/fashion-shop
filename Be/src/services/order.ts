@@ -105,6 +105,7 @@ export const getOrderOfme = async (user_id: number): Promise<GetOrder[]> => {
                     p.id AS product_id,
                     pc.color,
                     pc.image_url,
+                    ps.id as size_id,
                     ps.size,
                     oi.id as item_id,
                     oi.quantity,

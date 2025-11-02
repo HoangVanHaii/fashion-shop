@@ -25,8 +25,10 @@ const useProduct = useProductStore();
 const showFormAdd = ref(false);
 const showMoreHotDeal1 = ref(false);
 const showMoreHotDeal2 = ref(false);
+const loading = ref(false);
 
 onMounted(async () => {
+    loading.value = true;
   let excludeIds = localStorage.getItem("excludeIdHome") || "";
   localStorage.removeItem("excludeIds");
   const ids = excludeIds ? excludeIds.split(",") : [];
@@ -43,7 +45,8 @@ onMounted(async () => {
       localStorage.setItem("excludeIds", ids.join(","));
     }
   }
-  flashSale2.value = await useFlashSale.getFlashSaleHotDeal2NotIN(excludeIds);
+    flashSale2.value = await useFlashSale.getFlashSaleHotDeal2NotIN(excludeIds);
+    loading.value = false;
 });
 const productDetail = ref<ProductPayload>();
 const handleCart = async (id: number) => {
@@ -91,7 +94,7 @@ const btnShowMoreHotDeal2 = () => {
 </script>
 <template>
   <Header />
-  <Loading :loading="useFlashSale.loading" />
+  <Loading :loading="loading" />
   <div class="breadcrumb">
     <a href="/" class="breadcrumb-item">Trang chủ</a>
     <span class="separator">|</span>

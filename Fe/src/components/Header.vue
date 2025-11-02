@@ -30,13 +30,19 @@ const isLogin = ref(false);
 const showMenuPhone = ref(false);
 const isLogOut = ref(false); 
 const MenuPhone = ref<HTMLElement | null>(null);
+
 const listSearch = computed<ProductSummary[]>(() => {
-  const query = searchQuery.value.toLowerCase().trim();
+  const normalize = (s: string) =>
+    s.normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/đ/g, 'd').replace(/Đ/g, 'D');
+
+  const query = normalize(searchQuery.value.toLowerCase().trim());
   if (!query) return products.value;
-  return products.value.filter((product) =>
-    product.name.toLowerCase().includes(query)
+
+  return products.value.filter(p =>
+    normalize(p.name.toLowerCase()).includes(query)
   );
 });
+
 const u = useUserStore();
 
 // const { avatar } = storeToRefs(u);  
