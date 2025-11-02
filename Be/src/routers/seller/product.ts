@@ -2,7 +2,7 @@ import express from "express";
 import *as productController from "../../controllers/seller/product";
 import *as productMiddleware from "../../middlewares/validateProduct";
 import { validateRequest } from "../../middlewares/validateRequest";
-import { uploadProductImages, upload } from "../../utils/uploadProduct"
+import { uploadProductImages } from "../../utils/uploadProduct"
 import { isAdmin, isSeller, authMiddleware } from "../../middlewares/authMiddleware";
 const router = express.Router();
 
