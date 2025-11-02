@@ -249,9 +249,6 @@ interface PaymentMethod {
 
 const paymentMethods: PaymentMethod[] = [
 { id: 'cod', label: 'Thanh toán khi nhận hàng' },
-{ id: 'credit_card', label: 'Thẻ tín dụng' },
-{ id: 'paypal', label: 'PayPal' },
-{ id: 'momo', label: 'Momo' },
 { id: 'vnpay', label: 'VNPAY' }
 ]
 

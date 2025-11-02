@@ -4,6 +4,7 @@ import { User } from "../interfaces/user";
 import { AppError } from "../utils/appError";
 
 export const authMiddleware = (req: Request, res: Response, next: NextFunction) => {
+    console.log(req.body);       
     const authHeader = req.headers["authorization"];
     if (!authHeader || !authHeader.startsWith("Bearer ")) {
         throw new AppError("Token is required", 401);

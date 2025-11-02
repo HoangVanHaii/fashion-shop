@@ -31,14 +31,27 @@ export const resendOTP = async (email: string) => {
     return response.data;
 };
 
-export const resetPassword = async (email: string, otp: string, newPassword: string) => {
-    const response = await api.post('/user/resetPassword', {
-        email,
-        otp,
-        newPassword,
-    });
+export const forgotPassword = async (email: string) => {
+    const response = await api.post('/user/forgotPassword', { email });
     return response.data;
 };
+export const verifyForgotPassword = async (email: string, otp: string) => {
+    const response = await api.post('/user/verifyForgotPassword', {
+        email,
+        otp
+    })
+    return response.data
+
+}
+export const resetPassword = async (email: string, newPassword: string) => {
+    const response = await api.put('/user/resetPassword', {
+        email,
+        newPassword
+    })
+    return response.data
+
+}
+
 
 export const getUserById = async (id: number) => {
     const response = await api.get(`/admin/${id}`);
@@ -50,6 +63,10 @@ export const getNameById = async (id: number) => {
 }
 export const getShopByid = async (id: number) => {
     const response = await api.get(`/user/shop/${id}`)
+    return response.data;
+}
+export const getShopIdByUserId = async () => {
+    const response = await api.get(`/user/shop/getShopId`)
     return response.data;
 }
 export const getShopName = async (product_id: number) => {

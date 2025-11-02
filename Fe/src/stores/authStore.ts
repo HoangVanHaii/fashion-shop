@@ -1,7 +1,7 @@
 import { defineStore } from "pinia";
 import { ref } from "vue";
-import { getNameById, registerSendOTP } from "../services/user";
-import { verifyRegister, loginUser, getUserById, getShopByid, getShopName } from "../services/user";
+import { forgotPassword, getNameById, getShopIdByUserId, registerSendOTP, resetPassword, verifyForgotPassword } from "../services/user";
+import { verifyRegister, loginUser, getUserById, getShopByid, getShopName, resendOTP } from "../services/user";
 import type { User } from "../interfaces/user";
 export const errorMap: Record<string, string> = {
     "Email is required": "Vui lòng nhập email",
@@ -168,7 +168,63 @@ export const useAuthStore = defineStore('auth', () => {
             console.error("Failed to get user by ID:", error);
         }
     }
-    
+    const resendOTPStore = async (email: string) => {
+        loading.value = true;
+        try {
+            await resendOTP(email);
+        } catch (error) {
+            console.log(error);
+        } finally {
+            loading.value = false;
+        }
+    }
+    const forgotPasswordStore = async (email: string) => {
+        loading.value = true;
+        error.value = null;
+        try {
+             await forgotPassword(email);
+        } catch (err: any) {
+            error.value = err || 'Lỗi máy chủ'
+            if (err.status == 404) {
+                error.value = '❌ Không tìm thấy người dùng'
+            }
+            console.log(err);
+        } finally {
+            loading.value = false;
+        }
+    }
+    const verifyForgotPasswordStore = async (email: string, otp: string) => {
+        loading.value = true;
+        error.value = null;
+        try {
+            await verifyForgotPassword(email, otp);
+        } catch (err: any) {
+            err.valid = 'Lỗi';
+            console.log(err);
+        } finally {
+            loading.value = false;
+        }
+    }
+    const resetPasswordStore = async (email: string, newPassword: string) => {
+        loading.value = true;
+        error.value = null;
+        try {
+            await resetPassword(email, newPassword);
+        } catch (err: any) {
+            console.log(err);
+            error.value = err;
+        } finally {
+            loading.value = false;
+        }
+    }
+    const getShopIdByUserIdStore = async () => {
+        try {
+            const shop_id = await getShopIdByUserId();
+            return shop_id.data;
+        } catch (error) {
+            console.log(error);
+        }
+    }
     return {
         OTP,
         loading,
@@ -182,6 +238,11 @@ export const useAuthStore = defineStore('auth', () => {
         getUserByIdStore,
         getShopByidStore,
         getShopNameStore,
-        getNameByIdStore
+        getNameByIdStore,
+        resendOTPStore,
+        forgotPasswordStore,
+        verifyForgotPasswordStore,
+        resetPasswordStore,
+        getShopIdByUserIdStore
     }
 })

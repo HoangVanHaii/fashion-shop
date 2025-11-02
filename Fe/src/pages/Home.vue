@@ -188,13 +188,7 @@ onBeforeUnmount(() => {
   clearInterval(countdown);
 });
 
-const toggleFavourite = async (id: number) => {
-  if (favourite.isFavourite(id)) {
-    await favourite.deleteFavouriteStore(id);
-  } else {
-    await favourite.addFavouriteStore(id);
-  }
-};
+
 </script>
 <template>
   <Header />
@@ -321,7 +315,7 @@ const toggleFavourite = async (id: number) => {
                     <button @click="handleCart(product.id)">
                         <i class="fa-solid fa-cart-shopping"></i>
                     </button>
-                    <button @click.stop="toggleFavourite(product.id)">
+                    <button @click.stop="favourite.toggleFavouriteInstant(product.id)">
                         <i
                         v-if="favourite.isFavourite(product.id)"
                         class="fa-solid fa-heart"
@@ -412,7 +406,7 @@ const toggleFavourite = async (id: number) => {
                         <button @click="handleCart(product.id)">
                         <i class="fa-solid fa-cart-shopping"></i>
                         </button>
-                        <button @click.stop="toggleFavourite(product.id)">
+                        <button @click.stop="favourite.toggleFavouriteInstant(product.id)">
                         <i
                             v-if="favourite.isFavourite(product.id)"
                             class="fa-solid fa-heart"
@@ -491,7 +485,7 @@ const toggleFavourite = async (id: number) => {
                         <button @click="handleCart(product.id)">
                         <i class="fa-solid fa-cart-shopping"></i>
                         </button>
-                        <button @click.stop="toggleFavourite(product.id)">
+                        <button @click.stop="favourite.toggleFavouriteInstant(product.id)">
                         <i
                             v-if="favourite.isFavourite(product.id)"
                             class="fa-solid fa-heart"

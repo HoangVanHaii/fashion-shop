@@ -43,6 +43,8 @@ const showNotification = ref<boolean>(false);
 const copied = ref<Boolean>(false);
 const toastText = ref("");
 const shop = ref<ShopDetal>();
+const listImg = ref<string[]>([])
+const index = ref<number>(0);
 
 const handleOrder = (size: ProductSize) => {
   const carttmp = {
@@ -75,6 +77,14 @@ const handleOrder = (size: ProductSize) => {
   cart.cartPay = cartPay;
   router.push({ name: 'payment' });
 }
+const loadImg = (color: ProductColor) => {
+  listImg.value = [];
+  index.value = 0;
+   listImg.value.push(color.image_url || '');
+    color.images?.forEach(i => {
+    listImg.value.push(i);
+    })
+}
 const loadData = async () => {
   const id: number = parseInt(route.params.id as string);
 
@@ -83,6 +93,7 @@ const loadData = async () => {
   if (!colorChose.value) {
     colorChose.value = productId.value?.colors[0];
   }
+  loadImg(colorChose.value!);
   sizeChose.value = colorChose.value?.sizes[0];
   url_main.value = colorChose.value?.image_url;
 
@@ -177,13 +188,6 @@ const handleAddToCart = async (size: ProductSize) => {
     showNotification.value = false;
   }
 };
-const toggleFavourite = async (id: number) => {
-  if (favourite.isFavourite(id)) {
-    await favourite.deleteFavouriteStore(id);
-  } else {
-    await favourite.addFavouriteStore(id);
-  }
-};
 const copiedLink = () => {
   const path = route.fullPath;
   const baseUrl = window.location.origin;
@@ -219,11 +223,12 @@ const copiedLink = () => {
 
     <div class="product-information">
       <div class="detail-image">
-        <img :src="getImage(`${colorChose?.image_url}`)" class="detail" />
+        <img :src="getImage(`${colorChose?.image_url}`)" class="detail" @click="index = 0" />
         <img
-          v-for="image in colorChose?.images"
+          v-for="(image, ind) in colorChose?.images" :key="ind"
           :src="getImage(image)"
           class="detail"
+          @click="index = ind + 1"
         />
       </div>
       <div class="automatic-redirect-image">
@@ -239,7 +244,7 @@ const copiedLink = () => {
         <button @click="handleIncre" style="right: 10px">></button>
       </div>
       <div class="main-image">
-        <img :src="getImage(`${colorChose?.image_url}`)" class="main" />
+        <img :src="getImage(listImg[index]!)" class="main" />
       </div>
 
       <div class="infor">
@@ -285,7 +290,8 @@ const copiedLink = () => {
                 (colorChose = color),
                   (sizeChose = colorChose.sizes[0]),
                   (quantity = 0),
-                  (indexImage = -1)
+                  (indexImage = -1),
+                  loadImg(color)
               "
             />
           </div>
@@ -424,7 +430,7 @@ const copiedLink = () => {
                 </div>
                 <div class="product-action">
                   <button><i class="fa-solid fa-cart-shopping"></i></button>
-                  <button @click.stop="toggleFavourite(product.id)">
+                  <button @click.stop="favourite.toggleFavouriteInstant(product.id)">
                     <i
                       v-if="favourite.isFavourite(product.id)"
                       class="fa-solid fa-heart"
@@ -634,7 +640,7 @@ const copiedLink = () => {
                 </div>
                 <div class="product-action">
                   <button><i class="fa-solid fa-cart-shopping"></i></button>
-                  <button @click.stop="toggleFavourite(product.id)">
+                  <button @click.stop="favourite.toggleFavouriteInstant(product.id)">
                     <i
                       v-if="favourite.isFavourite(product.id)"
                       class="fa-solid fa-heart"
@@ -1351,6 +1357,7 @@ h3 {
   font-weight: 600;
   font-size: 20px;
   margin-right: 7px;
+  width: auto;
 }
 .shop-infor button {
   border-radius: 5px;

@@ -357,6 +357,7 @@ const insertProductSizes = async (transaction: mssql.Transaction, color_id: numb
 }
 
 export const addProduct = async (product: ProductPayload): Promise<void> => {
+    console.log(9222221122);
     const pool = await connectionDB();
     const transaction = new mssql.Transaction(pool);
     try {

@@ -6,15 +6,18 @@ import { onMounted, computed, ref } from "vue";
 import { useRouter } from "vue-router";
 import Header from "../components/Header.vue";
 import AddToCart from "../components/AddToCart.vue";
+import { useFavouriteStore } from "../stores/favourite";
 
 const router = useRouter();
 const product = useProductStore();
 const products = ref<ProductSummary[]>([]);
 const showFormAdd = ref(false);
 const showMore = ref(false);
+const favourite = useFavouriteStore();
 
 onMounted(async () => {
   products.value = await product.getProductByNameStore("áo");
+  await favourite.getFavouriteOfMeStore();
   // alert(products.value[0]?.category_name);
 });
 
@@ -97,7 +100,16 @@ const displayProduct = computed(() => {
                   <button @click="handleCart(product.id)">
                     <i class="fa-solid fa-cart-shopping"></i>
                   </button>
-                  <button><i class="fa-solid fa-heart"></i></button>
+                  <button @click.stop="favourite.toggleFavouriteInstant(product.id)">
+                    <i
+                      v-if="favourite.isFavourite(product.id)"
+                      class="fa-solid fa-heart"
+                    ></i>
+                    <i
+                      v-if="!favourite.isFavourite(product.id)"
+                      class="fa-regular fa-heart"
+                    ></i>
+                  </button>
                 </div>
               </div>
             </div>
@@ -119,6 +131,17 @@ const displayProduct = computed(() => {
   </div>
 </template>
 <style scoped>
+.fa-solid.fa-heart {
+  color: red;
+}
+.heart-filled {
+  color: red;
+  font-weight: 900;
+}
+.heart-empty {
+  color: #ccc;
+  font-weight: 400;
+}
 .container {
   width: 100%;
   height: 100%;
@@ -322,7 +345,8 @@ const displayProduct = computed(() => {
 }
 .grid-action i {
   font-size: 20px;
-  -webkit-text-stroke: 1px black;
+  color: black;
+  /* -webkit-text-stroke: 1px black; */
 }
 .grid-action .fa-cart-shopping {
   color: black;

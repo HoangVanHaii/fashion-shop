@@ -6,6 +6,7 @@
     import VerifyOTP from '../components/VerifyOTP.vue';
     import Header from '../components/Header.vue';
     import Notification from '../components/Notification.vue';
+import RePassSenOTP from '../components/RePassSenOTP.vue';
 
     const auth = useAuthStore();
     const route = useRoute();
@@ -27,14 +28,16 @@
     const passwordInput = ref<HTMLInputElement | null>(null);
     const dobInput = ref<HTMLInputElement | null>(null);
     const showPassword = ref(false)
-    const showRegisteruser = ref<boolean>(false);
+const showRegisteruser = ref<boolean>(false);
+const showForgot = ref<boolean>(false);
+
 
 onMounted(() => {
-        if (route.path == '/auth/register') {
-            showRegisteruser.value = true;  
+    if (route.path == '/auth/register') {
+        showRegisteruser.value = true;  
         }
     })
-
+showForgot.value = false;
     const openRegister = () => {
         email.value = '';
         password.value = '';
@@ -135,11 +138,13 @@ onMounted(() => {
             isShaking.value = false;
         }, 400); 
     };
-    
+
+
 </script>
 <template>
      <Header />
      <Notification :text="toastText" :isSuccess="showNotification" />
+     <RePassSenOTP v-if="showForgot" @close="showForgot = false" />
      <VerifyOTP :email="email" v-if="showVerify" @close="showVerify = false"/>
     <div class="container">
         <div class="slogan" :class="{render: showRegisteruser}">
@@ -208,7 +213,7 @@ onMounted(() => {
                     <i @click="togglePassword" class="fa" :class="showPassword ? 'fa-eye-slash' : 'fa-eye'"></i>
                 </div>
                 <div class="forgetPass">
-                    <span id="forgetPass">Quên mật khẩu?</span>
+                    <span id="forgetPass" @click="showForgot = true">Quên mật khẩu?</span>
                 </div>
                 <button
                     class="register"
@@ -288,7 +293,7 @@ img{
 .form-register, .form-login  {
     height: auto;
     width: 32%;
-    border: 1px solid rgb(153, 153, 153);
+    border: 0.5px solid rgb(206, 206, 206);
     margin-right: 4%;
     display: flex;
     flex-direction: column;
@@ -297,6 +302,7 @@ img{
     transform: translateX(250px);
     animation: slideIn 1s ease-out forwards;
     padding-bottom: 4px;
+    border-radius: 5px;
 }
 @keyframes shake {
   0%, 100% { transform: translateX(0); }
