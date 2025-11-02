@@ -3,7 +3,7 @@ import path from "path";
 
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    cb(null, path.join(__dirname, "../../uploads/products"));
+    cb(null,  path.join(process.cwd(), "uploads", "products"));
   },
   filename: (req, file, cb) => {
     
@@ -11,6 +11,6 @@ const storage = multer.diskStorage({
   },
 });
 
-export const upload = multer({ storage });
+const upload = multer({ storage });
 
 export const uploadProductImages = upload.array("images");
