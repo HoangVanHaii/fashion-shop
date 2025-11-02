@@ -91,30 +91,37 @@ const handleSubmitAddress = async () => {
     newAddress.value.address = `${address.value.trim()},- ${province.value.trim()}`
     try {
         const addressPayload: Address = {
+            id: newAddress.value.id, 
             name: newAddress.value.name,
             phone: newAddress.value.phone,
             address: newAddress.value.address,
             is_default: newAddress.value.is_default
         }
-        await addressStore.addAddressStore(addressPayload)
-        await addressStore.getAddressesByUserStore()
-        if(addressStore.addressDefault.id){
-            selectedAddress.value = addressStore.addressDefault.id
+        
+        if (newAddress.value.id) {
+            await addressStore.updateAddressStore(addressPayload)
+            toastText.value = "Đã cập nhật địa chỉ thành công"
+        } else {
+            const addPayload: Address = {
+                name: newAddress.value.name,
+                phone: newAddress.value.phone,
+                address: newAddress.value.address,
+                is_default: newAddress.value.is_default
+            }
+            await addressStore.addAddressStore(addPayload)
+            toastText.value = "Đã thêm địa chỉ mới thành công"
         }
+        
+        await addressStore.getAddressesByUserStore()
         showAddAddressForm.value = false
-        // showListAddress.value = true
-        toastText.value=""
-        toastText.value="Đã thêm địa chỉ mới thành công"
         isNotification.value = true
-        console.log("Đã thêm địa chỉ mới thành công")
     } catch (err) {
-        toastText.value=""
-        toastText.value="Lỗi khi thêm địa chỉ"
+        toastText.value = ""
+        toastText.value = "Lỗi khi xử lý địa chỉ"
         isNotification.value = false
-        console.error("Lỗi khi thêm địa chỉ:", err)
+        console.error("Lỗi:", err)
     }
 }
-
 
 const handleDelete = async(address :Address)=>{
      toastText.value=""
@@ -167,7 +174,6 @@ const displayAddress = (addr: string) => {
   const parts = addr.split(",-");
   return parts.join(", ");
 };
-
 
 </script>
 
@@ -348,9 +354,6 @@ const displayAddress = (addr: string) => {
             </div>
         </div>
     </div>
-
-
-  
 </template>
 
 <style scoped>

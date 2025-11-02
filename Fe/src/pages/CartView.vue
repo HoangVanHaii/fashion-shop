@@ -108,14 +108,14 @@
 
             <!-- Số lượng -->
             <div class="item-quantity">
-              <button @click="cartStore.decrease(product); cartStore.updateCartItemQuantityDebounced(product, product.quantity)">-</button>
+              <button @click="cartStore.decrease(product); updateCartItemQuantityDebounced(product, product.quantity)">-</button>
               <input
                 type="number"
                 v-model.number="product.quantity"
                 min="1"
-                @change="product.quantity = Math.max(1, product.quantity); cartStore.updateCartItemQuantityDebounced(product, product.quantity)"
+                @change="product.quantity = Math.max(1, product.quantity); updateCartItemQuantityDebounced(product, product.quantity)"
               />
-              <button @click="cartStore.increase(product); cartStore.updateCartItemQuantityDebounced(product, product.quantity)">+</button>
+              <button @click="cartStore.increase(product); updateCartItemQuantityDebounced(product, product.quantity)">+</button>
             </div>
 
             <!-- Tổng -->
@@ -387,6 +387,32 @@ const handleSelectVoucher = async (code: string, id_shop: number) => {
   }
   closeVoucherModal()
 }
+
+const updateCartItemQuantityDebounced = async (product: CartItemDetail, quantity: number) => {
+  toastText.value = "";
+  try {
+    await cartStore.updateCartItemQuantityDebounced(product, quantity);
+  } catch (error: any) {
+    const msg = error.response?.data?.message || error.message || "";
+
+    if (msg.includes("Not enough stock")) {
+      const available = msg.match(/\d+/)?.[0];
+
+      if (available) {
+        product.quantity = Number(available);
+        toastText.value = `Sản phẩm "${product.name}" chỉ còn ${available} sản phẩm trong kho.`;
+        isNotification.value=false;
+      } else {
+    
+        toastText.value = "Số lượng vượt quá tồn kho.";
+          isNotification.value=false;
+      }
+    } else {
+      toastText.value = "Có lỗi xảy ra khi cập nhật giỏ hàng.";
+        isNotification.value=false;
+    }
+  }
+};
 
 </script>
 

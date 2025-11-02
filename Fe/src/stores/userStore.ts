@@ -95,17 +95,11 @@ export const useUserStore = defineStore('user', () => {
     }
   }
 
-  const logout = () => {
-    user.value = null
-    localStorage.removeItem('token')
-  }
-
   return {
     user,
     loading,
     fetchProfile,
     updateInfo,
-    logout,
     changeEmail,
     verifyChangeEmail,
     otpSent,

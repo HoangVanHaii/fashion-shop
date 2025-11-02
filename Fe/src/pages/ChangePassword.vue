@@ -91,7 +91,7 @@ const handleChangePassWord = async ()=>{
     </div>
 
     <div class="container" @click="handleHideNavbar">
-        <NavbarProfile
+         <NavbarProfile
         v-model:show-menu="showNavbar"
         :show-detail="false"
         :show-address="false"
@@ -102,7 +102,7 @@ const handleChangePassWord = async ()=>{
         :show-register-seller="false"
         :show-reset-password="false"
         :show-voucher="false"
-        />
+      />
 
         <div v-if="userStore.user" class="profilee">
             <div class="header-profile">
