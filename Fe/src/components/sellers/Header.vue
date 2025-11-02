@@ -15,7 +15,6 @@ const auth = useAuthStore();
 const shop = ref<Shop>();
 onBeforeMount(async () => {
     const shop_id = await auth.getShopIdByUserIdStore();
-    alert(shop_id);
     shop.value = await auth.getShopByidStore(shop_id || 1);
 })
 

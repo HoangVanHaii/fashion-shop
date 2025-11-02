@@ -15,11 +15,6 @@ const auth = useAuthStore();
 const textToast = ref('');
 const showNotification = ref<boolean>(false);
 
-const validateEmail = (email: string): boolean => {
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  return emailRegex.test(email);
-};
-
 const handleBack = () => {
   router.back();
 };

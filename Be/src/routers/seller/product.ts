@@ -40,7 +40,7 @@ router.delete(
     validateRequest,
     productController.softDeleteProduct
 );
-router.post("/product-image", uploadProductImages, (req, res) => {
+router.post("/product-image", uploadProductImages, async (req, res) => {
     const files = req.files as Express.Multer.File[];
     if (!files || files.length === 0) {
         return res.status(400).json({ message: "No files uploaded" });

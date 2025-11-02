@@ -3,7 +3,10 @@ import { ref, reactive, computed } from 'vue';
 import Header from '../../components/sellers/Header.vue';
 import Navbar from '../../components/sellers/Navbar.vue';
 import api from '../../services/api';
-import axios from 'axios';
+import Notification from '../../components/Notification.vue';
+
+const textToast = ref<string>('');
+const showNotification = ref<boolean>(false);
 
 interface ProductColor {
   id?: number;
@@ -38,9 +41,16 @@ interface ProductPayload {
   sold_product?: number;
 }
 
+interface ImageFiles {
+  mainImage: File | null;
+  mainImagePreview: string;
+  subImages: File[];
+  subImagePreviews: string[];
+}
+
 // Form data
 const productData = reactive<ProductPayload>({
-  shop_id: 1, // TODO: Get from auth
+  shop_id: 1,
   category_id: 0,
   name: '',
   description: '',
@@ -60,7 +70,10 @@ const productData = reactive<ProductPayload>({
   ]
 });
 
-// Available categories - TODO: Fetch from API
+const colorImages = ref<Map<number, ImageFiles>>(new Map([
+  [0, { mainImage: null, mainImagePreview: '', subImages: [], subImagePreviews: [] }]
+]));
+
 const categories = ref([
   { id: 1, name: 'Áo' },
   { id: 2, name: 'Quần' },
@@ -68,10 +81,8 @@ const categories = ref([
   { id: 4, name: 'Phụ kiện' }
 ]);
 
-// Available sizes
 const availableSizes = ['One size', 'XS', 'S', 'M', 'L', 'XL', 'XXL', '35', '36', '37', '38', '39'];
 
-// Steps tracking
 const steps = reactive([
   { id: 1, title: 'Điền thông tin', completed: false },
   { id: 2, title: 'Thêm ít nhất 1 ảnh đơn', completed: false },
@@ -80,14 +91,22 @@ const steps = reactive([
   { id: 5, title: 'Thêm thể loại sản phẩm', completed: false }
 ]);
 
-// Computed
-const selectedCategoryName = computed(() => {
-  const cat = categories.value.find(c => c.id === productData.category_id);
-  return cat ? cat.name : '';
-});
+const nameLength = computed(() => productData.name.length);
+const descLength = computed(() => productData.description?.length || 0);
 
-// Methods
+const initImageFiles = (colorIndex: number) => {
+  if (!colorImages.value.has(colorIndex)) {
+    colorImages.value.set(colorIndex, {
+      mainImage: null,
+      mainImagePreview: '',
+      subImages: [],
+      subImagePreviews: []
+    });
+  }
+};
+
 const addColor = () => {
+  const newIndex = productData.colors.length;
   productData.colors.push({
     color: '',
     image_url: '',
@@ -99,12 +118,23 @@ const addColor = () => {
       { size: 'L', stock: 10, price: 220000 }
     ]
   });
+  initImageFiles(newIndex);
 };
 
 const removeColor = (index: number) => {
   if (productData.colors.length > 1) {
     productData.colors.splice(index, 1);
-    // Ensure at least one color is marked as main
+    
+    const newMap = new Map<number, ImageFiles>();
+    colorImages.value.forEach((value, key) => {
+      if (key < index) {
+        newMap.set(key, value);
+      } else if (key > index) {
+        newMap.set(key - 1, value);
+      }
+    });
+    colorImages.value = newMap;
+    
     if (!productData.colors.some(c => c.is_main)) {
       productData.colors[0]!.is_main = true;
     }
@@ -121,11 +151,18 @@ const handleMainImageUpload = (colorIndex: number, event: Event) => {
   const target = event.target as HTMLInputElement;
   const file = target.files?.[0];
   if (file) {
+    initImageFiles(colorIndex);
+    const imageData = colorImages.value.get(colorIndex)!;
+    
+    imageData.mainImage = file;
+    
     const reader = new FileReader();
     reader.onload = (e) => {
-      productData.colors[colorIndex]!.image_url = e.target?.result as string;
+      imageData.mainImagePreview = e.target?.result as string;
     };
     reader.readAsDataURL(file);
+    
+    updateSteps();
   }
 };
 
@@ -133,14 +170,16 @@ const handleSubImagesUpload = (colorIndex: number, event: Event) => {
   const target = event.target as HTMLInputElement;
   const files = target.files;
   if (files) {
-    const color = productData.colors[colorIndex];
-    if (!color?.images) color!.images = [];
+    initImageFiles(colorIndex);
+    const imageData = colorImages.value.get(colorIndex)!;
     
     Array.from(files).forEach(file => {
-      if (color!.images!.length < 3) {
+      if (imageData.subImages.length < 3) {
+        imageData.subImages.push(file);
+        
         const reader = new FileReader();
         reader.onload = (e) => {
-          color!.images!.push(e.target?.result as string);
+          imageData.subImagePreviews.push(e.target?.result as string);
         };
         reader.readAsDataURL(file);
       }
@@ -149,9 +188,10 @@ const handleSubImagesUpload = (colorIndex: number, event: Event) => {
 };
 
 const removeSubImage = (colorIndex: number, imageIndex: number) => {
-  const color = productData.colors[colorIndex];
-  if (color!.images) {
-    color!.images.splice(imageIndex, 1);
+  const imageData = colorImages.value.get(colorIndex);
+  if (imageData) {
+    imageData.subImages.splice(imageIndex, 1);
+    imageData.subImagePreviews.splice(imageIndex, 1);
   }
 };
 
@@ -178,196 +218,225 @@ const removeSize = (colorIndex: number, sizeIndex: number) => {
 
 const handleCancel = () => {
   if (confirm('Bạn có chắc muốn hủy? Tất cả thông tin sẽ bị mất.')) {
-    // Reset or navigate away
     window.history.back();
   }
 };
 
 const validateForm = (): boolean => {
+  textToast.value = '';
   if (!productData.name.trim()) {
-    alert('Vui lòng nhập tên sản phẩm');
+    setTimeout(() => {
+      textToast.value = 'Vui lòng nhập tên sản phẩm';
+    }, 0);
+    showNotification.value = false;
     return false;
   }
   if (productData.name.length > 200) {
-    alert('Tên sản phẩm không được vượt quá 200 ký tự');
+        setTimeout(() => {
+              textToast.value = ('Tên sản phẩm không được vượt quá 200 ký tự');
+        }, 0);
+         showNotification.value = false;
+
     return false;
   }
   if (!productData.category_id) {
-    alert('Vui lòng chọn thể loại sản phẩm');
+    setTimeout(() => {
+          textToast.value = ('Vui lòng chọn thể loại sản phẩm');
+
+    }, 0);
+    showNotification.value = false;
+
     return false;
   }
   if (!productData.description || productData.description.length < 100) {
-    alert('Mô tả sản phẩm phải có ít nhất 100 ký tự');
+    setTimeout(() => {
+          textToast.value = ('Mô tả sản phẩm phải có ít nhất 100 ký tự');
+
+    }, 0);
+    showNotification.value = false;
+
     return false;
   }
   
-  // Check if at least one color has main image
-  const hasMainImage = productData.colors.some(c => c.image_url);
+  let hasMainImage = false;
+  colorImages.value.forEach(imageData => {
+    if (imageData.mainImage) hasMainImage = true;
+  });
+  
   if (!hasMainImage) {
-    alert('Vui lòng thêm ít nhất 1 ảnh chính cho sản phẩm');
+    setTimeout(() => {
+          textToast.value = ('Vui lòng thêm ít nhất 1 ảnh chính cho sản phẩm');
+
+    }, 0);
+    showNotification.value = false;
+
     return false;
   }
   
   // Check if all colors have names
   const allColorsNamed = productData.colors.every(c => c.color.trim());
   if (!allColorsNamed) {
-    alert('Vui lòng đặt tên cho tất cả các màu');
+    setTimeout(() => {
+          textToast.value = ('Vui lòng đặt tên cho tất cả các màu');
+    }, 0);
+    showNotification.value = false;
+
     return false;
   }
   
   return true;
 };
 
-const handleSave = async () => {
-    if (!validateForm()) return;
-
-  
-  try {
-    productData.status = 'draft';
-    // TODO: Call API to save product
-    console.log('Saving draft:', productData);
-    alert('Đã lưu nháp thành công!');
-  } catch (error) {
-    console.error('Error saving draft:', error);
-    alert('Có lỗi xảy ra khi lưu nháp');
-  }
-};
-interface ImageFiles {
-  mainImage: File | null;
-  subImages: File[];
-}
-
-const imageFiles = ref<Map<number, ImageFiles>>(new Map());
-
-// API base URL
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
 const uploadImage = async (file: File): Promise<string> => {
   const formData = new FormData();
   formData.append('images', file);
-  const response = await api.post(`http://localhost:3000/api/seller/product-image`, formData, {
+  
+  const response = await api.post('/seller/product/product-image', formData, {
     headers: {
-                  "Content-Type": "multipart/form-data"
-
+      "Content-Type": "multipart/form-data"
     }
   });
+  
   return response.data.urls[0];
 };
-// Upload all images for all colors
+
 const uploadAllImages = async (): Promise<void> => {
   const uploadPromises: Promise<void>[] = [];
   
   for (let colorIndex = 0; colorIndex < productData.colors.length; colorIndex++) {
     const color = productData.colors[colorIndex];
-    const colorFiles = imageFiles.value.get(colorIndex);
+    const imageData = colorImages.value.get(colorIndex);
     
-    if (!colorFiles) continue;
+    if (!imageData) continue;
     
-    // Upload main image
-    if (colorFiles.mainImage) {
-      const promise = uploadImage(colorFiles.mainImage).then(path => {
+    if (imageData.mainImage) {
+      const promise = uploadImage(imageData.mainImage).then(path => {
         color!.image_url = path;
+      }).catch(err => {
+        console.error(`❌ Failed to upload main image:`, err);
+        throw err;
       });
       uploadPromises.push(promise);
     }
     
-    // Upload sub images
-    if (colorFiles.subImages.length > 0) {
-      const subImagePromises = colorFiles.subImages.map(async (file, index) => {
-        const path = await uploadImage(file);
-        if (!color!.images) color!.images = [];
-        color!.images[index] = path;
-      });
-      uploadPromises.push(...subImagePromises);
+    if (imageData.subImages.length > 0) {
+      for (let i = 0; i < imageData.subImages.length; i++) {
+        const file = imageData.subImages[i];
+        const promise = uploadImage(file!).then(path => {
+          if (!color!.images) color!.images = [];
+          color!.images[i] = path;
+        }).catch(err => {
+          console.error(`❌ Failed to upload sub image ${i}:`, err);
+          throw err;
+        });
+        uploadPromises.push(promise);
+      }
     }
   }
   
   await Promise.all(uploadPromises);
 };
-const handleSaveAndPublish = async () => {
+
+const handleSave = async () => {
   if (!validateForm()) return;
+  
   try {
-    productData.status = "active";
-    await uploadAllImages();
+    productData.status = 'draft';
+setTimeout(() => {
+       textToast.value = ('Đã lưu nháp thành công!');
+  
+}, 0);
+    showNotification.value = true;
 
-    const formData = new FormData();
-    formData.append("category_id","skjfksdkdfksj");
-    formData.append("name", productData.name);
-    formData.append("description", productData.description ?? "");
-    formData.append("colors", JSON.stringify(productData.colors));
-    // formData.append('images', )
-
-
-    console.log("📤 Sending to server: ", productData);
-
-    await api.post("/seller/product/addProduct", formData, {
-       headers: {
-            "Content-Type": "multipart/form-data"
-        }
-    });
-
-    alert("✅ Đã lưu và hiển thị sản phẩm thành công!");
   } catch (error) {
-    console.error("❌ Error publishing product:", error);
-    alert("Có lỗi xảy ra khi xuất bản sản phẩm");
+    console.error('Error saving draft:', error);
+setTimeout(() => {
+      textToast.value = ('Có lỗi xảy ra khi lưu nháp');
+  
+}, 0);         showNotification.value = true;
+
   }
 };
 
-// Update steps based on form data
-const updateSteps = () => {
-  steps[0]!.completed = !!productData.name && !!productData.category_id;
-  steps[1]!.completed = productData.colors.some(c => c.image_url);
-  steps[2]!.completed = productData.name.length > 0 && productData.name.length <= 200;
-  steps[3]!.completed = (productData.description?.length || 0) >= 250;
-  steps[4]!.completed = !!productData.category_id;
+const handleSaveAndPublish = async () => {
+  if (!validateForm()) return;
+  
+  try {
+    productData.status = "active";
+    
+    await uploadAllImages();
+    
+    const payload = {
+      shop_id: productData.shop_id,
+      category_id: productData.category_id,
+      name: productData.name,
+      description: productData.description ?? "",
+      status: productData.status ?? "active",
+      colors: JSON.stringify(productData.colors)
+    };
+    
+    
+    await api.post("/seller/product/addProduct", payload, {
+      headers: {
+        "Content-Type": "application/json"
+      }
+    });
+    
+    textToast.value = ("✅ Đã lưu và hiển thị sản phẩm thành công!");
+    showNotification.value = true;
+    
+    setTimeout(() => {
+      window.location.href = '/seller/product';
+    }, 1200);
+    
+  } catch (error: any) {
+    console.error("❌ Error publishing product:", error);
+    console.error("Error details:", error.response?.data);
+    textToast.value = (`Có lỗi xảy ra khi xuất bản sản phẩm: ${error.response?.data?.message || error.message}`);
+         showNotification.value = false;
+
+  }
 };
 
-// Watch for changes
-const nameLength = computed(() => productData.name.length);
-const descLength = computed(() => productData.description?.length || 0);
+const updateSteps = () => {
+  steps[0]!.completed = !!productData.name && !!productData.category_id;
+  
+  let hasMainImage = false;
+  colorImages.value.forEach(imageData => {
+    if (imageData.mainImage) hasMainImage = true;
+  });
+  steps[1]!.completed = hasMainImage;
+  
+  steps[2]!.completed = productData.name.length > 0 && productData.name.length <= 200;
+  steps[3]!.completed = (productData.description?.length || 0) >= 100;
+  steps[4]!.completed = !!productData.category_id;
+};
 </script>
 
 <template>
-    <Header :nav1="'Sản phẩm'" :nav2="'Thêm sản phẩm'"></Header>
-    <Navbar 
-        :isShow='false'
-        :showManagermentOrder= 'false'
-        :showManagermentProduct= 'true'
-        :showData= 'false'
-        :showCustomCare= 'false'
-        :showManagermentShop= 'false'
-        :showMarketing= 'false'
-        :showVoucher= 'false'
-        :showFlashSale= 'false'
-        :showAllOrder= 'false'
-        :showAllProduct= 'false'
-        :showAddProduct= 'true'
-        :showReview= 'false'
-        :showProfileShop= 'false'
-        :showProfile= 'false'
-        :showStatistical= 'false'
-        class="abs"
-        ></Navbar>
+  <Header :nav1="'Sản phẩm'" :nav2="'Thêm sản phẩm'"></Header>
+  <Notification :text="textToast" :isSuccess="showNotification"/>
+  <Navbar 
+    :isShow='false'
+    :showManagermentOrder='false'
+    :showManagermentProduct='true'
+    :showData='false'
+    :showCustomCare='false'
+    :showManagermentShop='false'
+    :showMarketing='false'
+    :showVoucher='false'
+    :showFlashSale='false'
+    :showAllOrder='false'
+    :showAllProduct='false'
+    :showAddProduct='true'
+    :showReview='false'
+    :showProfileShop='false'
+    :showProfile='false'
+    :showStatistical='false'
+    class="abs"
+  ></Navbar>
+  
   <div class="add-product-page">
-    
-    <!-- <div class="page-header">
-      <div class="breadcrumb">
-        <span class="icon">🏠</span>
-        <span>Trang chủ</span>
-        <span class="separator">›</span>
-        <span>Tất cả</span>
-        <span class="separator">›</span>
-        <span class="active">Thêm 1 sản phẩm mới</span>
-      </div>
-      <div class="user-menu">
-        <span class="icon">⋮⋮⋮</span>
-        <div class="user-avatar">
-          <div class="avatar-circle">T</div>
-          <span>TenNguoiBan</span>
-          <span class="icon">▼</span>
-        </div>
-      </div>
-    </div> -->
-
     <div class="content-wrapper">
       <aside class="sidebar">
         <div class="progress-section">
@@ -482,21 +551,29 @@ const descLength = computed(() => productData.description?.length || 0);
                     hidden
                   >
                   <label :for="`main-image-${colorIndex}`" class="upload-area">
-                    <img v-if="color.image_url" :src="color.image_url" alt="Main image">
+                    <img 
+                      v-if="colorImages.get(colorIndex)?.mainImagePreview" 
+                      :src="colorImages.get(colorIndex)?.mainImagePreview" 
+                      alt="Main image"
+                    >
                     <span v-else class="upload-icon">📷</span>
                   </label>
                 </div>
               </div>
 
               <div class="sub-images-upload">
-                <label class="upload-label">Ảnh phụ (Tối đa 3 ảnh)</label>
+                <label class="upload-label">Ảnh phụ (3 ảnh chi tiết)</label>
                 <div class="sub-images-grid">
-                  <div v-for="(img, imgIndex) in (color.images || [])" :key="imgIndex" class="sub-image-box">
-                    <img :src="img" alt="">
+                  <div 
+                    v-for="(preview, imgIndex) in (colorImages.get(colorIndex)?.subImagePreviews || [])" 
+                    :key="imgIndex" 
+                    class="sub-image-box"
+                  >
+                    <img :src="preview" alt="">
                     <button @click="removeSubImage(colorIndex, imgIndex)" class="remove-sub-image" type="button">✕</button>
                   </div>
                   <label 
-                    v-if="!color.images || color.images.length < 3"
+                    v-if="!colorImages.get(colorIndex)?.subImagePreviews || colorImages.get(colorIndex)!.subImagePreviews.length < 3"
                     class="add-sub-image"
                   >
                     <input 
@@ -519,7 +596,6 @@ const descLength = computed(() => productData.description?.length || 0);
                     <th>Size</th>
                     <th>Giá (₫)</th>
                     <th>Số lượng</th>
-                    <!-- <th>Flash Sale (₫)</th> -->
                     <th></th>
                   </tr>
                 </thead>
@@ -536,9 +612,6 @@ const descLength = computed(() => productData.description?.length || 0);
                     <td>
                       <input v-model.number="size.stock" type="number" class="stock-input" min="0">
                     </td>
-                    <!-- <td>
-                      <input v-model.number="size.flash_sale_price" type="number" class="price-input" min="0" placeholder="Không bắt buộc">
-                    </td> -->
                     <td>
                       <button 
                         v-if="color.sizes.length > 1"
@@ -600,9 +673,11 @@ const descLength = computed(() => productData.description?.length || 0);
   background: white;
   border-bottom: 1px solid #e0e0e0;
 }
-.abs{
-    display: none;
+
+.abs {
+  display: none;
 }
+
 .breadcrumb {
   display: flex;
   align-items: center;
@@ -1043,223 +1118,15 @@ const descLength = computed(() => productData.description?.length || 0);
   height: 18px;
   cursor: pointer;
 }
+
 .add-color-btn {
-     padding: 0.5rem 1rem;
+  padding: 0.5rem 1rem;
   background: white;
   border: 1px dashed #2196F3;
   border-radius: 4px;
   color: #2196F3;
   cursor: pointer;
   font-size: 0.9rem;
-}
-.variant-card {
-  border: 1px solid #e0e0e0;
-  border-radius: 8px;
-  padding: 1.5rem;
-  margin-bottom: 1rem;
-}
-
-.variant-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: 1rem;
-}
-
-.variant-header label {
-  flex: 1;
-}
-
-.remove-variant-btn {
-  background: #f44336;
-  color: white;
-  border: none;
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  cursor: pointer;
-  font-size: 1.2rem;
-}
-
-.color-picker {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  margin-bottom: 1.5rem;
-}
-
-.color-picker input[type="color"] {
-  width: 50px;
-  height: 35px;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  cursor: pointer;
-}
-
-.variant-table {
-  overflow-x: auto;
-}
-
-.variant-table table {
-  width: 100%;
-  border-collapse: collapse;
-}
-
-.variant-table th,
-.variant-table td {
-  padding: 0.75rem;
-  text-align: left;
-  border-bottom: 1px solid #e0e0e0;
-}
-
-.variant-table th {
-  background: #f5f5f5;
-  font-weight: 600;
-  font-size: 0.9rem;
-  color: #666;
-}
-
-.image-cell {
-  width: 80px;
-}
-
-.image-preview {
-  position: relative;
-  width: 60px;
-  height: 60px;
-}
-
-.image-preview img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  border-radius: 4px;
-}
-
-.remove-image {
-  position: absolute;
-  top: -8px;
-  right: -8px;
-  background: #f44336;
-  color: white;
-  border: none;
-  width: 20px;
-  height: 20px;
-  border-radius: 50%;
-  cursor: pointer;
-  font-size: 0.8rem;
-}
-
-.image-upload {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 60px;
-  height: 60px;
-  border: 2px dashed #ddd;
-  border-radius: 4px;
-  cursor: pointer;
-  color: #999;
-}
-
-.image-thumbnails {
-  width: 200px;
-}
-
-.thumbnail-list {
-  display: flex;
-  gap: 0.5rem;
-  flex-wrap: wrap;
-}
-
-.thumbnail {
-  width: 40px;
-  height: 40px;
-  border-radius: 4px;
-  overflow: hidden;
-}
-
-.thumbnail img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-.add-image {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 40px;
-  height: 40px;
-  border: 2px dashed #ddd;
-  border-radius: 4px;
-  cursor: pointer;
-  color: #999;
-  font-size: 1.2rem;
-}
-
-.input-price,
-.input-quantity {
-  width: 100px;
-  padding: 0.5rem;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-}
-
-.toggle-switch {
-  position: relative;
-  display: inline-block;
-  width: 50px;
-  height: 24px;
-}
-
-.toggle-switch input {
-  opacity: 0;
-  width: 0;
-  height: 0;
-}
-
-.slider {
-  position: absolute;
-  cursor: pointer;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-color: #ccc;
-  transition: 0.4s;
-  border-radius: 24px;
-}
-
-.slider:before {
-  position: absolute;
-  content: "";
-  height: 18px;
-  width: 18px;
-  left: 3px;
-  bottom: 3px;
-  background-color: white;
-  transition: 0.4s;
-  border-radius: 50%;
-}
-
-input:checked + .slider {
-  background-color: #4CAF50;
-}
-
-input:checked + .slider:before {
-  transform: translateX(26px);
-}
-
-.add-variant-btn {
-  padding: 0.75rem 1.5rem;
-  background: white;
-  border: 2px dashed #2196F3;
-  border-radius: 4px;
-  color: #2196F3;
-  cursor: pointer;
-  font-size: 0.95rem;
-  font-weight: 500;
 }
 
 .action-buttons {
@@ -1308,62 +1175,59 @@ input:checked + .slider:before {
 .btn-submit:hover {
   background: #e11d1d;
 }
-@media (max-width: 1024px) and (min-width: 678px){
-    .sidebar {
-        width: 90%;
-    }
-    .content-wrapper {
-          display: flex;
-        grid-template-columns: 280px 1fr;
-        gap: 1.5rem;
-        padding: 1.5rem 2rem;
-        max-width: 1400px;
-        margin: 0 auto;
-    }
+
+@media (max-width: 1024px) and (min-width: 678px) {
+  .sidebar {
+    width: 90%;
+  }
+  .content-wrapper {
+    display: flex;
+    grid-template-columns: 280px 1fr;
+    gap: 1.5rem;
+    padding: 1.5rem 2rem;
+    max-width: 1400px;
+    margin: 0 auto;
+  }
 }
 
 @media (max-width: 767px) {
-    .sidebar {
-        display: none;
-    }
-    .images-section {
-        display: flex;
-        flex-direction: column;
-    }
-    .add-product-page {
-        /* width: ; */
-        padding: 0px;
-    }
-    .content-wrapper {
-        display: flex;
-        /* gap: 1.5rem; */
-        width: 90%;
-        padding: 0px;
-        padding-top: 20px;
-    }
-    .main-content {
-        width: 100%;
-    }
-    .sub-images-grid {
-        display: grid;
-        grid-template-columns: repeat(2, 100px);
-        gap: 1rem;
-    }
-    .sizes-table {
-        /* overflow-y: auto; */
-        /* width: 700px; */
-        overflow: auto;
-    }
-    .sizes-table table{
-        width: 700px;
-    }
-    .abs{
-        display: flex;
-        position: fixed;
-        z-index: 99999;
-        background-color: white;
-        right: 0;
-        width: 200px;
-    }
+  .sidebar {
+    display: none;
+  }
+  .images-section {
+    display: flex;
+    flex-direction: column;
+  }
+  .add-product-page {
+    padding: 0px;
+  }
+  .content-wrapper {
+    display: flex;
+    width: 90%;
+    padding: 0px;
+    padding-top: 20px;
+  }
+  .main-content {
+    width: 100%;
+  }
+  .sub-images-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 100px);
+    gap: 1rem;
+  }
+  .sizes-table {
+    overflow: auto;
+  }
+  .sizes-table table {
+    width: 700px;
+  }
+  .abs {
+    display: flex;
+    position: fixed;
+    z-index: 99999;
+    background-color: white;
+    right: 0;
+    width: 200px;
+  }
 }
 </style>

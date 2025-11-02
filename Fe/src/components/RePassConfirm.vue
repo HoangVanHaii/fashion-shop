@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { ref } from 'vue';
-import { useRouter } from 'vue-router';
 import { useAuthStore } from '../stores/authStore';
 import Notification from './Notification.vue';
 import VerifyOTP from './VerifyOTP.vue';
@@ -10,7 +9,6 @@ const emit = defineEmits(['close']);
 const password = ref<string>('');
 const confirmPassword = ref<string>('');
 
-const router = useRouter();
 const auth = useAuthStore();
 const textToast = ref('');
 const showNotification = ref<boolean>(false);

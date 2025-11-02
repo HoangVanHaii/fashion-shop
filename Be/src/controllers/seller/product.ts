@@ -72,12 +72,11 @@ export const getAllProductsHiddenByShop = async (req: Request, res: Response, ne
     }
 }
 export const addProduct = async (req: Request, res: Response, next: NextFunction) => {
-    console.log(8878);
-    console.log("ssss", req.body);
     try {
+        
         const { category_id, name, description, colors } = req.body;
         const shop_id = await userService.getShopIdByUserId(req.user!.id);
-
+        const cacheKey = `shop:products:${shop_id}`;
         const parseColors = JSON.parse(colors);
         let productColors: ProductColor[] = [];
 
@@ -108,7 +107,7 @@ export const addProduct = async (req: Request, res: Response, next: NextFunction
         };
 
         await productService.addProduct(productPayload);
-
+        await redisClient.del(cacheKey);
         return res.status(201).json({ message: "Product created successfully" });
 
     } catch (error: any) {
