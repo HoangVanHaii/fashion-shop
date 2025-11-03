@@ -36,18 +36,24 @@ const handleHideNavbar = () => {
 
 const handleChangePassWord = async ()=>{
   textToast.value=""
-  if(!newPass.value || !oldPass.value || !confrimPass){
-     textToast.value="Vui lòng nhập đầy đủ thông tin"
+  if (!newPass.value || !oldPass.value || !confrimPass) {
+    setTimeout(() => {
+          textToast.value="Vui lòng nhập đầy đủ thông tin"
+    }, 0);
     showNotification.value=false
     return
   }
-  if(newPass.value !==confrimPass.value ){
-    textToast.value="Xác nhận mật khẩu không chính xác"
+  if (newPass.value !== confrimPass.value) {
+    setTimeout(() => {
+        textToast.value="Xác nhận mật khẩu không chính xác"
+    }, 0);
     showNotification.value=false
     return
   }
-  if(newPass.value ===oldPass.value ){
-    textToast.value="Mật khẩu cũ và mật khẩu mới giống nhau"
+  if (newPass.value === oldPass.value) {
+    setTimeout(() => {
+        textToast.value="Mật khẩu cũ và mật khẩu mới giống nhau"
+    }, 0);
     showNotification.value=false
     return
   }
