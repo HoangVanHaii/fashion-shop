@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import Header from '../../components/Header.vue';
 import { formatDateTime } from '../../utils/format';
 import { flashSaleSellerStore } from '../../stores/sellers/flashSaleStore';
 import { onMounted, watch } from 'vue';
@@ -7,6 +6,7 @@ import { ref } from 'vue';
 import ConfirmDialog from '../../components/ConfirmDialog.vue';
 import Notification from '../../components/Notification.vue';
 import Navbar from '../../components/sellers/Navbar.vue';
+import Header from '../../components/sellers/Header.vue';
 
 const showConfirmDialog = ref(false);
 const toastText = ref("");
@@ -67,7 +67,7 @@ const handleCancelConfirm = () => {
 
 
 <template>
-    <Header />
+    <Header :nav1="'Khuyến Mãi'" :nav2="'Falsh sale'" />
     <ConfirmDialog v-if="showConfirmDialog"
         :message="'Bạn có chắc chắn hủy hết sản phẩm trong Flash Sale này?'"
         @close="handleCancelConfirm"
