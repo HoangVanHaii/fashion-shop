@@ -465,7 +465,7 @@ const clickOrder = async () => {
         }
     } catch (err: any) {
         loadingOrder.value = false;
-        const msg = err.response?.data?.message || err.message;
+        const msg = err.response?.data?.message || err.message;                                                 
         console.error("Đặt hàng thất bại:", msg);
     } finally {
         loadingOrder.value = false;
