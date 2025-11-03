@@ -320,12 +320,10 @@ import type { OderPayLoad, OrderItem, Order } from '../interfaces/order'
 import Header from '../components/Header.vue'
 import Loading from '../components/Loading.vue'
 import router from '../routers'
-import { useRoute } from 'vue-router'
 import { getImage } from '../utils/format'
 import { useAddressStore } from '../stores/addressStore'
 import type { Address } from '../interfaces/address'
 import Notification from '../components/Notification.vue'
-const route = useRoute();
 const toastText = ref<string>('')
 const isNotification = ref<boolean>(false);
 
