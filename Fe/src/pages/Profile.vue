@@ -132,7 +132,9 @@ const sendChangeEmail = async () => {
   textToast.value=""
 
   if (!newEmail.value || !password.value) {
-    textToast.value = "Vui lòng nhập đủ email mới và mật khẩu";
+    setTimeout(() => {
+          textToast.value = "Vui lòng nhập đủ email mới và mật khẩu";
+    }, 0);
     showNotification.value = true;
     return;
   }
@@ -141,25 +143,33 @@ const sendChangeEmail = async () => {
     
     if (userStore.emailPending) {
       showOtpForm.value = true;
-      textToast.value = "OTP đã được gửi, vui lòng kiểm tra email";
+      setTimeout(() => {
+              textToast.value = "OTP đã được gửi, vui lòng kiểm tra email";
+      }, 0);
       showNotification.value = true;
     }
   } catch(error:any) {
     if(error?.response?.data?.message === "Email already exists"){
       textToast.value = ''
-      textToast.value = "Email đã tồn tại, vui lòng chọn email khác.";
+      setTimeout(() => {
+          textToast.value = "Email đã tồn tại, vui lòng chọn email khác.";
+      }, 0);
       showNotification.value = false;
     }
     else if(error?.response?.data?.message === "Invalid password"){
       textToast.value = ''
-      textToast.value = "Mật khẩu không chính xác";
+      setTimeout(() => {
+              textToast.value = "Mật khẩu không chính xác";
+      }, 0);
       showNotification.value = false;
     }
     
     else{
       console.log(1)
-    textToast.value = ''
-    textToast.value = "Email đã tồn tại hoặc sai mật khẩu";
+      textToast.value = ''
+    setTimeout(() => {
+          textToast.value = "Email đã tồn tại hoặc sai mật khẩu";
+    }, 0);
     showNotification.value = false;   
     }
     

@@ -6,6 +6,7 @@ import { onMounted, watch } from 'vue';
 import { ref } from 'vue';
 import ConfirmDialog from '../../components/ConfirmDialog.vue';
 import Notification from '../../components/Notification.vue';
+import Navbar from '../../components/sellers/Navbar.vue';
 
 const showConfirmDialog = ref(false);
 const toastText = ref("");
@@ -77,7 +78,25 @@ const handleCancelConfirm = () => {
         :isSuccess="isNotification" 
      />
     <div class="container">
-        <div class="component-left"></div>
+         <Navbar 
+         :isShow='false'
+        :showManagermentOrder= 'false'
+        :showManagermentProduct= 'false'
+        :showData= 'false'
+        :showCustomCare= 'false'
+        :showManagermentShop= 'false'
+        :showMarketing= 'true'
+        :showVoucher= 'false'
+        :showFlashSale= 'true'
+        :showAllOrder= 'false'
+        :showAllProduct= 'false'
+        :showAddProduct= 'false'
+        :showReview= 'false'
+        :showProfileShop= 'false'
+        :showProfile= 'false'
+        :showStatistical= 'false'
+        class="abs"
+        ></Navbar>
         <div class="container-content">
             <div class="top-content">
                 <span class="content1">Danh sách chương trình</span>
@@ -116,7 +135,8 @@ const handleCancelConfirm = () => {
                         <span class="short" v-else @click="handleShowFormConfirm(flashSale.id!)"><i class="fa-solid fa-toggle-on"></i></span>
                         <span class="short"><i class="fa-solid fa-pen-to-square"></i></span>
                     </div>
-                    <div class="content-row" v-for="(flashSale) in useFlashSale.displayFlashSale">
+                    
+                    <!-- <div class="content-row" v-for="(flashSale) in useFlashSale.displayFlashSale">
                         <div class="date">
                             <span class="long-date">{{ formatDateTime(flashSale.start_date) }} </span>
                             <span class="long-date">{{ formatDateTime(flashSale.end_date) }}</span>
@@ -126,18 +146,7 @@ const handleCancelConfirm = () => {
                         <span class="short" v-if="!flashSale.shop_has_sale" @click="handleNotification"><i class="fa-solid fa-toggle-off"></i></span>
                         <span class="short" v-else @click="handleShowFormConfirm(flashSale.id!)"><i class="fa-solid fa-toggle-on"></i></span>
                         <span class="short"><i class="fa-solid fa-pen-to-square"></i></span>
-                    </div>
-                    <div class="content-row" v-for="(flashSale) in useFlashSale.displayFlashSale">
-                        <div class="date">
-                            <span class="long-date">{{ formatDateTime(flashSale.start_date) }} </span>
-                            <span class="long-date">{{ formatDateTime(flashSale.end_date) }}</span>
-                        </div>
-                        <span class="long">{{ flashSale.title }}</span>
-                        <span class="short">{{ flashSale.status }} </span>
-                        <span class="short" v-if="!flashSale.shop_has_sale" @click="handleNotification"><i class="fa-solid fa-toggle-off"></i></span>
-                        <span class="short" v-else @click="handleShowFormConfirm(flashSale.id!)"><i class="fa-solid fa-toggle-on"></i></span>
-                        <span class="short"><i class="fa-solid fa-pen-to-square"></i></span>
-                    </div>
+                    </div> -->
                     
                     
                     
@@ -172,7 +181,7 @@ const handleCancelConfirm = () => {
         margin-top: 110px;
         /* padding-top: 110px; */
         width: 100%;
-        background-color: rgb(195, 191, 191);
+        /* background-color: rgb(195, 191, 191); */
         height: 83vh;
         display: flex;
         flex-direction: row;
@@ -187,7 +196,7 @@ const handleCancelConfirm = () => {
         /* background-color: aqua; */
     }
     .container-content{
-        width: 81.3%;
+        width: 81%;
         /* height: 78vh; */
         /* overflow-y: auto; */
         /* background-color: red; */
@@ -310,7 +319,7 @@ const handleCancelConfirm = () => {
         flex-direction: column;
         background-color: white;
         width: 100%;
-        height: 48vh;
+        height: 40vh;
         /* height: auto; */
         overflow-y: auto;
         align-items: center;
@@ -364,6 +373,10 @@ const handleCancelConfirm = () => {
         overflow: hidden;
         text-overflow: ellipsis;
     }
+    .abs {
+        z-index: 999;
+        background-color: white;
+    }
     
     .list-flash-sale .content-row .long{
         width: 35%;
@@ -389,6 +402,13 @@ const handleCancelConfirm = () => {
         }
         .container-content{
             width: 95%;
+        }
+        .abs{
+            position: fixed;
+            z-index: 99999;
+            background-color: white;
+            right: 0;
+            width: 200px;
         }
         .content-sale{
             overflow-y: auto;
