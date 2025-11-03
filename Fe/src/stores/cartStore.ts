@@ -237,6 +237,7 @@ export const useCartStore = defineStore('cart', () => {
 
     const removePaidItems = async () => {
         if (!cartPay.value?.shops?.length) return
+        loading.value = true;
 
         for (const shop of cartPay.value.shops) {
             if (!shop.carts || shop.carts.length === 0) continue

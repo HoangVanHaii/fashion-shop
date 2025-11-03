@@ -162,3 +162,20 @@ export const respondSellerRequest = async (req: Request, res: Response, next: Ne
     }
 }
 
+/////////////////
+
+export const getAllSellerRequest = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        console.log("aaaaaaaaaaaa")
+        const result = await userService.getAllSellerRequest();
+        return res.status(200).json({
+            success: true,
+            message: "Get all SellerRequest successfully",
+            data: result
+        })
+
+    } catch (err) {
+        next(err);
+    }
+
+}

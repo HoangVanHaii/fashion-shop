@@ -5,6 +5,7 @@ import { validateRequest } from '../../middlewares/validateRequest';
 import * as userValidator from '../../middlewares/validateUser';
 const router = express.Router();
 
+router.get("/sellerRequest", authMiddleware, isAdmin, userController.getAllSellerRequest);
 router.post("/createUser", authMiddleware, isAdmin, userValidator.createUserByAdminValidator, validateRequest, userController.createUserByAdmin);
 router.get("/", authMiddleware, isAdmin, userController.getAllUsers);
 router.get("/search", authMiddleware, isAdmin, userController.searchUsers);

@@ -6,16 +6,16 @@ const props = defineProps<{
 }>()
 const show = ref(false);
 watch(() => props.text, (newVal) => {
-    if (newVal) {
+    if (newVal && String(newVal).trim().length > 0) {
         show.value = true;
-        setTimeout(() => (show.value = false), 1700);
+        setTimeout(() => (show.value = false), 1500);
     }
 })
 </script>
 <template>
     <teleport to="body">
         <transition name="fade-slide"> 
-            <div v-if="show" class="toast" :class="{'toast-success': isSuccess, 'toast-error': !isSuccess}">
+            <div v-if="show && text"  nn class="toast" :class="{'toast-success': isSuccess, 'toast-error': !isSuccess}">
                 {{ text }}
             </div>
         </transition>

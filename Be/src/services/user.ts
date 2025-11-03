@@ -66,7 +66,6 @@ export const getUserById = async (id: number): Promise<User | null> => {
 };
 export const getAllUsers = async (role?: string, status?: string, is_verified?: string): Promise<User[]> => {
     try {
-        console.log(role, status, is_verified);
         let query = "SELECT * FROM users WHERE 1=1";
         if (role) {
             query += ` AND role = '${role}'`;
@@ -77,7 +76,6 @@ export const getAllUsers = async (role?: string, status?: string, is_verified?: 
         if (is_verified) {
             query += ` AND is_verified = '${is_verified === "true" ? 1 : 0}'`;
         }
-        console.log(query);
         const pool = await connectionDB();
         const result = await pool.request().query(query);
         return result.recordset as User[];
@@ -87,7 +85,18 @@ export const getAllUsers = async (role?: string, status?: string, is_verified?: 
         throw new AppError("Failed to getAllUsers", 500, false);
     }
 };
+export const getAllSellerRequest = async (): Promise<SellerRequest[]> => {
+    try {
+        let query = "SELECT * FROM seller_requests";
+        const pool = await connectionDB();
+        const result = await pool.request().query(query);
+        return result.recordset as SellerRequest[];
 
+    } catch (err) {
+        console.error(err);
+        throw new AppError("Failed to getAllSellerRequest", 500, false);
+    }
+};
 export const searchUser = async (keyword: string): Promise<User[]> => {
     try {
         const pool = await connectionDB();

@@ -9,12 +9,9 @@ import { formatDateTime, formatPrice, getImage } from "../utils/format";
 import { useRouter } from "vue-router";
 import Notification from "../components/Notification.vue";
 import ConfirmDialog from "../components/ConfirmDialog.vue";
-
-import type { GetOrder } from "../interfaces/order";
+import type { GetOrder, OrderItemDetail } from "../interfaces/order";
 import type { Cart, CartItemDetail, ShopCart } from "../interfaces/cart";
 import { useCartStore } from "../stores/cartStore";
-
-import type { OrderItemDetail } from "../interfaces/order";
 import ReviewPopup  from "../components/Review.vue"
 
 const cart = useCartStore();

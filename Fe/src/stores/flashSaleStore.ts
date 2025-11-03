@@ -61,11 +61,11 @@ export const flashSaleStore = defineStore("flashSale", () => {
             loading.value = false;
         }
     }
-    const getTotalSoldFlashSaleByIdStore = async () => {
+    const getTotalSoldFlashSaleByIdStore = async (id: number) => {
         totalSolds.value = [];
         loading.value = true;
         try {
-            const result = await getTotalSoldFlashSaleById(4);
+            const result = await getTotalSoldFlashSaleById(id);
             return result.data;
         } catch (err) {
             console.log(err);
