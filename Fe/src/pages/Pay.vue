@@ -449,9 +449,7 @@ const clickOrder = async () => {
 
     try {
         const res = await orderStore.createOrder(payload)
-        if (route.name === 'cart-of-me') {
-            await cartStore.removePaidItems();
-        }
+        await cartStore.removePaidItems();
         loadingOrder.value = false;
 
         if (order.payment_method == 'vnpay') {
