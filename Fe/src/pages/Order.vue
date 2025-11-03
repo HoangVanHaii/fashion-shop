@@ -42,6 +42,7 @@ onMounted(async () => {
     }
     // loadOrder.value = orders;
   }
+    console.log("order detail items 22:", order.orderDetail?.items);
   window.addEventListener("resize", handleResize);
 });
 const handleResize = () => {
@@ -115,7 +116,11 @@ const showReviewForm = ref(false);
 const selectedOrderItem = ref<OrderItemDetail | null>(null);
 const handleReview = (item: OrderItemDetail | undefined) => {
   if(!item) return
+   console.log('gia tri truyen')
+  console.log(item)
   selectedOrderItem.value = item;
+  console.log('gia tri that su')
+  console.log(selectedOrderItem.value)
   showReviewForm.value = true;
 };
 

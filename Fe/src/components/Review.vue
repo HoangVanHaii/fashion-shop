@@ -5,6 +5,7 @@ import type { OrderItemDetail } from '../interfaces/order';
 import Notification from "../components/Notification.vue";
 import { getImage } from "../utils/format";
 import type { Review } from '../interfaces/review';
+import Loading from './Loading.vue';
 
 const props = defineProps<{
   orderItem: OrderItemDetail
@@ -122,6 +123,7 @@ const handleSubmit = async () => {
 
 <template>
   <Notification :text="textToast" :isSuccess="showNotification" />
+  <Loading :loading="reviewStore.loading" />
   <div class="review-overlay">
     <div class="review-modal">
       <h3>{{ isReadonly ? 'Đánh Giá Của Bạn' : 'Đánh Giá Sản Phẩm' }}</h3>

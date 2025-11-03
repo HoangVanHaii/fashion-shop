@@ -31,6 +31,7 @@ onMounted(async () => {
   handleResize();
   const id = parseInt(route.params.id as string);
   await order.getOrderByIdStore(id);
+  console.log("order detail items:", order.orderDetail?.items);
   window.addEventListener("resize", handleResize);
 });
 const handleResize = () => {
@@ -98,7 +99,11 @@ const handleReOrder = async (getOrder: GetOrder, shop_name: string) => {
 
 
 const handleReview = (item: OrderItemDetail) => {
+  console.log('gia tri truyen')
+  console.log(item)
   selectedOrderItem.value = item;
+  console.log('gia tri that su')
+  console.log(selectedOrderItem.value)
   showReviewForm.value = true;
 };
 

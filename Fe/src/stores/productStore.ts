@@ -29,10 +29,18 @@ export const useProductStore = defineStore('product', () => {
         }
         
     }
+    // const getProductIdBySizeStore = async(size_id:number)=>{
+    //      try {
+    //         const res = await getProductIdBySize(size_id);
+    //         return res.product_id;
+    //     } catch (error) {
+    //         console.log("Failed to get productId",error);
+    //     }
+    // }
     const getProductIdBySizeStore = async(size_id:number)=>{
          try {
             const res = await getProductIdBySize(size_id);
-            return res.product_id;
+            return res.data;
         } catch (error) {
             console.log("Failed to get productId",error);
         }
