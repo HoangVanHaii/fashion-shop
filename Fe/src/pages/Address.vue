@@ -408,7 +408,7 @@ const displayAddress = (addr: string) => {
   display: flex;
   justify-content: center;
   align-items: flex-start;
-    width: 90%;  
+    width: 75%;  
 
 }
 
